@@ -1,1 +1,4 @@
 project_id = "rfeljyjaebgoehnlxxxk"
+
+[functions.create-restaurant]
+verify_jwt = false
