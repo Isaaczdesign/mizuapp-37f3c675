@@ -10,6 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
 import KDS from "./pages/KDS";
 import PublicMenu from "./pages/PublicMenu";
+import Customers from "./pages/Customers";
+import Tables from "./pages/Tables";
+import MenuAdmin from "./pages/MenuAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,9 +44,9 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             <Route path="/kds" element={<ProtectedRoute><KDS /></ProtectedRoute>} />
-            <Route path="/menu-admin" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">Gestão de Cardápio — em breve</div></ProtectedRoute>} />
-            <Route path="/customers" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">CRM — em breve</div></ProtectedRoute>} />
-            <Route path="/tables" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">Mesas — em breve</div></ProtectedRoute>} />
+            <Route path="/menu-admin" element={<ProtectedRoute><MenuAdmin /></ProtectedRoute>} />
+            <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+            <Route path="/tables" element={<ProtectedRoute><Tables /></ProtectedRoute>} />
             <Route path="/automations" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">Automações — em breve</div></ProtectedRoute>} />
             <Route path="/agenda" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">Agenda — em breve</div></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
