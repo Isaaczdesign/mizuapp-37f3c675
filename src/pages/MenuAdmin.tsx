@@ -246,20 +246,15 @@ function MenuImportTab({ rid }: { rid: string }) {
       setUploading(false);
       setProcessing(true);
 
-      // For images, use vision model; for PDFs, we send a placeholder OCR text
-      // In both cases, call the import-menu edge function
-      let ocrText = "";
+      // For images, send the public URL for vision processing
+      // For PDFs, send filename as hint
       const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.name);
 
+      let requestBody: any;
       if (isImage) {
-        // Convert image to base64 for vision OCR description
-        const arrayBuf = await file.arrayBuffer();
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuf)));
-        const mimeType = file.type || "image/jpeg";
-        ocrText = `[IMAGE_BASE64:data:${mimeType};base64,${base64}]`;
+        requestBody = { image_url: urlData.publicUrl };
       } else {
-        // For PDFs, extract text client-side is limited; send filename as hint
-        ocrText = `[PDF file uploaded: ${file.name}]. Please analyze the file at URL: ${urlData.publicUrl}`;
+        requestBody = { ocr_text: `[PDF file uploaded: ${file.name}]. Please analyze the file at URL: ${urlData.publicUrl}` };
       }
 
       // Call import-menu edge function
@@ -269,7 +264,7 @@ function MenuImportTab({ rid }: { rid: string }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ ocr_text: ocrText }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!resp.ok) {
