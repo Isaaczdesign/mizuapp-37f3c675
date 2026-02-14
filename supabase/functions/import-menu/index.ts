@@ -143,11 +143,12 @@ serve(async (req) => {
   }
 
   try {
-    const { ocr_text, layout_hints } = await req.json();
+    const { ocr_text, layout_hints, image_url } = await req.json();
 
-    if (!ocr_text || typeof ocr_text !== "string" || ocr_text.trim().length < 10) {
+    // Support two modes: image_url (vision) or ocr_text (text)
+    if (!image_url && (!ocr_text || typeof ocr_text !== "string" || ocr_text.trim().length < 10)) {
       return new Response(
-        JSON.stringify({ error: "ocr_text is required and must contain meaningful content" }),
+        JSON.stringify({ error: "Either image_url or ocr_text is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -157,35 +158,49 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Check if input is a base64 image
-    const imageMatch = ocr_text.match(/^\[IMAGE_BASE64:(data:[^;]+;base64,.+)\]$/s);
     let messages: any[];
 
-    if (imageMatch) {
-      // Vision-based: send image to multimodal model
+    if (image_url) {
+      // Vision-based: send image URL directly to multimodal model
       messages = [
         { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
           content: [
             { type: "text", text: "Please extract and parse the menu from this image. Return STRICT JSON only." + (layout_hints ? `\n\nLayout hints: ${layout_hints}` : "") },
-            { type: "image_url", image_url: { url: imageMatch[1] } },
+            { type: "image_url", image_url: { url: image_url } },
           ],
         },
       ];
     } else {
-      // Text-based OCR
-      let userContent = `Here is the OCR-extracted menu text:\n\n${ocr_text}`;
-      if (layout_hints) {
-        userContent += `\n\nLayout hints:\n${layout_hints}`;
+      // Check if input is a base64 image (legacy support)
+      const imageMatch = ocr_text.match(/^\[IMAGE_BASE64:(data:[^;]+;base64,.+)\]$/s);
+
+      if (imageMatch) {
+        messages = [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Please extract and parse the menu from this image. Return STRICT JSON only." + (layout_hints ? `\n\nLayout hints: ${layout_hints}` : "") },
+              { type: "image_url", image_url: { url: imageMatch[1] } },
+            ],
+          },
+        ];
+      } else {
+        // Text-based OCR
+        let userContent = `Here is the OCR-extracted menu text:\n\n${ocr_text}`;
+        if (layout_hints) {
+          userContent += `\n\nLayout hints:\n${layout_hints}`;
+        }
+        messages = [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userContent },
+        ];
       }
-      messages = [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userContent },
-      ];
     }
 
-    const model = imageMatch ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash";
+    const model = (image_url || ocr_text?.startsWith("[IMAGE_BASE64:")) ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
