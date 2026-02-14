@@ -21,9 +21,10 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
     // User client to get the authenticated user
-    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!, {
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
     const { data: { user }, error: userError } = await userClient.auth.getUser();
@@ -57,15 +58,15 @@ serve(async (req) => {
       .single();
 
     if (existingProfile?.restaurant_id) {
-      return new Response(JSON.stringify({ error: 'User already has a restaurant' }), {
+      return new Response(JSON.stringify({ error: 'User already has a restaurant', restaurant_id: existingProfile.restaurant_id }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Create restaurant
+    // Create restaurant with owner info
     const { data: restaurant, error: restError } = await adminClient
       .from('restaurants')
-      .insert({ name, slug })
+      .insert({ name, slug, owner_name: name, owner_email: user.email })
       .select()
       .single();
 
@@ -97,6 +98,9 @@ serve(async (req) => {
 
     // Create default settings
     await adminClient.from('settings').insert({ restaurant_id: restaurant.id });
+
+    // Create default subscription (free plan)
+    await adminClient.from('subscriptions').insert({ restaurant_id: restaurant.id, plan: 'free', status: 'active' });
 
     return new Response(JSON.stringify({ restaurant }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }

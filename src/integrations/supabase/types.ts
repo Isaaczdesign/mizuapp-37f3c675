@@ -464,6 +464,9 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          owner_email: string | null
+          owner_name: string | null
+          owner_phone: string | null
           slug: string
           updated_at: string
         }
@@ -472,6 +475,9 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          owner_email?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
           slug: string
           updated_at?: string
         }
@@ -480,6 +486,9 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          owner_email?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
           slug?: string
           updated_at?: string
         }
@@ -516,6 +525,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "settings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan: string
+          restaurant_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          restaurant_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          restaurant_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: true
             referencedRelation: "restaurants"
