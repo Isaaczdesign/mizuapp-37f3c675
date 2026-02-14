@@ -15,10 +15,10 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Get all restaurants with active automation rules
+    // Get all active automation rules
     const { data: rules, error: rulesErr } = await supabase
       .from("automation_rules")
-      .select("*, restaurants(name, slug), settings:settings!automation_rules_restaurant_id_fkey(whatsapp_provider, whatsapp_api_key)")
+      .select("*, restaurants(name, slug)")
       .eq("is_active", true);
 
     if (rulesErr) throw rulesErr;
