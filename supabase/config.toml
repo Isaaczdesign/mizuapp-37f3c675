@@ -2,3 +2,9 @@ project_id = "rfeljyjaebgoehnlxxxk"
 
 [functions.create-restaurant]
 verify_jwt = false
+
+[functions.import-menu]
+verify_jwt = false
+
+[functions.process-automations]
+verify_jwt = false
