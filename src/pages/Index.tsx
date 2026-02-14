@@ -104,12 +104,14 @@ const Index = () => {
                 Cardápio premium, cozinha organizada e WhatsApp automático. Tudo que seu restaurante japonês precisa.
               </motion.p>
               <motion.div custom={2} variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button variant="hero" size="lg" className="text-base px-8 py-6">
-                  Testar 7 dias grátis
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                <Button variant="hero" size="lg" className="text-base px-8 py-6" asChild>
+                  <a href="/auth?mode=signup">
+                    Testar 7 dias grátis
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </a>
                 </Button>
-                <Button variant="glass" size="lg" className="text-base px-8 py-6">
-                  Ver demonstração
+                <Button variant="glass" size="lg" className="text-base px-8 py-6" asChild>
+                  <a href="/m/demo">Ver demonstração</a>
                 </Button>
               </motion.div>
               <motion.p custom={3} variants={fadeUp} className="mt-4 text-sm text-muted-foreground">
@@ -253,9 +255,11 @@ const Index = () => {
                 </li>
               ))}
             </ul>
-            <Button variant="hero" size="lg" className="w-full text-base py-6 animate-pulse-glow">
-              Testar 7 dias grátis
-              <ArrowRight className="ml-2 h-5 w-5" />
+            <Button variant="hero" size="lg" className="w-full text-base py-6 animate-pulse-glow" asChild>
+              <a href="/auth?mode=signup">
+                Testar 7 dias grátis
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
             </Button>
             <p className="text-xs text-muted-foreground mt-3">Sem cartão de crédito.</p>
           </motion.div>

@@ -14,6 +14,7 @@ import Customers from "./pages/Customers";
 import Tables from "./pages/Tables";
 import MenuAdmin from "./pages/MenuAdmin";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/tables" element={<ProtectedRoute><Tables /></ProtectedRoute>} />
             <Route path="/automations" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">Automações — em breve</div></ProtectedRoute>} />
             <Route path="/agenda" element={<ProtectedRoute><div className="min-h-screen bg-background flex items-center justify-center text-foreground">Agenda — em breve</div></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
