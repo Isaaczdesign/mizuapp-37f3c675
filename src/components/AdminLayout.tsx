@@ -1,22 +1,39 @@
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings, Globe } from "lucide-react";
 import type { ReactNode } from "react";
 
-const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/orders", icon: ShoppingBag, label: "Pedidos" },
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[] };
+
+const allNavItems: NavItem[] = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["owner", "manager"] },
+  { to: "/orders", icon: ShoppingBag, label: "Pedidos", roles: ["owner", "manager", "staff"] },
   { to: "/kds", icon: ChefHat, label: "Cozinha" },
-  { to: "/menu-admin", icon: UtensilsCrossed, label: "Cardápio" },
-  { to: "/customers", icon: Users, label: "CRM" },
-  { to: "/tables", icon: QrCode, label: "Mesas" },
-  { to: "/automations", icon: Zap, label: "Automações" },
-  { to: "/agenda", icon: Calendar, label: "Agenda" },
+  { to: "/menu-admin", icon: UtensilsCrossed, label: "Cardápio", roles: ["owner", "manager"] },
+  { to: "/customers", icon: Users, label: "CRM", roles: ["owner", "manager", "staff"] },
+  { to: "/tables", icon: QrCode, label: "Mesas", roles: ["owner", "manager"] },
+  { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
+  { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"] },
 ];
 
+const bottomItems: NavItem[] = [
+  { to: "/settings", icon: Settings, label: "Configurações", roles: ["owner", "manager"] },
+];
+
+function filterByRole(items: NavItem[], roles: string[]): NavItem[] {
+  return items.filter((item) => {
+    if (!item.roles) return true; // accessible to all
+    return item.roles.some((r) => roles.includes(r));
+  });
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { signOut, profile } = useAuth();
+  const { signOut, roles } = useAuth();
   const navigate = useNavigate();
+  const userRoles = roles.length > 0 ? roles : ["owner"]; // fallback for dev
+
+  const navItems = filterByRole(allNavItems, userRoles);
+  const bottomNav = filterByRole(bottomItems, userRoles);
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,17 +64,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="p-2 border-t border-border space-y-0.5">
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
-                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`
-            }
-          >
-            <Settings className="w-4 h-4" />
-            Configurações
-          </NavLink>
+          {bottomNav.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`
+              }
+            >
+              <item.icon className="w-4 h-4" />
+              {item.label}
+            </NavLink>
+          ))}
           <button onClick={handleSignOut} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive w-full transition-colors">
             <LogOut className="w-4 h-4" />
             Sair

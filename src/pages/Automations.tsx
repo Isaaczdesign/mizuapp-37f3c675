@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Zap } from "lucide-react";
+import { Plus, Trash2, Zap, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -25,16 +25,14 @@ const Automations = () => {
   const [showForm, setShowForm] = useState(false);
   const [trigger, setTrigger] = useState<string>("post_purchase_d1");
   const [template, setTemplate] = useState("Olá {{name}}, obrigado por pedir no {{restaurant}}! 🍣");
+  const [sendStart, setSendStart] = useState("11:00");
+  const [sendEnd, setSendEnd] = useState("20:00");
 
   const { data: rules = [] } = useQuery({
     queryKey: ["automation-rules", rid],
     enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("automation_rules")
-        .select("*")
-        .eq("restaurant_id", rid!)
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.from("automation_rules").select("*").eq("restaurant_id", rid!).order("created_at", { ascending: false });
       return data ?? [];
     },
   });
@@ -43,12 +41,8 @@ const Automations = () => {
     queryKey: ["message-logs", rid],
     enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("message_logs")
-        .select("*, customers(name)")
-        .eq("restaurant_id", rid!)
-        .order("sent_at", { ascending: false })
-        .limit(20);
+      const { data } = await supabase.from("message_logs").select("*, customers(name)")
+        .eq("restaurant_id", rid!).order("sent_at", { ascending: false }).limit(20);
       return data ?? [];
     },
   });
@@ -56,11 +50,9 @@ const Automations = () => {
   const createRule = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("automation_rules").insert({
-        restaurant_id: rid!,
-        trigger: trigger as any,
-        message_template: template,
-        is_active: true,
-      });
+        restaurant_id: rid!, trigger: trigger as any, message_template: template,
+        is_active: true, send_window_start: sendStart, send_window_end: sendEnd,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -119,15 +111,21 @@ const Automations = () => {
             </div>
             <div>
               <Label>Mensagem</Label>
-              <Textarea
-                value={template}
-                onChange={(e) => setTemplate(e.target.value)}
-                className="mt-1"
-                rows={3}
-                placeholder="Use {{name}}, {{restaurant}}, {{days}}"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Variáveis: {"{{name}}"}, {"{{restaurant}}"}, {"{{days}}"}</p>
+              <Textarea value={template} onChange={(e) => setTemplate(e.target.value)} className="mt-1" rows={3}
+                placeholder="Use {{name}}, {{restaurant}}, {{days}}, {{coupon}}" />
+              <p className="text-xs text-muted-foreground mt-1">Variáveis: {"{{name}}"}, {"{{restaurant}}"}, {"{{days}}"}, {"{{coupon}}"}</p>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="flex items-center gap-1"><Clock className="w-3 h-3" /> Janela de Envio (Início)</Label>
+                <Input type="time" value={sendStart} onChange={(e) => setSendStart(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1"><Clock className="w-3 h-3" /> Janela de Envio (Fim)</Label>
+                <Input type="time" value={sendEnd} onChange={(e) => setSendEnd(e.target.value)} className="mt-1" />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">⚠️ Máximo 1 mensagem por cliente por dia. Apenas clientes com consentimento de marketing.</p>
             <div className="flex gap-2">
               <Button onClick={() => createRule.mutate()} disabled={createRule.isPending}>
                 {createRule.isPending ? "Criando..." : "Criar Regra"}
@@ -156,6 +154,11 @@ const Automations = () => {
                   </span>
                 </div>
                 <p className="text-sm">{rule.message_template}</p>
+                {((rule as any).send_window_start || (rule as any).send_window_end) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    🕐 Envio: {(rule as any).send_window_start ?? "11:00"} — {(rule as any).send_window_end ?? "20:00"}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Switch checked={rule.is_active} onCheckedChange={(v) => toggleRule.mutate({ id: rule.id, is_active: v })} />
@@ -176,9 +179,14 @@ const Automations = () => {
             <div className="space-y-2">
               {logs.map((log: any) => (
                 <div key={log.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0">
-                  <div>
+                  <div className="flex-1">
                     <span className="font-medium">{log.customers?.name ?? "—"}</span>
                     <span className="text-muted-foreground ml-2">{triggerLabel(log.trigger)}</span>
+                    {(log as any).status && (
+                      <span className={`ml-2 text-xs ${(log as any).status === "sent" ? "text-green-400" : "text-destructive"}`}>
+                        {(log as any).status === "sent" ? "✓ Enviado" : "✗ Falhou"}
+                      </span>
+                    )}
                   </div>
                   <span className="text-xs text-muted-foreground">{new Date(log.sent_at).toLocaleDateString("pt-BR")}</span>
                 </div>

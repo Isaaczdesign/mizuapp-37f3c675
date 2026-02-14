@@ -21,8 +21,8 @@ import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, profile } = useAuth();
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
+  const { user, loading, profile, roles } = useAuth();
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -31,8 +31,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
-  // If user has no restaurant, show onboarding
   if (!profile?.restaurant_id) return <Onboarding />;
+  // Role check
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRoles = roles.length > 0 ? roles : ["owner"]; // fallback
+    const hasAccess = allowedRoles.some((r) => userRoles.includes(r));
+    if (!hasAccess) return <Navigate to="/kds" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -47,15 +52,16 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+            <Route path="/r/:slug" element={<PublicMenu />} />
+            <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Dashboard /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Orders /></ProtectedRoute>} />
             <Route path="/kds" element={<ProtectedRoute><KDS /></ProtectedRoute>} />
-            <Route path="/menu-admin" element={<ProtectedRoute><MenuAdmin /></ProtectedRoute>} />
-            <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-            <Route path="/tables" element={<ProtectedRoute><Tables /></ProtectedRoute>} />
-            <Route path="/automations" element={<ProtectedRoute><Automations /></ProtectedRoute>} />
-            <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/menu-admin" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><MenuAdmin /></ProtectedRoute>} />
+            <Route path="/customers" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Customers /></ProtectedRoute>} />
+            <Route path="/tables" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Tables /></ProtectedRoute>} />
+            <Route path="/automations" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Automations /></ProtectedRoute>} />
+            <Route path="/agenda" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Agenda /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
