@@ -211,6 +211,10 @@ function AddonsEditor({ itemId, rid }: { itemId: string; rid: string }) {
 function MenuImportTab({ rid }: { rid: string }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [parsedResult, setParsedResult] = useState<any>(null);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
 
   const { data: jobs = [] } = useQuery({
     queryKey: ["import-jobs", rid],
@@ -224,25 +228,154 @@ function MenuImportTab({ rid }: { rid: string }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setParsedResult(null);
     try {
+      // Upload file to storage
       const path = `${rid}/imports/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("menu-images").upload(path, file);
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
 
-      const { error } = await (supabase as any).from("menu_import_jobs").insert({
+      // Create job record
+      const { data: job, error: jobErr } = await (supabase as any).from("menu_import_jobs").insert({
         restaurant_id: rid, file_url: urlData.publicUrl, status: "uploaded",
-      });
-      if (error) throw error;
+      }).select().single();
+      if (jobErr) throw jobErr;
 
-      toast.success("Arquivo enviado! O processamento iniciará em breve.");
+      toast.success("Arquivo enviado! Processando com IA...");
+      setUploading(false);
+      setProcessing(true);
+
+      // For images, use vision model; for PDFs, we send a placeholder OCR text
+      // In both cases, call the import-menu edge function
+      let ocrText = "";
+      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.name);
+
+      if (isImage) {
+        // Convert image to base64 for vision OCR description
+        const arrayBuf = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuf)));
+        const mimeType = file.type || "image/jpeg";
+        ocrText = `[IMAGE_BASE64:data:${mimeType};base64,${base64}]`;
+      } else {
+        // For PDFs, extract text client-side is limited; send filename as hint
+        ocrText = `[PDF file uploaded: ${file.name}]. Please analyze the file at URL: ${urlData.publicUrl}`;
+      }
+
+      // Call import-menu edge function
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ ocr_text: ocrText }),
+      });
+
+      if (!resp.ok) {
+        const errBody = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
+        throw new Error(errBody.error || `Erro ${resp.status}`);
+      }
+
+      const parsed = await resp.json();
+      setParsedResult(parsed);
+
+      // Select all items by default
+      const allKeys = new Set<string>();
+      parsed.categories?.forEach((cat: any, ci: number) => {
+        cat.items?.forEach((_: any, ii: number) => allKeys.add(`${ci}-${ii}`));
+      });
+      setSelectedItems(allKeys);
+
+      // Update job with results
+      await (supabase as any).from("menu_import_jobs").update({
+        status: "ready_for_review", parsed_result: parsed,
+      }).eq("id", job.id);
+
       qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+      toast.success("Cardápio processado! Revise os itens abaixo.");
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setUploading(false);
+      setProcessing(false);
     }
   };
+
+  const toggleItem = (key: string) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const handleSaveSelected = async () => {
+    if (!parsedResult?.categories) return;
+    setSaving(true);
+    try {
+      let savedCount = 0;
+      for (let ci = 0; ci < parsedResult.categories.length; ci++) {
+        const cat = parsedResult.categories[ci];
+
+        // Create or find category
+        let categoryId: string;
+        const { data: existingCats } = await supabase.from("menu_categories")
+          .select("id").eq("restaurant_id", rid).eq("name", cat.name).limit(1);
+
+        if (existingCats && existingCats.length > 0) {
+          categoryId = existingCats[0].id;
+        } else {
+          const { data: newCat, error: catErr } = await supabase.from("menu_categories")
+            .insert({ restaurant_id: rid, name: cat.name, sort_order: ci })
+            .select("id").single();
+          if (catErr) throw catErr;
+          categoryId = newCat.id;
+        }
+
+        // Insert selected items
+        for (let ii = 0; ii < (cat.items ?? []).length; ii++) {
+          const key = `${ci}-${ii}`;
+          if (!selectedItems.has(key)) continue;
+
+          const item = cat.items[ii];
+          const price = item.base_price ?? item.variations?.[0]?.price ?? 0;
+          const desc = item.description || item.ingredients?.join(", ") || null;
+          const tags = item.tags ?? [];
+
+          const { error: itemErr } = await supabase.from("menu_items").insert({
+            restaurant_id: rid,
+            category_id: categoryId,
+            name: item.name,
+            price,
+            description: desc,
+            tags,
+            sort_order: ii,
+            is_active: true,
+          });
+          if (itemErr) throw itemErr;
+          savedCount++;
+        }
+      }
+
+      toast.success(`${savedCount} itens importados com sucesso!`);
+      setParsedResult(null);
+      setSelectedItems(new Set());
+      qc.invalidateQueries({ queryKey: ["menu-categories", rid] });
+      qc.invalidateQueries({ queryKey: ["menu-items", rid] });
+      qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const confidenceColor = (c: number) =>
+    c >= 0.9 ? "text-green-400" : c >= 0.6 ? "text-yellow-400" : "text-red-400";
 
   const statusLabels: Record<string, string> = {
     uploaded: "Enviado", processing: "Processando...", ready_for_review: "Pronto p/ Revisão",
@@ -256,31 +389,165 @@ function MenuImportTab({ rid }: { rid: string }) {
 
   return (
     <div className="space-y-6">
+      {/* Upload area */}
       <div className="glass-card p-8 text-center">
         <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
         <h3 className="font-display font-bold mb-2">Importar Cardápio</h3>
-        <p className="text-sm text-muted-foreground mb-4">Envie um PDF ou imagem do seu cardápio e nós extraímos os itens automaticamente.</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          Envie um PDF ou imagem do seu cardápio e a IA extrairá os itens automaticamente.
+        </p>
         <label className="cursor-pointer">
           <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-            <FileText className="w-4 h-4" /> {uploading ? "Enviando..." : "Selecionar Arquivo"}
+            <FileText className="w-4 h-4" />
+            {uploading ? "Enviando..." : processing ? "Processando com IA..." : "Selecionar Arquivo"}
           </div>
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading} />
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading || processing} />
         </label>
         <p className="text-xs text-muted-foreground mt-2">PDF, JPG, PNG (máx 20MB)</p>
       </div>
 
-      {jobs.length > 0 && (
+      {/* Processing indicator */}
+      {processing && (
+        <div className="glass-card p-6 text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Analisando cardápio com IA... Isso pode levar alguns segundos.</p>
+        </div>
+      )}
+
+      {/* Parsed results for review */}
+      {parsedResult && parsedResult.categories?.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display font-bold text-lg">📋 Revisão do Cardápio</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setParsedResult(null)}>Cancelar</Button>
+              <Button onClick={handleSaveSelected} disabled={saving || selectedItems.size === 0}>
+                {saving ? "Salvando..." : `Importar ${selectedItems.size} itens`}
+              </Button>
+            </div>
+          </div>
+
+          {parsedResult.restaurant_name_guess && (
+            <p className="text-sm text-muted-foreground">
+              Restaurante detectado: <strong>{parsedResult.restaurant_name_guess}</strong>
+            </p>
+          )}
+
+          {parsedResult.categories.map((cat: any, ci: number) => (
+            <div key={ci} className="glass-card p-4 space-y-3">
+              <h4 className="font-display font-bold text-sm uppercase tracking-wider text-primary">{cat.name}</h4>
+              <div className="space-y-2">
+                {(cat.items ?? []).map((item: any, ii: number) => {
+                  const key = `${ci}-${ii}`;
+                  const isSelected = selectedItems.has(key);
+                  return (
+                    <div key={key}
+                      onClick={() => toggleItem(key)}
+                      className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        isSelected ? "bg-primary/10 border border-primary/20" : "bg-secondary/50 border border-transparent hover:border-border"
+                      }`}>
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleItem(key)} className="mt-1 accent-primary" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{item.name}</span>
+                          <span className={`text-[10px] font-mono ${confidenceColor(item.confidence)}`}>
+                            {Math.round(item.confidence * 100)}%
+                          </span>
+                        </div>
+                        {item.description && <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>}
+                        {item.ingredients?.length > 0 && (
+                          <p className="text-xs text-muted-foreground mt-0.5">🥢 {item.ingredients.join(", ")}</p>
+                        )}
+                        {item.allergens?.length > 0 && (
+                          <p className="text-xs text-yellow-400 mt-0.5">⚠️ {item.allergens.join(", ")}</p>
+                        )}
+                        {item.variations?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.variations.map((v: any, vi: number) => (
+                              <span key={vi} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                                {v.name}: {fmt(v.price)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-mono text-sm font-bold text-primary whitespace-nowrap">
+                        {item.base_price ? fmt(item.base_price) : item.variations?.[0] ? fmt(item.variations[0].price) : "—"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Add-ons */}
+          {parsedResult.add_ons_global?.length > 0 && (
+            <div className="glass-card p-4">
+              <h4 className="font-display font-bold text-sm mb-2">Adicionais Globais</h4>
+              <div className="flex flex-wrap gap-2">
+                {parsedResult.add_ons_global.map((a: any, i: number) => (
+                  <span key={i} className="text-xs bg-secondary px-2 py-1 rounded-full">
+                    {a.name} +{fmt(a.price)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Unknown lines */}
+          {parsedResult.unknown_lines?.length > 0 && (
+            <div className="glass-card p-4">
+              <h4 className="font-display font-bold text-sm text-yellow-400 mb-2">⚠️ Linhas não reconhecidas</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                {parsedResult.unknown_lines.map((l: string, i: number) => (
+                  <li key={i} className="font-mono">{l}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Errors */}
+          {parsedResult.errors?.length > 0 && (
+            <div className="glass-card p-4">
+              <h4 className="font-display font-bold text-sm text-destructive mb-2">❌ Erros</h4>
+              <ul className="text-xs space-y-1">
+                {parsedResult.errors.map((e: any, i: number) => (
+                  <li key={i}><span className="text-destructive">{e.type}:</span> {e.reason} <span className="font-mono text-muted-foreground">({e.line})</span></li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Previous jobs */}
+      {jobs.length > 0 && !parsedResult && (
         <div className="space-y-2">
           <h3 className="font-display font-bold text-sm">Importações Recentes</h3>
           {jobs.map((job: any) => (
             <div key={job.id} className="glass-card p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium truncate max-w-[200px]">{job.file_url.split("/").pop()}</p>
+                <p className="text-sm font-medium truncate max-w-[200px]">{job.file_url?.split("/").pop()}</p>
                 <p className="text-xs text-muted-foreground">{new Date(job.created_at).toLocaleDateString("pt-BR")}</p>
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[job.status] ?? ""}`}>
-                {statusLabels[job.status] ?? job.status}
-              </span>
+              <div className="flex items-center gap-2">
+                {job.status === "ready_for_review" && job.parsed_result && (
+                  <Button size="sm" variant="outline" onClick={() => {
+                    setParsedResult(job.parsed_result);
+                    const allKeys = new Set<string>();
+                    job.parsed_result.categories?.forEach((cat: any, ci: number) => {
+                      cat.items?.forEach((_: any, ii: number) => allKeys.add(`${ci}-${ii}`));
+                    });
+                    setSelectedItems(allKeys);
+                  }}>
+                    Revisar
+                  </Button>
+                )}
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[job.status] ?? ""}`}>
+                  {statusLabels[job.status] ?? job.status}
+                </span>
+              </div>
             </div>
           ))}
         </div>

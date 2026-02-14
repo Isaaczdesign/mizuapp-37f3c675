@@ -272,6 +272,47 @@ export type Database = {
           },
         ]
       }
+      menu_import_jobs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          file_url: string
+          id: string
+          parsed_result: Json | null
+          restaurant_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          file_url: string
+          id?: string
+          parsed_result?: Json | null
+          restaurant_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          file_url?: string
+          id?: string
+          parsed_result?: Json | null
+          restaurant_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_import_jobs_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           category_id: string

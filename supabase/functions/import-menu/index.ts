@@ -157,10 +157,35 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    let userContent = `Here is the OCR-extracted menu text:\n\n${ocr_text}`;
-    if (layout_hints) {
-      userContent += `\n\nLayout hints:\n${layout_hints}`;
+    // Check if input is a base64 image
+    const imageMatch = ocr_text.match(/^\[IMAGE_BASE64:(data:[^;]+;base64,.+)\]$/s);
+    let messages: any[];
+
+    if (imageMatch) {
+      // Vision-based: send image to multimodal model
+      messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Please extract and parse the menu from this image. Return STRICT JSON only." + (layout_hints ? `\n\nLayout hints: ${layout_hints}` : "") },
+            { type: "image_url", image_url: { url: imageMatch[1] } },
+          ],
+        },
+      ];
+    } else {
+      // Text-based OCR
+      let userContent = `Here is the OCR-extracted menu text:\n\n${ocr_text}`;
+      if (layout_hints) {
+        userContent += `\n\nLayout hints:\n${layout_hints}`;
+      }
+      messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userContent },
+      ];
     }
+
+    const model = imageMatch ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -168,13 +193,7 @@ serve(async (req) => {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userContent },
-        ],
-      }),
+      body: JSON.stringify({ model, messages }),
     });
 
     if (!response.ok) {
