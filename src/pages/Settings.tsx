@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Save, Upload } from "lucide-react";
+import { Save, Upload, Crown, User } from "lucide-react";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -24,6 +24,9 @@ const Settings = () => {
   const qc = useQueryClient();
 
   const [name, setName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
@@ -46,10 +49,22 @@ const Settings = () => {
     },
   });
 
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase.from("subscriptions").select("*").eq("restaurant_id", rid!).maybeSingle();
+      return data;
+    },
+  });
+
   useEffect(() => {
     if (restaurant) {
       setName(restaurant.name);
       setLogoPreview(restaurant.logo_url);
+      setOwnerName((restaurant as any).owner_name ?? "");
+      setOwnerPhone((restaurant as any).owner_phone ?? "");
+      setOwnerEmail((restaurant as any).owner_email ?? "");
     }
   }, [restaurant]);
 
@@ -61,6 +76,7 @@ const Settings = () => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!rid) throw new Error("Restaurante não encontrado");
       let logo_url = restaurant?.logo_url ?? null;
 
       if (logoFile) {
@@ -72,15 +88,17 @@ const Settings = () => {
         logo_url = urlData.publicUrl;
       }
 
-      const { error: restError } = await supabase.from("restaurants").update({ name, logo_url }).eq("id", rid!);
+      const { error: restError } = await supabase
+        .from("restaurants")
+        .update({ name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail } as any)
+        .eq("id", rid);
       if (restError) throw restError;
 
-      // Upsert settings with operating hours
       if (settings?.id) {
         const { error } = await supabase.from("settings").update({ operating_hours: hours as any }).eq("id", settings.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("settings").insert({ restaurant_id: rid!, operating_hours: hours as any });
+        const { error } = await supabase.from("settings").insert({ restaurant_id: rid, operating_hours: hours as any });
         if (error) throw error;
       }
     },
@@ -108,12 +126,58 @@ const Settings = () => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], closed: !prev[day].closed } }));
   };
 
+  const planLabels: Record<string, string> = { free: "Gratuito", starter: "Starter", pro: "Profissional", enterprise: "Enterprise" };
+  const statusLabels: Record<string, string> = { active: "Ativo", inactive: "Inativo", trial: "Trial", expired: "Expirado" };
+
   return (
     <AdminLayout>
       <div className="p-6 max-w-2xl">
         <h1 className="font-display text-2xl md:text-3xl font-bold mb-6">⚙️ <span className="gradient-text">Configurações</span></h1>
 
         <div className="space-y-8">
+          {/* Plan Status */}
+          <div className="glass-card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Crown className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Plano</h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <p className="text-lg font-bold">{planLabels[subscription?.plan ?? "free"] ?? subscription?.plan ?? "Gratuito"}</p>
+                <p className="text-sm text-muted-foreground">
+                  Status: <span className={`font-medium ${subscription?.status === "active" ? "text-green-500" : "text-destructive"}`}>
+                    {statusLabels[subscription?.status ?? "active"] ?? subscription?.status ?? "Ativo"}
+                  </span>
+                </p>
+                {subscription?.expires_at && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Expira em: {new Date(subscription.expires_at).toLocaleDateString("pt-BR")}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Owner info */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <User className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Responsável</h2>
+            </div>
+            <div>
+              <Label>Nome do Responsável</Label>
+              <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="mt-1" placeholder="Nome completo" />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} className="mt-1" placeholder="(11) 99999-9999" />
+            </div>
+            <div>
+              <Label>E-mail</Label>
+              <Input value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} className="mt-1" placeholder="responsavel@email.com" />
+            </div>
+          </div>
+
           {/* Restaurant info */}
           <div className="glass-card p-6 space-y-4">
             <h2 className="font-display font-bold">Informações do Restaurante</h2>
@@ -173,7 +237,7 @@ const Settings = () => {
             </div>
           </div>
 
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full">
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !rid} className="w-full">
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
