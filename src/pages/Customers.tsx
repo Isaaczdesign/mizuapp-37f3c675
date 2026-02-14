@@ -2,13 +2,16 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, MessageSquare, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Eye, MessageSquare, Users, Ticket, Plus, Tag } from "lucide-react";
+import { toast } from "sonner";
 
 type Segment = "all" | "new" | "frequent" | "inactive_7d" | "inactive_30d";
 
@@ -34,9 +37,20 @@ const segmentColors: Record<string, string> = {
 const Customers = () => {
   const { profile } = useAuth();
   const rid = profile?.restaurant_id;
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [segment, setSegment] = useState<Segment>("all");
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [showApplyCoupon, setShowApplyCoupon] = useState(false);
+
+  // Coupon form state
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDesc, setCouponDesc] = useState("");
+  const [couponType, setCouponType] = useState("percent");
+  const [couponValue, setCouponValue] = useState("");
+  const [couponMaxUses, setCouponMaxUses] = useState("");
+  const [selectedCouponId, setSelectedCouponId] = useState("");
 
   const { data: customers } = useQuery({
     queryKey: ["customers", rid],
@@ -47,7 +61,6 @@ const Customers = () => {
     },
   });
 
-  // Customer orders for profile
   const { data: customerOrders } = useQuery({
     queryKey: ["customer-orders", selectedCustomer?.id],
     enabled: !!selectedCustomer?.id,
@@ -66,6 +79,70 @@ const Customers = () => {
         .eq("customer_id", selectedCustomer.id).eq("restaurant_id", rid!).order("sent_at", { ascending: false }).limit(10);
       return data ?? [];
     },
+  });
+
+  const { data: coupons = [] } = useQuery({
+    queryKey: ["coupons", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase.from("coupons").select("*").eq("restaurant_id", rid!).order("created_at", { ascending: false });
+      return (data ?? []) as any[];
+    },
+  });
+
+  const { data: customerCouponUsages = [] } = useQuery({
+    queryKey: ["coupon-usages", selectedCustomer?.id],
+    enabled: !!selectedCustomer?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("coupon_usages").select("*, coupons(code, discount_type, discount_value)")
+        .eq("customer_id", selectedCustomer.id).order("used_at", { ascending: false });
+      return (data ?? []) as any[];
+    },
+  });
+
+  const createCoupon = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("coupons").insert({
+        restaurant_id: rid!,
+        code: couponCode.toUpperCase(),
+        description: couponDesc || null,
+        discount_type: couponType,
+        discount_value: Number(couponValue),
+        max_uses: couponMaxUses ? Number(couponMaxUses) : null,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupons", rid] });
+      setShowCouponForm(false);
+      setCouponCode(""); setCouponDesc(""); setCouponValue(""); setCouponMaxUses("");
+      toast.success("Cupom criado!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const applyCoupon = useMutation({
+    mutationFn: async () => {
+      if (!selectedCouponId || !selectedCustomer?.id) throw new Error("Selecione um cupom");
+      const { error } = await supabase.from("coupon_usages").insert({
+        coupon_id: selectedCouponId,
+        customer_id: selectedCustomer.id,
+      } as any);
+      if (error) throw error;
+      // Increment uses_count
+      const coupon = coupons.find((c: any) => c.id === selectedCouponId);
+      if (coupon) {
+        await supabase.from("coupons").update({ uses_count: (coupon.uses_count ?? 0) + 1 } as any).eq("id", selectedCouponId);
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupon-usages", selectedCustomer?.id] });
+      qc.invalidateQueries({ queryKey: ["coupons", rid] });
+      setShowApplyCoupon(false);
+      setSelectedCouponId("");
+      toast.success("Cupom aplicado ao cliente!");
+    },
+    onError: (e: any) => toast.error(e.message),
   });
 
   const filtered = (customers ?? []).filter((c) => {
@@ -93,7 +170,12 @@ const Customers = () => {
   return (
     <AdminLayout>
       <div className="p-6">
-        <h1 className="font-display text-2xl md:text-3xl font-bold mb-6">👥 <span className="gradient-text">CRM — Clientes</span></h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="font-display text-2xl md:text-3xl font-bold">👥 <span className="gradient-text">CRM — Clientes</span></h1>
+          <Button size="sm" onClick={() => setShowCouponForm(true)}>
+            <Ticket className="w-4 h-4 mr-1" /> Novo Cupom
+          </Button>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <Input placeholder="Buscar por nome ou WhatsApp..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs bg-card/60" />
@@ -108,6 +190,24 @@ const Customers = () => {
             ))}
           </div>
         </div>
+
+        {/* Coupons summary */}
+        {coupons.length > 0 && (
+          <div className="glass-card p-4 mb-6">
+            <h3 className="font-display font-bold text-sm mb-2 flex items-center gap-2"><Tag className="w-4 h-4 text-primary" /> Cupons Ativos</h3>
+            <div className="flex flex-wrap gap-2">
+              {coupons.filter((c: any) => c.is_active).map((c: any) => (
+                <div key={c.id} className="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2">
+                  <span className="font-bold">{c.code}</span>
+                  <span className="text-muted-foreground">
+                    {c.discount_type === "percent" ? `${c.discount_value}%` : fmt(Number(c.discount_value))}
+                  </span>
+                  <span className="text-muted-foreground">{c.uses_count}{c.max_uses ? `/${c.max_uses}` : ""} usos</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(customers ?? []).length === 0 ? (
           <div className="glass-card p-12 text-center">
@@ -167,6 +267,49 @@ const Customers = () => {
           </div>
         )}
 
+        {/* Create Coupon Dialog */}
+        <Dialog open={showCouponForm} onOpenChange={setShowCouponForm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Novo Cupom</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Código</Label>
+                <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} className="mt-1 font-mono uppercase" placeholder="EX: BEMVINDO10" />
+              </div>
+              <div>
+                <Label>Descrição (opcional)</Label>
+                <Input value={couponDesc} onChange={(e) => setCouponDesc(e.target.value)} className="mt-1" placeholder="10% de desconto para novos clientes" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Tipo</Label>
+                  <Select value={couponType} onValueChange={setCouponType}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percent">Porcentagem (%)</SelectItem>
+                      <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Valor</Label>
+                  <Input type="number" value={couponValue} onChange={(e) => setCouponValue(e.target.value)} className="mt-1" placeholder={couponType === "percent" ? "10" : "5.00"} />
+                </div>
+              </div>
+              <div>
+                <Label>Limite de Usos (opcional)</Label>
+                <Input type="number" value={couponMaxUses} onChange={(e) => setCouponMaxUses(e.target.value)} className="mt-1" placeholder="Sem limite" />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => createCoupon.mutate()} disabled={createCoupon.isPending || !couponCode || !couponValue}>
+                  {createCoupon.isPending ? "Criando..." : "Criar Cupom"}
+                </Button>
+                <Button variant="outline" onClick={() => setShowCouponForm(false)}>Cancelar</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Customer Profile Dialog */}
         <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
           <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -201,7 +344,51 @@ const Customers = () => {
                   }}>
                     <MessageSquare className="w-3.5 h-3.5 mr-1" /> Enviar WhatsApp
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowApplyCoupon(true)}>
+                    <Ticket className="w-3.5 h-3.5 mr-1" /> Aplicar Cupom
+                  </Button>
                 </div>
+
+                {/* Apply Coupon inline */}
+                {showApplyCoupon && (
+                  <div className="glass-card p-4 space-y-3">
+                    <Label>Selecione o Cupom</Label>
+                    <Select value={selectedCouponId} onValueChange={setSelectedCouponId}>
+                      <SelectTrigger><SelectValue placeholder="Escolha um cupom..." /></SelectTrigger>
+                      <SelectContent>
+                        {coupons.filter((c: any) => c.is_active).map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.code} — {c.discount_type === "percent" ? `${c.discount_value}%` : fmt(Number(c.discount_value))}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => applyCoupon.mutate()} disabled={applyCoupon.isPending || !selectedCouponId}>
+                        {applyCoupon.isPending ? "Aplicando..." : "Confirmar"}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setShowApplyCoupon(false)}>Cancelar</Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Coupon usages */}
+                {customerCouponUsages.length > 0 && (
+                  <div>
+                    <h4 className="font-display font-bold text-sm mb-2 flex items-center gap-1"><Ticket className="w-3.5 h-3.5" /> Cupons Usados</h4>
+                    <div className="space-y-1">
+                      {customerCouponUsages.map((u: any) => (
+                        <div key={u.id} className="flex items-center justify-between text-sm border-b border-border pb-1">
+                          <span className="font-mono text-xs text-primary">{u.coupons?.code ?? "—"}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {u.coupons?.discount_type === "percent" ? `${u.coupons.discount_value}%` : fmt(Number(u.coupons?.discount_value ?? 0))}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{new Date(u.used_at).toLocaleDateString("pt-BR")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Recent Orders */}
                 <div>
@@ -237,7 +424,14 @@ const Customers = () => {
                         <div key={log.id} className="text-sm border-b border-border pb-2">
                           <div className="flex justify-between">
                             <span className="text-xs text-primary">{log.trigger}</span>
-                            <span className="text-xs text-muted-foreground">{new Date(log.sent_at).toLocaleDateString("pt-BR")}</span>
+                            <div className="flex items-center gap-2">
+                              {log.status && (
+                                <span className={`text-xs ${log.status === "sent" ? "text-green-400" : "text-destructive"}`}>
+                                  {log.status === "sent" ? "✓ Enviado" : "✗ Falhou"}
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">{new Date(log.sent_at).toLocaleDateString("pt-BR")}</span>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{log.message}</p>
                         </div>

@@ -66,6 +66,8 @@ export type Database = {
           is_active: boolean
           message_template: string
           restaurant_id: string
+          send_window_end: string | null
+          send_window_start: string | null
           trigger: Database["public"]["Enums"]["automation_trigger"]
         }
         Insert: {
@@ -74,6 +76,8 @@ export type Database = {
           is_active?: boolean
           message_template: string
           restaurant_id: string
+          send_window_end?: string | null
+          send_window_start?: string | null
           trigger: Database["public"]["Enums"]["automation_trigger"]
         }
         Update: {
@@ -82,11 +86,109 @@ export type Database = {
           is_active?: boolean
           message_template?: string
           restaurant_id?: string
+          send_window_end?: string | null
+          send_window_start?: string | null
           trigger?: Database["public"]["Enums"]["automation_trigger"]
         }
         Relationships: [
           {
             foreignKeyName: "automation_rules_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_usages: {
+        Row: {
+          coupon_id: string
+          customer_id: string
+          id: string
+          order_id: string | null
+          used_at: string
+        }
+        Insert: {
+          coupon_id: string
+          customer_id: string
+          id?: string
+          order_id?: string | null
+          used_at?: string
+        }
+        Update: {
+          coupon_id?: string
+          customer_id?: string
+          id?: string
+          order_id?: string | null
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          restaurant_id: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          restaurant_id: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          restaurant_id?: string
+          uses_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
@@ -242,8 +344,10 @@ export type Database = {
           customer_id: string
           id: string
           message: string
+          provider_message_id: string | null
           restaurant_id: string
           sent_at: string
+          status: string | null
           trigger: Database["public"]["Enums"]["automation_trigger"]
         }
         Insert: {
@@ -251,8 +355,10 @@ export type Database = {
           customer_id: string
           id?: string
           message: string
+          provider_message_id?: string | null
           restaurant_id: string
           sent_at?: string
+          status?: string | null
           trigger: Database["public"]["Enums"]["automation_trigger"]
         }
         Update: {
@@ -260,8 +366,10 @@ export type Database = {
           customer_id?: string
           id?: string
           message?: string
+          provider_message_id?: string | null
           restaurant_id?: string
           sent_at?: string
+          status?: string | null
           trigger?: Database["public"]["Enums"]["automation_trigger"]
         }
         Relationships: [
