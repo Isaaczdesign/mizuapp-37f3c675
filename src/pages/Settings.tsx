@@ -6,8 +6,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Upload, Crown, User } from "lucide-react";
+import { Save, Upload, Crown, User, Globe, MessageSquare, Palette } from "lucide-react";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -29,7 +31,15 @@ const Settings = () => {
   const [ownerEmail, setOwnerEmail] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
+  const [primaryColor, setPrimaryColor] = useState("#FF6B35");
+  const [description, setDescription] = useState("");
+  const [pickupNote, setPickupNote] = useState("");
+  const [whatsappProvider, setWhatsappProvider] = useState("");
+  const [whatsappApiKey, setWhatsappApiKey] = useState("");
+  const [whatsappSenderId, setWhatsappSenderId] = useState("");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -65,12 +75,21 @@ const Settings = () => {
       setOwnerName((restaurant as any).owner_name ?? "");
       setOwnerPhone((restaurant as any).owner_phone ?? "");
       setOwnerEmail((restaurant as any).owner_email ?? "");
+      setPrimaryColor((restaurant as any).primary_color ?? "#FF6B35");
+      setBannerPreview((restaurant as any).banner_url ?? null);
+      setDescription((restaurant as any).description ?? "");
+      setPickupNote((restaurant as any).pickup_dine_in_note ?? "");
     }
   }, [restaurant]);
 
   useEffect(() => {
-    if (settings?.operating_hours && typeof settings.operating_hours === "object" && !Array.isArray(settings.operating_hours)) {
-      setHours({ ...defaultHours, ...(settings.operating_hours as OperatingHours) });
+    if (settings) {
+      if (settings.operating_hours && typeof settings.operating_hours === "object" && !Array.isArray(settings.operating_hours)) {
+        setHours({ ...defaultHours, ...(settings.operating_hours as OperatingHours) });
+      }
+      setWhatsappProvider(settings.whatsapp_provider ?? "");
+      setWhatsappApiKey(settings.whatsapp_api_key ?? "");
+      setWhatsappSenderId((settings as any).whatsapp_sender_id ?? "");
     }
   }, [settings]);
 
@@ -78,6 +97,7 @@ const Settings = () => {
     mutationFn: async () => {
       if (!rid) throw new Error("Restaurante não encontrado");
       let logo_url = restaurant?.logo_url ?? null;
+      let banner_url = (restaurant as any)?.banner_url ?? null;
 
       if (logoFile) {
         const ext = logoFile.name.split(".").pop();
@@ -88,17 +108,36 @@ const Settings = () => {
         logo_url = urlData.publicUrl;
       }
 
+      if (bannerFile) {
+        const ext = bannerFile.name.split(".").pop();
+        const path = `${rid}/banner.${ext}`;
+        const { error: uploadError } = await supabase.storage.from("menu-images").upload(path, bannerFile, { upsert: true });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
+        banner_url = urlData.publicUrl;
+      }
+
       const { error: restError } = await supabase
         .from("restaurants")
-        .update({ name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail } as any)
+        .update({
+          name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
+          primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
+        } as any)
         .eq("id", rid);
       if (restError) throw restError;
 
+      const settingsPayload: any = {
+        operating_hours: hours,
+        whatsapp_provider: whatsappProvider || null,
+        whatsapp_api_key: whatsappApiKey || null,
+        whatsapp_sender_id: whatsappSenderId || null,
+      };
+
       if (settings?.id) {
-        const { error } = await supabase.from("settings").update({ operating_hours: hours as any }).eq("id", settings.id);
+        const { error } = await supabase.from("settings").update(settingsPayload).eq("id", settings.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("settings").insert({ restaurant_id: rid, operating_hours: hours as any });
+        const { error } = await supabase.from("settings").insert({ restaurant_id: rid, ...settingsPayload });
         if (error) throw error;
       }
     },
@@ -112,10 +151,12 @@ const Settings = () => {
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
+    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+  };
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setBannerFile(file); setBannerPreview(URL.createObjectURL(file)); }
   };
 
   const updateHour = (day: string, field: "open" | "close", value: string) => {
@@ -154,6 +195,11 @@ const Settings = () => {
                     Expira em: {new Date(subscription.expires_at).toLocaleDateString("pt-BR")}
                   </p>
                 )}
+                {subscription?.started_at && (
+                  <p className="text-xs text-muted-foreground">
+                    Início: {new Date(subscription.started_at).toLocaleDateString("pt-BR")}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -182,20 +228,57 @@ const Settings = () => {
           <div className="glass-card p-6 space-y-4">
             <h2 className="font-display font-bold">Informações do Restaurante</h2>
             <div>
-              <Label htmlFor="name">Nome</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+              <Label>Nome</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label>Slug (URL pública)</Label>
+              <p className="text-sm text-muted-foreground font-mono mt-1">/r/{restaurant?.slug ?? "..."}</p>
             </div>
             <div>
               <Label>Logomarca</Label>
               <div className="flex items-center gap-4 mt-2">
-                {logoPreview && (
-                  <img src={logoPreview} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-border" />
-                )}
+                {logoPreview && <img src={logoPreview} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-border" />}
                 <label className="cursor-pointer">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors">
                     <Upload className="w-4 h-4" /> Enviar logo
                   </div>
                   <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Public Page customization */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <Globe className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Página Pública</h2>
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" rows={2} placeholder="Descrição do seu restaurante..." />
+            </div>
+            <div>
+              <Label>Nota de Retirada / Dine-in</Label>
+              <Input value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} className="mt-1" placeholder="Ex: Disponível para retirada e consumo no local" />
+            </div>
+            <div>
+              <Label className="flex items-center gap-2"><Palette className="w-4 h-4" /> Cor Principal</Label>
+              <div className="flex items-center gap-3 mt-1">
+                <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+                <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-28 font-mono text-sm" />
+              </div>
+            </div>
+            <div>
+              <Label>Banner (Imagem de Capa)</Label>
+              <div className="mt-2">
+                {bannerPreview && <img src={bannerPreview} alt="Banner" className="w-full h-32 rounded-xl object-cover border border-border mb-2" />}
+                <label className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors w-fit">
+                    <Upload className="w-4 h-4" /> Enviar banner
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
                 </label>
               </div>
             </div>
@@ -207,33 +290,48 @@ const Settings = () => {
             <div className="space-y-3">
               {DAY_KEYS.map((key, i) => (
                 <div key={key} className="flex items-center gap-3">
-                  <button
-                    onClick={() => toggleDay(key)}
-                    className={`w-20 text-left text-sm font-medium transition-colors ${hours[key]?.closed ? "text-muted-foreground line-through" : "text-foreground"}`}
-                  >
+                  <button onClick={() => toggleDay(key)}
+                    className={`w-20 text-left text-sm font-medium transition-colors ${hours[key]?.closed ? "text-muted-foreground line-through" : "text-foreground"}`}>
                     {DAYS[i]}
                   </button>
                   {hours[key]?.closed ? (
                     <span className="text-sm text-muted-foreground">Fechado</span>
                   ) : (
                     <>
-                      <Input
-                        type="time"
-                        value={hours[key]?.open ?? "11:00"}
-                        onChange={(e) => updateHour(key, "open", e.target.value)}
-                        className="w-28 text-sm"
-                      />
+                      <Input type="time" value={hours[key]?.open ?? "11:00"} onChange={(e) => updateHour(key, "open", e.target.value)} className="w-28 text-sm" />
                       <span className="text-muted-foreground text-sm">até</span>
-                      <Input
-                        type="time"
-                        value={hours[key]?.close ?? "23:00"}
-                        onChange={(e) => updateHour(key, "close", e.target.value)}
-                        className="w-28 text-sm"
-                      />
+                      <Input type="time" value={hours[key]?.close ?? "23:00"} onChange={(e) => updateHour(key, "close", e.target.value)} className="w-28 text-sm" />
                     </>
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* WhatsApp Provider */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">WhatsApp (Provedor)</h2>
+            </div>
+            <div>
+              <Label>Provedor</Label>
+              <Select value={whatsappProvider} onValueChange={setWhatsappProvider}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="twilio">Twilio</SelectItem>
+                  <SelectItem value="360dialog">360Dialog</SelectItem>
+                  <SelectItem value="zapi">Z-API</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>API Key</Label>
+              <Input type="password" value={whatsappApiKey} onChange={(e) => setWhatsappApiKey(e.target.value)} className="mt-1" placeholder="Chave de API do provedor" />
+            </div>
+            <div>
+              <Label>Sender ID / Phone Number ID</Label>
+              <Input value={whatsappSenderId} onChange={(e) => setWhatsappSenderId(e.target.value)} className="mt-1" placeholder="ID do remetente" />
             </div>
           </div>
 

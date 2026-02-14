@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
@@ -35,17 +35,78 @@ const Dashboard = () => {
     queryKey: ["dashboard-stats", rid, dateRange.from.toISOString(), dateRange.to.toISOString()],
     enabled: !!rid,
     queryFn: async () => {
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("id, total, created_at, status")
-        .eq("restaurant_id", rid!)
-        .gte("created_at", dateRange.from.toISOString())
-        .lte("created_at", dateRange.to.toISOString());
+      const [ordersRes, customersRes, allCustomersRes] = await Promise.all([
+        supabase.from("orders").select("id, total, created_at, status, customer_id")
+          .eq("restaurant_id", rid!)
+          .gte("created_at", dateRange.from.toISOString())
+          .lte("created_at", dateRange.to.toISOString()),
+        supabase.from("customers").select("id, total_orders, created_at, last_order_at")
+          .eq("restaurant_id", rid!),
+        supabase.from("customers").select("id, total_orders, last_order_at")
+          .eq("restaurant_id", rid!),
+      ]);
 
-      const validOrders = (orders ?? []).filter((o) => o.status !== "canceled");
+      const allOrders = ordersRes.data ?? [];
+      const validOrders = allOrders.filter((o) => o.status !== "canceled");
       const revenue = validOrders.reduce((s, o) => s + Number(o.total), 0);
       const count = validOrders.length;
       const avg = count > 0 ? revenue / count : 0;
+
+      // New vs recurring customers in period
+      const periodCustomerIds = new Set(validOrders.map((o) => o.customer_id).filter(Boolean));
+      const allCustomers = allCustomersRes.data ?? [];
+      const customerMap = new Map(allCustomers.map((c) => [c.id, c]));
+      let newCustomers = 0;
+      let recurringCustomers = 0;
+      periodCustomerIds.forEach((cid) => {
+        const c = customerMap.get(cid!);
+        if (c && c.total_orders <= 1) newCustomers++;
+        else if (c) recurringCustomers++;
+      });
+
+      // Reactivation rate (customers inactive 30d+ who ordered in period)
+      const thirtyDaysAgo = subDays(new Date(), 30);
+      const reactivated = allCustomers.filter((c) => {
+        if (!c.last_order_at) return false;
+        const lastOrder = new Date(c.last_order_at);
+        return lastOrder >= dateRange.from && lastOrder <= dateRange.to && periodCustomerIds.has(c.id);
+      });
+      const inactiveCount = allCustomers.filter((c) => {
+        if (!c.last_order_at) return true;
+        return new Date(c.last_order_at) < thirtyDaysAgo;
+      }).length;
+      const reactivationRate = inactiveCount > 0 ? (reactivated.length / inactiveCount) * 100 : 0;
+
+      // Profit estimation
+      const orderIds = validOrders.map((o) => o.id);
+      let estimatedProfit = 0;
+      let topItemsByProfit: { name: string; profit: number; qty: number }[] = [];
+      let topItems: { name: string; qty: number }[] = [];
+
+      if (orderIds.length > 0) {
+        const { data: orderItems } = await supabase.from("order_items").select("name, quantity, unit_price, menu_item_id").in("order_id", orderIds);
+        const { data: menuItems } = await supabase.from("menu_items").select("id, cost_estimate, margin_percent").eq("restaurant_id", rid!);
+        const menuMap = new Map((menuItems ?? []).map((m) => [m.id, m]));
+
+        const itemMap: Record<string, number> = {};
+        const profitMap: Record<string, number> = {};
+
+        (orderItems ?? []).forEach((oi) => {
+          itemMap[oi.name] = (itemMap[oi.name] || 0) + oi.quantity;
+          const mi = oi.menu_item_id ? menuMap.get(oi.menu_item_id) : null;
+          if (mi) {
+            const price = Number(oi.unit_price);
+            const cost = mi.cost_estimate ? Number(mi.cost_estimate) : null;
+            const margin = mi.margin_percent ? Number(mi.margin_percent) : null;
+            const profit = cost ? (price - cost) * oi.quantity : margin ? (price * margin) * oi.quantity : 0;
+            estimatedProfit += profit;
+            profitMap[oi.name] = (profitMap[oi.name] || 0) + profit;
+          }
+        });
+
+        topItems = Object.entries(itemMap).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5);
+        topItemsByProfit = Object.entries(profitMap).map(([name, profit]) => ({ name, profit, qty: itemMap[name] || 0 })).sort((a, b) => b.profit - a.profit).slice(0, 5);
+      }
 
       // Peak hours
       const hourMap: Record<number, number> = {};
@@ -65,17 +126,7 @@ const Dashboard = () => {
         return { date: format(d, "dd/MM", { locale: ptBR }), ...dayMap[key] };
       });
 
-      // Top items
-      const orderIds = validOrders.map((o) => o.id);
-      let topItems: { name: string; qty: number }[] = [];
-      if (orderIds.length > 0) {
-        const { data: items } = await supabase.from("order_items").select("name, quantity").in("order_id", orderIds);
-        const itemMap: Record<string, number> = {};
-        (items ?? []).forEach((i) => { itemMap[i.name] = (itemMap[i.name] || 0) + i.quantity; });
-        topItems = Object.entries(itemMap).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5);
-      }
-
-      return { revenue, count, avg, peakHours, topItems, evolution };
+      return { revenue, count, avg, peakHours, topItems, topItemsByProfit, evolution, newCustomers, recurringCustomers, reactivationRate, estimatedProfit };
     },
   });
 
@@ -83,10 +134,12 @@ const Dashboard = () => {
   const periodLabel = { today: "Hoje", week: "Semana", month: "Mês", custom: "Personalizado" };
 
   const cards = [
-    { label: "Receita", value: fmt(stats?.revenue ?? 0), icon: "💰" },
-    { label: "Pedidos", value: String(stats?.count ?? 0), icon: "📦" },
-    { label: "Ticket Médio", value: fmt(stats?.avg ?? 0), icon: "🎫" },
-    { label: "Top Itens", value: String(stats?.topItems?.length ?? 0), icon: "🏆" },
+    { label: "Receita", value: fmt(stats?.revenue ?? 0), icon: DollarSign, color: "text-green-400" },
+    { label: "Pedidos", value: String(stats?.count ?? 0), icon: ShoppingBag, color: "text-primary" },
+    { label: "Ticket Médio", value: fmt(stats?.avg ?? 0), icon: Target, color: "text-blue-400" },
+    { label: "Lucro Estimado", value: fmt(stats?.estimatedProfit ?? 0), icon: TrendingUp, color: "text-emerald-400" },
+    { label: "Clientes Novos", value: String(stats?.newCustomers ?? 0), icon: Users, color: "text-cyan-400" },
+    { label: "Recorrentes", value: String(stats?.recurringCustomers ?? 0), icon: Repeat, color: "text-purple-400" },
   ];
 
   return (
@@ -110,27 +163,34 @@ const Dashboard = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="range"
-                  selected={customRange}
+                <Calendar mode="range" selected={customRange}
                   onSelect={(range) => { setCustomRange(range); if (range?.from && range?.to) setPeriod("custom"); }}
-                  numberOfMonths={1}
-                  locale={ptBR}
-                  className={cn("p-3 pointer-events-auto")}
-                />
+                  numberOfMonths={1} locale={ptBR} className={cn("p-3 pointer-events-auto")} />
               </PopoverContent>
             </Popover>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {cards.map((card) => (
             <div key={card.label} className="glass-card p-4">
-              <p className="text-2xl mb-1">{card.icon}</p>
-              <p className="font-display text-xl md:text-2xl font-bold">{card.value}</p>
+              <card.icon className={`w-5 h-5 mb-2 ${card.color}`} />
+              <p className="font-display text-lg md:text-xl font-bold">{card.value}</p>
               <p className="text-xs text-muted-foreground">{card.label}</p>
             </div>
           ))}
+        </div>
+
+        {/* Reactivation Rate */}
+        <div className="glass-card p-4 mb-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Repeat className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <p className="font-display font-bold text-lg">{(stats?.reactivationRate ?? 0).toFixed(1)}%</p>
+            <p className="text-xs text-muted-foreground">Taxa de Reativação (30 dias)</p>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -162,21 +222,40 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Top Items */}
-        <div className="glass-card p-6">
-          <h2 className="font-display font-bold mb-4">Top Itens do Período</h2>
-          {(stats?.topItems?.length ?? 0) === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum pedido neste período.</p>
-          ) : (
-            <ul className="space-y-2">
-              {stats?.topItems?.map((item, i) => (
-                <li key={item.name} className="flex justify-between items-center">
-                  <span className="text-sm"><span className="text-muted-foreground mr-2">#{i + 1}</span>{item.name}</span>
-                  <span className="font-mono text-sm font-bold">{item.qty}x</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Top Items by Sales */}
+          <div className="glass-card p-6">
+            <h2 className="font-display font-bold mb-4">Top Itens (Vendas)</h2>
+            {(stats?.topItems?.length ?? 0) === 0 ? (
+              <p className="text-muted-foreground text-sm">Nenhum pedido neste período.</p>
+            ) : (
+              <ul className="space-y-2">
+                {stats?.topItems?.map((item, i) => (
+                  <li key={item.name} className="flex justify-between items-center">
+                    <span className="text-sm"><span className="text-muted-foreground mr-2">#{i + 1}</span>{item.name}</span>
+                    <span className="font-mono text-sm font-bold">{item.qty}x</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Top Items by Profit */}
+          <div className="glass-card p-6">
+            <h2 className="font-display font-bold mb-4">Top Itens (Lucro)</h2>
+            {(stats?.topItemsByProfit?.length ?? 0) === 0 ? (
+              <p className="text-muted-foreground text-sm">Sem dados de custo/margem cadastrados.</p>
+            ) : (
+              <ul className="space-y-2">
+                {stats?.topItemsByProfit?.map((item, i) => (
+                  <li key={item.name} className="flex justify-between items-center">
+                    <span className="text-sm"><span className="text-muted-foreground mr-2">#{i + 1}</span>{item.name}</span>
+                    <span className="font-mono text-sm font-bold text-green-400">{fmt(item.profit)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </AdminLayout>
