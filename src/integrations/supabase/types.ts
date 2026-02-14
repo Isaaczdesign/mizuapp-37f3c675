@@ -313,14 +313,92 @@ export type Database = {
           },
         ]
       }
+      menu_item_addons: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          menu_item_id: string
+          name: string
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id: string
+          name: string
+          price?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id?: string
+          name?: string
+          price?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_addons_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_item_variations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          menu_item_id: string
+          name: string
+          price_delta: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id: string
+          name: string
+          price_delta?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id?: string
+          name?: string
+          price_delta?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_variations_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
+          allergens: string | null
           category_id: string
           cost_estimate: number | null
           created_at: string
           description: string | null
           id: string
           image_url: string | null
+          ingredients: string | null
           is_active: boolean
           margin_percent: number | null
           name: string
@@ -331,12 +409,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allergens?: string | null
           category_id: string
           cost_estimate?: number | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          ingredients?: string | null
           is_active?: boolean
           margin_percent?: number | null
           name: string
@@ -347,12 +427,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allergens?: string | null
           category_id?: string
           cost_estimate?: number | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          ingredients?: string | null
           is_active?: boolean
           margin_percent?: number | null
           name?: string
