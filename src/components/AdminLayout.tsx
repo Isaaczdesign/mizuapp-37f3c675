@@ -46,7 +46,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
-        <div className="p-2 border-t border-border">
+        <div className="p-2 border-t border-border space-y-0.5">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`
+            }
+          >
+            <Settings className="w-4 h-4" />
+            Configurações
+          </NavLink>
           <button onClick={handleSignOut} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive w-full transition-colors">
             <LogOut className="w-4 h-4" />
             Sair

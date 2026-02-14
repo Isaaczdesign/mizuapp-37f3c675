@@ -489,6 +489,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          operating_hours: Json | null
           restaurant_id: string
           updated_at: string
           whatsapp_api_key: string | null
@@ -497,6 +498,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          operating_hours?: Json | null
           restaurant_id: string
           updated_at?: string
           whatsapp_api_key?: string | null
@@ -505,6 +507,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          operating_hours?: Json | null
           restaurant_id?: string
           updated_at?: string
           whatsapp_api_key?: string | null
