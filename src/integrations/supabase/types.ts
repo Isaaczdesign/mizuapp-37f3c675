@@ -705,6 +705,7 @@ export type Database = {
           owner_name: string | null
           owner_phone: string | null
           payment_methods: Json | null
+          pickup_dine_in_note: string | null
           pickup_enabled: boolean
           primary_color: string | null
           slug: string
@@ -722,6 +723,7 @@ export type Database = {
           owner_name?: string | null
           owner_phone?: string | null
           payment_methods?: Json | null
+          pickup_dine_in_note?: string | null
           pickup_enabled?: boolean
           primary_color?: string | null
           slug: string
@@ -739,6 +741,7 @@ export type Database = {
           owner_name?: string | null
           owner_phone?: string | null
           payment_methods?: Json | null
+          pickup_dine_in_note?: string | null
           pickup_enabled?: boolean
           primary_color?: string | null
           slug?: string
