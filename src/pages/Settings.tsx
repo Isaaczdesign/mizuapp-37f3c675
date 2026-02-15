@@ -9,10 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Upload, Crown, User, Globe, MessageSquare, Palette } from "lucide-react";
+import { Save, Upload, Crown, User, Globe, MessageSquare, Palette, CreditCard, UtensilsCrossed } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+const PAYMENT_OPTIONS = [
+  { id: "cash", label: "Dinheiro no local", icon: "💵" },
+  { id: "pix", label: "Pix online", icon: "📱" },
+  { id: "credit_card", label: "Cartão de crédito", icon: "💳" },
+];
 
 type OperatingHours = Record<string, { open: string; close: string; closed: boolean }>;
 
@@ -24,6 +31,7 @@ const Settings = () => {
   const { profile } = useAuth();
   const rid = profile?.restaurant_id;
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -40,6 +48,7 @@ const Settings = () => {
   const [whatsappProvider, setWhatsappProvider] = useState("");
   const [whatsappApiKey, setWhatsappApiKey] = useState("");
   const [whatsappSenderId, setWhatsappSenderId] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState<string[]>(["cash"]);
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -79,6 +88,8 @@ const Settings = () => {
       setBannerPreview((restaurant as any).banner_url ?? null);
       setDescription((restaurant as any).description ?? "");
       setPickupNote((restaurant as any).pickup_dine_in_note ?? "");
+      const pm = (restaurant as any).payment_methods;
+      if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
     }
   }, [restaurant]);
 
@@ -122,6 +133,7 @@ const Settings = () => {
         .update({
           name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
           primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
+          payment_methods: paymentMethods,
         } as any)
         .eq("id", rid);
       if (restError) throw restError;
@@ -165,6 +177,12 @@ const Settings = () => {
 
   const toggleDay = (day: string) => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], closed: !prev[day].closed } }));
+  };
+
+  const togglePayment = (id: string) => {
+    setPaymentMethods((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
   };
 
   const planLabels: Record<string, string> = { free: "Gratuito", starter: "Starter", pro: "Profissional", enterprise: "Enterprise" };
@@ -306,6 +324,50 @@ const Settings = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Métodos de Pagamento</h2>
+            </div>
+            <div className="grid gap-3">
+              {PAYMENT_OPTIONS.map((opt) => {
+                const selected = paymentMethods.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => togglePayment(opt.id)}
+                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
+                      selected
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border bg-card/40 text-muted-foreground hover:border-muted-foreground/30"
+                    }`}
+                  >
+                    <span className="text-xl">{opt.icon}</span>
+                    <span className="font-medium text-sm">{opt.label}</span>
+                    {selected && (
+                      <span className="ml-auto text-primary text-xs font-semibold">Ativo</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Menu Shortcut */}
+          <div className="glass-card p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <UtensilsCrossed className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Cardápio</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Gerencie categorias, itens, preços, variações e adicionais do seu cardápio.
+            </p>
+            <Button variant="outline" onClick={() => navigate("/menu-admin")} className="w-full">
+              <UtensilsCrossed className="w-4 h-4 mr-2" /> Abrir Gestão de Cardápio
+            </Button>
           </div>
 
           {/* WhatsApp Provider */}
