@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -566,6 +566,24 @@ const MenuAdmin = () => {
     ingredients: "", allergens: "", cost_estimate: "", margin_percent: "", tags: [] as string[],
   });
 
+  const { data: restaurant } = useQuery({
+    queryKey: ["restaurant", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase.from("restaurants").select("slug").eq("id", rid!).single();
+      return data;
+    },
+  });
+
+  const publicMenuUrl = restaurant?.slug ? `${window.location.origin}/r/${restaurant.slug}` : null;
+
+  const copyLink = () => {
+    if (publicMenuUrl) {
+      navigator.clipboard.writeText(publicMenuUrl);
+      toast.success("Link copiado!");
+    }
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -723,7 +741,37 @@ const MenuAdmin = () => {
   return (
     <AdminLayout>
       <div className="p-6">
-        <h1 className="font-display text-2xl md:text-3xl font-bold mb-6">🍣 <span className="gradient-text">Gestão de Cardápio</span></h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h1 className="font-display text-2xl md:text-3xl font-bold">🍣 <span className="gradient-text">Gestão de Cardápio</span></h1>
+          <div className="flex gap-2">
+            {publicMenuUrl && (
+              <>
+                <Button variant="outline" size="sm" onClick={copyLink}>
+                  <Copy className="w-4 h-4 mr-1" /> Copiar Link
+                </Button>
+                <Button variant="default" size="sm" onClick={() => window.open(publicMenuUrl, "_blank")}>
+                  <ExternalLink className="w-4 h-4 mr-1" /> Ver Cardápio Virtual
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Public Menu Link */}
+        {publicMenuUrl && (
+          <div className="glass-card p-4 mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Link className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Link do cardápio para clientes</p>
+              <p className="text-sm font-mono truncate text-foreground">{publicMenuUrl}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={copyLink}>
+              <Copy className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
 
         <Tabs defaultValue="items" className="w-full">
           <TabsList className="mb-6">

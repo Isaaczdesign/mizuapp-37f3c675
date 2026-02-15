@@ -10,10 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Progress } from "@/components/ui/progress";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X } from "lucide-react";
+import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
-
+import { toast } from "sonner";
 type Period = "today" | "week" | "month" | "custom";
 
 const Dashboard = () => {
@@ -29,7 +29,7 @@ const Dashboard = () => {
     enabled: !!rid,
     queryFn: async () => {
       const [restRes, settingsRes, catsRes, menuRes] = await Promise.all([
-        supabase.from("restaurants").select("logo_url, payment_methods, description").eq("id", rid!).single(),
+        supabase.from("restaurants").select("logo_url, payment_methods, description, slug").eq("id", rid!).single(),
         supabase.from("settings").select("operating_hours").eq("restaurant_id", rid!).maybeSingle(),
         supabase.from("menu_categories").select("id").eq("restaurant_id", rid!).limit(1),
         supabase.from("menu_items").select("id").eq("restaurant_id", rid!).limit(1),
@@ -46,9 +46,18 @@ const Dashboard = () => {
         { label: "Métodos de pagamento", done: hasPayment },
       ];
       const completed = steps.filter((s) => s.done).length;
-      return { steps, completed, total: steps.length, allDone: completed === steps.length };
+      return { steps, completed, total: steps.length, allDone: completed === steps.length, slug: rest?.slug };
     },
   });
+
+  const publicMenuUrl = setupStatus?.slug ? `${window.location.origin}/r/${setupStatus.slug}` : null;
+
+  const copyMenuLink = () => {
+    if (publicMenuUrl) {
+      navigator.clipboard.writeText(publicMenuUrl);
+      toast.success("Link copiado!");
+    }
+  };
 
   const dateRange = useMemo(() => {
     const now = new Date();
@@ -204,6 +213,25 @@ const Dashboard = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Public Menu Link */}
+        {publicMenuUrl && (
+          <div className="glass-card p-4 mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Link className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Link do cardápio para clientes</p>
+              <p className="text-sm font-mono truncate text-foreground">{publicMenuUrl}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={copyMenuLink}>
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.open(publicMenuUrl, "_blank")}>
+              <ExternalLink className="w-4 h-4" />
+            </Button>
           </div>
         )}
 
