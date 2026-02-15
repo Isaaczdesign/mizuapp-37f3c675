@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  profile: { restaurant_id: string | null; display_name: string | null } | null;
+  profile: { restaurant_id: string | null; display_name: string | null; onboarding_complete: boolean } | null;
   roles: string[];
   signOut: () => Promise<void>;
 }
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function fetchProfile(userId: string) {
     const [profileRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("restaurant_id, display_name").eq("user_id", userId).single(),
+      supabase.from("profiles").select("restaurant_id, display_name, onboarding_complete").eq("user_id", userId).single(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
     setProfile(profileRes.data ?? null);

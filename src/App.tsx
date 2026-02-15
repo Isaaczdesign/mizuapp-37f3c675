@@ -31,7 +31,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
-  if (!profile?.restaurant_id) return <Onboarding />;
+  if (!profile?.restaurant_id || !profile?.onboarding_complete) return <Onboarding />;
   // Role check
   if (allowedRoles && allowedRoles.length > 0) {
     const userRoles = roles.length > 0 ? roles : ["owner"]; // fallback

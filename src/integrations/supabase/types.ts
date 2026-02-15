@@ -627,6 +627,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          onboarding_complete: boolean
           restaurant_id: string | null
           user_id: string
         }
@@ -634,6 +635,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_complete?: boolean
           restaurant_id?: string | null
           user_id: string
         }
@@ -641,6 +643,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_complete?: boolean
           restaurant_id?: string | null
           user_id?: string
         }
@@ -691,35 +694,53 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          banner_url: string | null
           created_at: string
+          description: string | null
+          dine_in_enabled: boolean
           id: string
           logo_url: string | null
           name: string
           owner_email: string | null
           owner_name: string | null
           owner_phone: string | null
+          payment_methods: Json | null
+          pickup_enabled: boolean
+          primary_color: string | null
           slug: string
           updated_at: string
         }
         Insert: {
+          banner_url?: string | null
           created_at?: string
+          description?: string | null
+          dine_in_enabled?: boolean
           id?: string
           logo_url?: string | null
           name: string
           owner_email?: string | null
           owner_name?: string | null
           owner_phone?: string | null
+          payment_methods?: Json | null
+          pickup_enabled?: boolean
+          primary_color?: string | null
           slug: string
           updated_at?: string
         }
         Update: {
+          banner_url?: string | null
           created_at?: string
+          description?: string | null
+          dine_in_enabled?: boolean
           id?: string
           logo_url?: string | null
           name?: string
           owner_email?: string | null
           owner_name?: string | null
           owner_phone?: string | null
+          payment_methods?: Json | null
+          pickup_enabled?: boolean
+          primary_color?: string | null
           slug?: string
           updated_at?: string
         }
