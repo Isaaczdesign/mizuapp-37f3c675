@@ -275,13 +275,26 @@ const PublicMenu = () => {
     if (!restaurant || !cart.length) return;
     setSubmitting(true);
     try {
-      const { data: customer, error: custErr } = await supabase.from("customers")
-        .upsert({ restaurant_id: restaurant.id, name: customerName.trim(), whatsapp: customerWhatsapp.trim(), consent_marketing: consentMarketing },
-          { onConflict: "restaurant_id,whatsapp" }).select("id").single();
-      if (custErr) throw custErr;
+      // Find or create customer (avoid upsert which needs UPDATE permission)
+      let customerId: string;
+      const { data: existingCustomer } = await supabase.from("customers")
+        .select("id")
+        .eq("restaurant_id", restaurant.id)
+        .eq("whatsapp", customerWhatsapp.trim())
+        .maybeSingle();
+
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+      } else {
+        const { data: newCustomer, error: custErr } = await supabase.from("customers")
+          .insert({ restaurant_id: restaurant.id, name: customerName.trim(), whatsapp: customerWhatsapp.trim(), consent_marketing: consentMarketing })
+          .select("id").single();
+        if (custErr) throw custErr;
+        customerId = newCustomer.id;
+      }
 
       const { data: order, error: orderErr } = await supabase.from("orders")
-        .insert({ restaurant_id: restaurant.id, table_id: tableId, customer_id: customer.id, total: cartTotal, notes: orderNotes || null })
+        .insert({ restaurant_id: restaurant.id, table_id: tableId, customer_id: customerId, total: cartTotal, notes: orderNotes || null })
         .select("id").single();
       if (orderErr) throw orderErr;
 

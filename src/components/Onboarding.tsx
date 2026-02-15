@@ -269,6 +269,23 @@ export default function Onboarding() {
     }
   };
 
+  // ---- Skip onboarding ----
+  const handleSkip = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      await supabase.from("profiles").update({
+        onboarding_complete: true,
+      } as any).eq("user_id", user.id);
+      toast.success("Você pode continuar a configuração em Configurações.");
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ---- Test Order simulation ----
   const handleTestOrder = async () => {
     setTestStarted(true);
@@ -734,25 +751,36 @@ export default function Onboarding() {
             <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
           </Button>
 
-          <Button
-            onClick={handleNext}
-            disabled={loading || !canProceed()}
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                Aguarde...
-              </span>
-            ) : step === STEPS.length - 1 ? (
-              <span className="flex items-center gap-1">
-                Finalizar <Check className="w-4 h-4 ml-1" />
-              </span>
-            ) : (
-              <span className="flex items-center gap-1">
-                Continuar <ArrowRight className="w-4 h-4 ml-1" />
-              </span>
+          <div className="flex items-center gap-2">
+            {step < STEPS.length - 1 && restaurantId && (
+              <Button
+                variant="outline"
+                onClick={handleSkip}
+                disabled={loading}
+              >
+                Pular por agora
+              </Button>
             )}
-          </Button>
+            <Button
+              onClick={handleNext}
+              disabled={loading || !canProceed()}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  Aguarde...
+                </span>
+              ) : step === STEPS.length - 1 ? (
+                <span className="flex items-center gap-1">
+                  Finalizar <Check className="w-4 h-4 ml-1" />
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  Continuar <ArrowRight className="w-4 h-4 ml-1" />
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
