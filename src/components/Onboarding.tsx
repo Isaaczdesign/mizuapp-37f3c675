@@ -44,6 +44,7 @@ export default function Onboarding() {
   const { user, profile } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Step 1 — Identity
   const [name, setName] = useState("");
@@ -73,6 +74,31 @@ export default function Onboarding() {
   // Step 6 — Test
   const [testStarted, setTestStarted] = useState(false);
   const [testComplete, setTestComplete] = useState(false);
+
+  // If user already has a restaurant, load it and skip step 0
+  useEffect(() => {
+    async function loadExistingRestaurant() {
+      if (profile?.restaurant_id) {
+        const { data: rest } = await supabase
+          .from("restaurants")
+          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled")
+          .eq("id", profile.restaurant_id)
+          .single();
+        if (rest) {
+          setRestaurantId(rest.id);
+          setName(rest.name);
+          setSlug(rest.slug);
+          setPrimaryColor(rest.primary_color || "#F97316");
+          if (rest.logo_url) setLogoPreview(rest.logo_url);
+          setPickupEnabled(rest.pickup_enabled);
+          setDineInEnabled(rest.dine_in_enabled);
+          setStep(1); // skip identity step
+        }
+      }
+      setInitialLoading(false);
+    }
+    loadExistingRestaurant();
+  }, [profile?.restaurant_id]);
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
   const publicUrl = typeof window !== "undefined"
@@ -326,6 +352,14 @@ export default function Onboarding() {
     center: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -40 },
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
