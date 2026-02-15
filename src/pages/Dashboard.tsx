@@ -7,9 +7,10 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContai
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target } from "lucide-react";
+import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
@@ -20,6 +21,34 @@ const Dashboard = () => {
   const rid = profile?.restaurant_id;
   const [period, setPeriod] = useState<Period>("today");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  // Check setup completeness
+  const { data: setupStatus } = useQuery({
+    queryKey: ["setup-status", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const [restRes, settingsRes, catsRes, menuRes] = await Promise.all([
+        supabase.from("restaurants").select("logo_url, payment_methods, description").eq("id", rid!).single(),
+        supabase.from("settings").select("operating_hours").eq("restaurant_id", rid!).maybeSingle(),
+        supabase.from("menu_categories").select("id").eq("restaurant_id", rid!).limit(1),
+        supabase.from("menu_items").select("id").eq("restaurant_id", rid!).limit(1),
+      ]);
+      const rest = restRes.data;
+      const hasLogo = !!rest?.logo_url;
+      const hasHours = !!settingsRes.data?.operating_hours && Object.keys(settingsRes.data.operating_hours as any).length > 0;
+      const hasMenu = (menuRes.data?.length ?? 0) > 0;
+      const hasPayment = Array.isArray(rest?.payment_methods) && (rest.payment_methods as any[]).length > 0;
+      const steps = [
+        { label: "Logo do restaurante", done: hasLogo },
+        { label: "Horários de funcionamento", done: hasHours },
+        { label: "Cardápio com itens", done: hasMenu },
+        { label: "Métodos de pagamento", done: hasPayment },
+      ];
+      const completed = steps.filter((s) => s.done).length;
+      return { steps, completed, total: steps.length, allDone: completed === steps.length };
+    },
+  });
 
   const dateRange = useMemo(() => {
     const now = new Date();
@@ -145,6 +174,39 @@ const Dashboard = () => {
   return (
     <AdminLayout>
       <div className="p-6">
+        {/* Setup Progress Banner */}
+        {setupStatus && !setupStatus.allDone && !bannerDismissed && (
+          <div className="glass-card p-4 mb-6 border border-primary/20">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Rocket className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display font-bold text-sm">Complete a configuração do seu restaurante</h3>
+                  <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {setupStatus.completed}/{setupStatus.total} etapas concluídas
+                </p>
+                <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-2 h-1.5" />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {setupStatus.steps.filter((s) => !s.done).map((s) => (
+                    <span key={s.label} className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                      {s.label}
+                    </span>
+                  ))}
+                </div>
+                <Button size="sm" variant="outline" className="mt-3" onClick={() => window.location.href = "/settings"}>
+                  Ir para Configurações
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
           <div className="flex gap-2 flex-wrap">
