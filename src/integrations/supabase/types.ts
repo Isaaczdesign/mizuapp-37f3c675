@@ -758,6 +758,7 @@ export type Database = {
           updated_at: string
           whatsapp_api_key: string | null
           whatsapp_provider: string | null
+          whatsapp_sender_id: string | null
         }
         Insert: {
           created_at?: string
@@ -767,6 +768,7 @@ export type Database = {
           updated_at?: string
           whatsapp_api_key?: string | null
           whatsapp_provider?: string | null
+          whatsapp_sender_id?: string | null
         }
         Update: {
           created_at?: string
@@ -776,6 +778,7 @@ export type Database = {
           updated_at?: string
           whatsapp_api_key?: string | null
           whatsapp_provider?: string | null
+          whatsapp_sender_id?: string | null
         }
         Relationships: [
           {
