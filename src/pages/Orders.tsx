@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon } from "lucide-react";
+import { Eye, X as XIcon, Bell, BellRing } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -37,6 +37,36 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const restaurantId = profile?.restaurant_id;
   const canCancel = roles.includes("owner") || roles.includes("manager");
+  const knownOrderIds = useRef<Set<string>>(new Set());
+  const isInitialLoad = useRef(true);
+
+  // Notification sound
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = "sine";
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.5);
+      // Second beep
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 1100;
+      osc2.type = "sine";
+      gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.65);
+      osc2.start(ctx.currentTime + 0.15);
+      osc2.stop(ctx.currentTime + 0.65);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -44,7 +74,15 @@ const Orders = () => {
 
     const channel = supabase
       .channel("orders-panel")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, (payload) => {
+        playNotificationSound();
+        toast.success("🔔 Novo pedido recebido!", {
+          description: `Pedido #${(payload.new as any).id?.slice(0, 6)} — R$${Number((payload.new as any).total).toFixed(2)}`,
+          duration: 8000,
+        });
+        loadOrders();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
         loadOrders();
       })
       .subscribe();
@@ -61,7 +99,13 @@ const Orders = () => {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    setOrders((data as unknown as Order[]) ?? []);
+    const newOrders = (data as unknown as Order[]) ?? [];
+    
+    // Track known IDs for future comparison
+    newOrders.forEach(o => knownOrderIds.current.add(o.id));
+    isInitialLoad.current = false;
+
+    setOrders(newOrders);
     setLoading(false);
   }
 
@@ -75,6 +119,11 @@ const Orders = () => {
   const getNextStatus = (current: OrderStatus): OrderStatus | null => {
     const flow: Record<string, OrderStatus> = { new: "preparing", preparing: "ready", ready: "completed" };
     return flow[current] ?? null;
+  };
+
+  const getNextLabel = (current: OrderStatus): string => {
+    const labels: Record<string, string> = { new: "Confirmar", preparing: "Pronto", ready: "Concluir" };
+    return labels[current] ?? "Avançar";
   };
 
   if (loading) {
@@ -131,7 +180,7 @@ const Orders = () => {
                           </button>
                           {next && (
                             <Button variant="hero" size="sm" className="text-xs h-7" onClick={() => updateStatus(order.id, next)}>
-                              Avançar
+                              {getNextLabel(order.status)}
                             </Button>
                           )}
                           {canCancel && order.status !== "canceled" && order.status !== "completed" && (
