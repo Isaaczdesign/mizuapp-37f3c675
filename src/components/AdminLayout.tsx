@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings, Globe } from "lucide-react";
 import type { ReactNode } from "react";
+import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[] };
 
@@ -109,6 +110,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
         {children}
       </main>
+
+      {/* Global order notifications */}
+      <OrderNotificationProvider />
     </div>
   );
 }
