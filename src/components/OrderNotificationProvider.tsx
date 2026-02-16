@@ -90,26 +90,16 @@ export default function OrderNotificationProvider() {
   const enrichOrder = useCallback(async (payload: NewOrderPayload): Promise<OrderPopup> => {
     const enriched: OrderPopup = { ...payload };
     try {
-      const promises: Promise<void>[] = [];
-
       if (payload.customer_id) {
-        promises.push(
-          supabase.from("customers").select("name").eq("id", payload.customer_id).single()
-            .then(({ data }) => { if (data) enriched.customerName = data.name; })
-        );
+        const { data } = await supabase.from("customers").select("name").eq("id", payload.customer_id).single();
+        if (data) enriched.customerName = data.name;
       }
       if (payload.table_id) {
-        promises.push(
-          supabase.from("restaurant_tables").select("number").eq("id", payload.table_id).single()
-            .then(({ data }) => { if (data) enriched.tableNumber = data.number; })
-        );
+        const { data } = await supabase.from("restaurant_tables").select("number").eq("id", payload.table_id).single();
+        if (data) enriched.tableNumber = data.number;
       }
-      promises.push(
-        supabase.from("order_items").select("name, quantity").eq("order_id", payload.id)
-          .then(({ data }) => { if (data) enriched.items = data; })
-      );
-
-      await Promise.all(promises);
+      const { data: items } = await supabase.from("order_items").select("name, quantity").eq("order_id", payload.id);
+      if (items) enriched.items = items;
     } catch {}
     return enriched;
   }, []);
