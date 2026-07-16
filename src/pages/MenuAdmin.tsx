@@ -230,8 +230,13 @@ function MenuImportTab({ rid }: { rid: string }) {
     setUploading(true);
     setParsedResult(null);
     try {
-      // Upload file to storage
-      const path = `${rid}/imports/${Date.now()}-${file.name}`;
+      // Sanitize filename: remove accents, replace non-alphanumeric with dashes
+      const sanitizedName = file.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9.-]/g, "-")
+        .replace(/-+/g, "-");
+      const path = `${rid}/imports/${Date.now()}-${sanitizedName}`;
       const { error: upErr } = await supabase.storage.from("menu-images").upload(path, file);
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
