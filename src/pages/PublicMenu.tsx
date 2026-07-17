@@ -142,7 +142,12 @@ const PublicMenu = () => {
 
   async function loadMenu() {
     if (!slug) return;
-    const { data: rest } = await supabase.from("restaurants").select("*").eq("slug", slug).single();
+    const { data: rest } = await supabase
+      .from("restaurants")
+      .select("id, name, slug, logo_url, banner_url, description, primary_color, pickup_enabled, dine_in_enabled, payment_methods, pickup_dine_in_note, owner_phone, is_active")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .single();
     if (!rest) { setLoading(false); return; }
     setRestaurant(rest as any);
 
