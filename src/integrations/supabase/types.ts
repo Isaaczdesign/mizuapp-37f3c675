@@ -1002,8 +1002,10 @@ export type Database = {
           description: string | null
           dine_in_enabled: boolean | null
           id: string | null
+          is_active: boolean | null
           logo_url: string | null
           name: string | null
+          owner_phone: string | null
           payment_methods: Json | null
           pickup_dine_in_note: string | null
           pickup_enabled: boolean | null
@@ -1015,8 +1017,10 @@ export type Database = {
           description?: string | null
           dine_in_enabled?: boolean | null
           id?: string | null
+          is_active?: boolean | null
           logo_url?: string | null
           name?: string | null
+          owner_phone?: string | null
           payment_methods?: Json | null
           pickup_dine_in_note?: string | null
           pickup_enabled?: boolean | null
@@ -1028,8 +1032,10 @@ export type Database = {
           description?: string | null
           dine_in_enabled?: boolean | null
           id?: string | null
+          is_active?: boolean | null
           logo_url?: string | null
           name?: string | null
+          owner_phone?: string | null
           payment_methods?: Json | null
           pickup_dine_in_note?: string | null
           pickup_enabled?: boolean | null
