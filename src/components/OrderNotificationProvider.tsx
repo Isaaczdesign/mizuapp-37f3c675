@@ -30,13 +30,20 @@ export default function OrderNotificationProvider() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Request notification permission on mount
+  // Track current notification permission (do NOT auto-request; browsers block repeat prompts)
   useEffect(() => {
     if ("Notification" in window) {
       setNotifPermission(Notification.permission);
-      if (Notification.permission === "default") {
-        Notification.requestPermission().then(setNotifPermission);
-      }
+    }
+  }, []);
+
+  const requestNotifPermission = useCallback(async () => {
+    if (!("Notification" in window)) return;
+    try {
+      const result = await Notification.requestPermission();
+      setNotifPermission(result);
+    } catch {
+      // Some browsers require a user gesture; the click handler already provides one.
     }
   }, []);
 
@@ -150,9 +157,7 @@ export default function OrderNotificationProvider() {
             <p className="text-sm font-medium">Ativar notificações?</p>
             <p className="text-xs text-muted-foreground">Receba alertas de novos pedidos mesmo com a aba em segundo plano.</p>
           </div>
-          <Button size="sm" variant="hero" onClick={() => {
-            Notification.requestPermission().then(setNotifPermission);
-          }}>
+          <Button size="sm" variant="hero" onClick={requestNotifPermission}>
             Ativar
           </Button>
         </div>
