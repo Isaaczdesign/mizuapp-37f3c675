@@ -280,23 +280,14 @@ const PublicMenu = () => {
     if (!restaurant || !cart.length) return;
     setSubmitting(true);
     try {
-      // Find or create customer (avoid upsert which needs UPDATE permission)
-      let customerId: string;
-      const { data: existingCustomer } = await supabase.from("customers")
-        .select("id")
-        .eq("restaurant_id", restaurant.id)
-        .eq("whatsapp", customerWhatsapp.trim())
-        .maybeSingle();
-
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
-      } else {
-        const { data: newCustomer, error: custErr } = await supabase.from("customers")
-          .insert({ restaurant_id: restaurant.id, name: customerName.trim(), whatsapp: customerWhatsapp.trim(), consent_marketing: consentMarketing })
-          .select("id").single();
-        if (custErr) throw custErr;
-        customerId = newCustomer.id;
-      }
+      // Find or create customer via SECURITY DEFINER RPC (anon has no SELECT/UPDATE on customers)
+      const { data: customerId, error: custErr } = await supabase.rpc("find_or_create_customer", {
+        _restaurant_id: restaurant.id,
+        _name: customerName.trim(),
+        _whatsapp: customerWhatsapp.trim(),
+        _consent: consentMarketing,
+      });
+      if (custErr || !customerId) throw custErr ?? new Error("Falha ao registrar cliente");
 
       const { data: order, error: orderErr } = await supabase.from("orders")
         .insert({ restaurant_id: restaurant.id, table_id: tableId, customer_id: customerId, total: cartTotal, notes: orderNotes || null })
