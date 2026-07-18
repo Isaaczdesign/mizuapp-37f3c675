@@ -1055,6 +1055,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      find_or_create_customer: {
+        Args: {
+          _consent?: boolean
+          _name: string
+          _restaurant_id: string
+          _whatsapp: string
+        }
+        Returns: string
+      }
       get_public_order: {
         Args: { _token: string }
         Returns: {
