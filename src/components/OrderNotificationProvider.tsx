@@ -157,9 +157,7 @@ export default function OrderNotificationProvider() {
             <p className="text-sm font-medium">Ativar notificações?</p>
             <p className="text-xs text-muted-foreground">Receba alertas de novos pedidos mesmo com a aba em segundo plano.</p>
           </div>
-          <Button size="sm" variant="hero" onClick={() => {
-            Notification.requestPermission().then(setNotifPermission);
-          }}>
+          <Button size="sm" variant="hero" onClick={requestNotifPermission}>
             Ativar
           </Button>
         </div>
