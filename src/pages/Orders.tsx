@@ -238,10 +238,14 @@ const Orders = () => {
               onClick={async () => {
                 const { data: r } = await supabase
                   .from("restaurants")
-                  .select("name, slug, address, phone")
+                  .select("name, slug, owner_phone")
                   .eq("id", restaurantId!)
                   .single();
-                generateReceiptPDF(selectedOrder, r ?? { name: "Restaurante" });
+                generateReceiptPDF(selectedOrder, {
+                  name: r?.name ?? "Restaurante",
+                  slug: r?.slug ?? null,
+                  phone: r?.owner_phone ?? null,
+                });
                 toast.success("Recibo gerado!");
               }}
             >
