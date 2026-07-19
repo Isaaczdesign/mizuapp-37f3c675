@@ -228,10 +228,26 @@ const Orders = () => {
               ))}
             </div>
             {selectedOrder.notes && <p className="text-sm text-muted-foreground mb-3 italic">📝 {selectedOrder.notes}</p>}
-            <div className="flex justify-between font-display font-bold text-lg border-t border-border pt-3">
+            <div className="flex justify-between font-display font-bold text-lg border-t border-border pt-3 mb-4">
               <span>Total</span>
               <span className="gradient-text">R${selectedOrder.total.toFixed(2)}</span>
             </div>
+            <Button
+              variant="hero"
+              className="w-full gap-2"
+              onClick={async () => {
+                const { data: r } = await supabase
+                  .from("restaurants")
+                  .select("name, slug, address, phone")
+                  .eq("id", restaurantId!)
+                  .single();
+                generateReceiptPDF(selectedOrder, r ?? { name: "Restaurante" });
+                toast.success("Recibo gerado!");
+              }}
+            >
+              <FileText className="w-4 h-4" />
+              Gerar recibo (PDF)
+            </Button>
           </div>
         </div>
       )}
