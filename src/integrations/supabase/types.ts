@@ -66,6 +66,39 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          restaurant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          restaurant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          restaurant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       automation_rules: {
         Row: {
           created_at: string
@@ -586,6 +619,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          browser_push_enabled: boolean
+          created_at: string
+          id: string
+          popup_enabled: boolean
+          popup_position: string
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          browser_push_enabled?: boolean
+          created_at?: string
+          id?: string
+          popup_enabled?: boolean
+          popup_position?: string
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          browser_push_enabled?: boolean
+          created_at?: string
+          id?: string
+          popup_enabled?: boolean
+          popup_position?: string
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
