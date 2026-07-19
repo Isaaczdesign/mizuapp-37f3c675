@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, Bell, BellRing } from "lucide-react";
+import { Eye, X as XIcon, Bell, BellRing, FileText } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { generateReceiptPDF } from "@/lib/receipt";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 
