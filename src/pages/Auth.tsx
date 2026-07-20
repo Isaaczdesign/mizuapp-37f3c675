@@ -58,10 +58,15 @@ const Auth = () => {
 
         // Session exists — create the restaurant now (function needs the JWT)
         if (restaurantName.trim()) {
-          const { error: restError } = await supabase.functions.invoke("create-restaurant", {
+          const { data: restData, error: restError } = await supabase.functions.invoke("create-restaurant", {
             body: { restaurant_name: restaurantName },
           });
-          if (restError) {
+          // Treat "already has a restaurant" as success (idempotent retry)
+          const alreadyExists =
+            (restError as any)?.context?.status === 400 ||
+            (restData as any)?.restaurant_id ||
+            (restData as any)?.error === "User already has a restaurant";
+          if (restError && !alreadyExists) {
             console.error("Restaurant creation error:", restError);
             toast.error("Conta criada, mas houve erro ao criar o restaurante. Complete o onboarding.");
           } else {
