@@ -142,8 +142,8 @@ const PublicMenu = () => {
 
   async function loadMenu() {
     if (!slug) return;
-    const { data: rest } = await supabase
-      .from("restaurants")
+    const { data: rest } = await (supabase as any)
+      .from("restaurants_public")
       .select("id, name, slug, logo_url, banner_url, description, primary_color, pickup_enabled, dine_in_enabled, payment_methods, pickup_dine_in_note, owner_phone, is_active")
       .eq("slug", slug)
       .eq("is_active", true)
@@ -155,9 +155,9 @@ const PublicMenu = () => {
     if (settings?.operating_hours) setOperatingHours(settings.operating_hours);
 
     if (tableToken) {
-      const { data: table } = await supabase.from("restaurant_tables").select("id")
-        .eq("token", tableToken).eq("restaurant_id", rest.id).eq("is_active", true).single();
-      if (table) setTableId(table.id);
+      const { data: tableRows } = await (supabase as any).rpc("get_table_by_token", { _token: tableToken });
+      const table = Array.isArray(tableRows) ? tableRows[0] : tableRows;
+      if (table && table.restaurant_id === rest.id) setTableId(table.id);
     }
 
     const [catRes, itemRes] = await Promise.all([

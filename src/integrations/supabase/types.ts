@@ -1141,6 +1141,14 @@ export type Database = {
           total: number
         }[]
       }
+      get_table_by_token: {
+        Args: { _token: string }
+        Returns: {
+          id: string
+          number: number
+          restaurant_id: string
+        }[]
+      }
       get_user_restaurant_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
