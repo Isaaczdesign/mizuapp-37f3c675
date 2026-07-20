@@ -119,7 +119,18 @@ export default function Onboarding() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const rest = data.restaurant;
+      // Handle both new creation and existing restaurant (idempotent retry)
+      let rest = data?.restaurant;
+      if (!rest && data?.restaurant_id) {
+        const { data: existing } = await supabase
+          .from("restaurants")
+          .select("id, slug")
+          .eq("id", data.restaurant_id)
+          .single();
+        rest = existing;
+      }
+      if (!rest?.id) throw new Error("Não foi possível carregar o restaurante");
+
       setRestaurantId(rest.id);
       setSlug(rest.slug);
 
