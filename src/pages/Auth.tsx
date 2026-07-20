@@ -158,18 +158,6 @@ const Auth = () => {
                 </div>
               </>
             )}
-              <div>
-                <Label htmlFor="restaurant">Nome do Restaurante</Label>
-                <Input
-                  id="restaurant"
-                  value={restaurantName}
-                  onChange={(e) => setRestaurantName(e.target.value)}
-                  required
-                  placeholder="Ex: Sushi Katana"
-                  className="mt-1"
-                />
-              </div>
-            )}
             <Button variant="hero" className="w-full" disabled={loading}>
               {loading ? "Processando..." : isSignup ? "Criar Conta" : "Entrar"}
             </Button>
