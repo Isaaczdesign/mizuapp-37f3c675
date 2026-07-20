@@ -58,8 +58,8 @@ serve(async (req) => {
       .single();
 
     if (existingProfile?.restaurant_id) {
-      return new Response(JSON.stringify({ error: 'User already has a restaurant', restaurant_id: existingProfile.restaurant_id }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      return new Response(JSON.stringify({ restaurant_id: existingProfile.restaurant_id, already_exists: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
