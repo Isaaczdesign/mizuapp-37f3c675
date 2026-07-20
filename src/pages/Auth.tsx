@@ -12,11 +12,32 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
   const navigate = useNavigate();
 
+  const validatePassword = (pwd: string): string | null => {
+    if (pwd.length < 6) return "A senha deve ter pelo menos 6 caracteres.";
+    if (!/[a-z]/.test(pwd)) return "A senha deve conter pelo menos uma letra minúscula.";
+    if (!/[A-Z]/.test(pwd)) return "A senha deve conter pelo menos uma letra maiúscula.";
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSignup) {
+      const pwdError = validatePassword(password);
+      if (pwdError) {
+        toast.error(pwdError);
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("As senhas não coincidem.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -105,22 +126,37 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                placeholder="Mínimo 6 caracteres"
+                placeholder={isSignup ? "Mín. 6 caracteres, com maiúscula e minúscula" : "Sua senha"}
                 className="mt-1"
               />
             </div>
             {isSignup && (
-              <div>
-                <Label htmlFor="restaurant">Nome do Restaurante</Label>
-                <Input
-                  id="restaurant"
-                  value={restaurantName}
-                  onChange={(e) => setRestaurantName(e.target.value)}
-                  required
-                  placeholder="Ex: Sushi Katana"
-                  className="mt-1"
-                />
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    placeholder="Repita a senha"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="restaurant">Nome do Restaurante</Label>
+                  <Input
+                    id="restaurant"
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                    required
+                    placeholder="Ex: Sushi Katana"
+                    className="mt-1"
+                  />
+                </div>
+              </>
             )}
             <Button variant="hero" className="w-full" disabled={loading}>
               {loading ? "Processando..." : isSignup ? "Criar Conta" : "Entrar"}
