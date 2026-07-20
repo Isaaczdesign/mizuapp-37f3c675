@@ -24,28 +24,49 @@ const Auth = () => {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
 
-        if (data.user && restaurantName.trim()) {
+        // If email confirmation is required, no session is returned
+        if (!data.session) {
+          toast.success("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+          setIsSignup(false);
+          return;
+        }
+
+        // Session exists — create the restaurant now (function needs the JWT)
+        if (restaurantName.trim()) {
           const { error: restError } = await supabase.functions.invoke("create-restaurant", {
             body: { restaurant_name: restaurantName },
           });
           if (restError) {
             console.error("Restaurant creation error:", restError);
-            toast.error("Conta criada, mas houve erro ao criar o restaurante. Tente novamente.");
+            toast.error("Conta criada, mas houve erro ao criar o restaurante. Complete o onboarding.");
+          } else {
+            toast.success("Conta e restaurante criados!");
           }
         }
 
-        toast.success("Verifique seu e-mail para confirmar a conta!");
+        navigate("/dashboard", { replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/dashboard");
+        toast.success("Bem-vindo de volta!");
+        navigate("/dashboard", { replace: true });
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro ao processar");
+      const msg = err?.message || "Erro ao processar";
+      if (msg.toLowerCase().includes("invalid login")) {
+        toast.error("E-mail ou senha incorretos.");
+      } else if (msg.toLowerCase().includes("email not confirmed")) {
+        toast.error("Confirme seu e-mail antes de entrar.");
+      } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("user already")) {
+        toast.error("Este e-mail já está cadastrado. Faça login.");
+        setIsSignup(false);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
