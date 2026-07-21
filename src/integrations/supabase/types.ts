@@ -1141,6 +1141,25 @@ export type Database = {
           total: number
         }[]
       }
+      get_public_restaurant_by_slug: {
+        Args: { _slug: string }
+        Returns: {
+          banner_url: string
+          description: string
+          dine_in_enabled: boolean
+          id: string
+          is_active: boolean
+          logo_url: string
+          name: string
+          operating_hours: Json
+          owner_phone: string
+          payment_methods: Json
+          pickup_dine_in_note: string
+          pickup_enabled: boolean
+          primary_color: string
+          slug: string
+        }[]
+      }
       get_table_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1155,6 +1174,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_public_restaurant_active: {
+        Args: { _restaurant_id: string }
         Returns: boolean
       }
     }
