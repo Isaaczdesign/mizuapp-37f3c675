@@ -47,7 +47,9 @@ export default function Onboarding() {
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Step 1 — Identity
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => {
+    try { return localStorage.getItem("koban_signup_restaurant_name") || ""; } catch { return ""; }
+  });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#F97316");
@@ -62,6 +64,8 @@ export default function Onboarding() {
   const [menuFile, setMenuFile] = useState<File | null>(null);
   const [menuUploading, setMenuUploading] = useState(false);
   const [menuImported, setMenuImported] = useState(false);
+  const [menuStage, setMenuStage] = useState<"idle" | "uploading" | "analyzing" | "saving">("idle");
+  const [dragOver, setDragOver] = useState(false);
 
   // Step 4 — Payment
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["cash"]);
