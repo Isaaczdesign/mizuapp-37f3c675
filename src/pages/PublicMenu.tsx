@@ -142,17 +142,14 @@ const PublicMenu = () => {
 
   async function loadMenu() {
     if (!slug) return;
-    const { data: rest } = await (supabase as any)
-      .from("restaurants_public")
-      .select("id, name, slug, logo_url, banner_url, description, primary_color, pickup_enabled, dine_in_enabled, payment_methods, pickup_dine_in_note, owner_phone, is_active")
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .single();
+    const { data: restaurantRows, error: restaurantError } = await (supabase as any)
+      .rpc("get_public_restaurant_by_slug", { _slug: slug });
+    const rest = Array.isArray(restaurantRows) ? restaurantRows[0] : restaurantRows;
+    if (restaurantError) console.error("Erro ao carregar cardápio público:", restaurantError);
     if (!rest) { setLoading(false); return; }
     setRestaurant(rest as any);
 
-    const { data: settings } = await supabase.from("settings").select("operating_hours").eq("restaurant_id", rest.id).maybeSingle();
-    if (settings?.operating_hours) setOperatingHours(settings.operating_hours);
+    if (rest.operating_hours) setOperatingHours(rest.operating_hours);
 
     if (tableToken) {
       const { data: tableRows } = await (supabase as any).rpc("get_table_by_token", { _token: tableToken });
