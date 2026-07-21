@@ -319,12 +319,65 @@ export default function Onboarding() {
     }
   };
 
-  // ---- Test Order simulation ----
+  // ---- Test Order simulation (creates a real order visible in dashboard/KDS) ----
   const handleTestOrder = async () => {
+    if (!restaurantId) return;
     setTestStarted(true);
-    // Simulate a short delay
-    await new Promise((r) => setTimeout(r, 2000));
-    setTestComplete(true);
+    try {
+      // Ensure a test customer exists (RLS: owner can insert)
+      let customerId: string | null = null;
+      const { data: existingCustomer } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("restaurant_id", restaurantId)
+        .eq("whatsapp", "+5500000000000")
+        .maybeSingle();
+      if (existingCustomer?.id) {
+        customerId = existingCustomer.id;
+      } else {
+        const { data: newCustomer } = await supabase
+          .from("customers")
+          .insert({ restaurant_id: restaurantId, name: "Cliente Teste", whatsapp: "+5500000000000" } as any)
+          .select("id").single();
+        customerId = newCustomer?.id ?? null;
+      }
+
+      // Try to use a real menu item, fallback to a placeholder name
+      const { data: sampleItem } = await supabase
+        .from("menu_items")
+        .select("id, name, price")
+        .eq("restaurant_id", restaurantId)
+        .limit(1).maybeSingle();
+
+      const itemName = sampleItem?.name ?? "Combo Teste 8 peças";
+      const itemPrice = Number(sampleItem?.price ?? 29.9);
+
+      const { data: order, error: orderErr } = await supabase.from("orders")
+        .insert({
+          restaurant_id: restaurantId,
+          customer_id: customerId,
+          total: itemPrice,
+          status: "new",
+          notes: "Pedido de teste do onboarding",
+        } as any)
+        .select("id").single();
+      if (orderErr) throw orderErr;
+
+      await supabase.from("order_items").insert({
+        order_id: order!.id,
+        menu_item_id: sampleItem?.id ?? null,
+        name: itemName,
+        quantity: 1,
+        unit_price: itemPrice,
+      } as any);
+
+      setTestComplete(true);
+      toast.success("Pedido teste enviado ao painel!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Erro ao enviar pedido teste");
+      setTestStarted(false);
+    }
   };
 
   const togglePayment = (id: string) => {
