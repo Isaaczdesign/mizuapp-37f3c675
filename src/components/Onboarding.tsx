@@ -85,7 +85,7 @@ export default function Onboarding() {
       if (profile?.restaurant_id) {
         const { data: rest } = await supabase
           .from("restaurants")
-          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled")
+          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled, payment_methods")
           .eq("id", profile.restaurant_id)
           .single();
         if (rest) {
@@ -96,6 +96,16 @@ export default function Onboarding() {
           if (rest.logo_url) setLogoPreview(rest.logo_url);
           setPickupEnabled(rest.pickup_enabled);
           setDineInEnabled(rest.dine_in_enabled);
+          if (Array.isArray((rest as any).payment_methods) && (rest as any).payment_methods.length) {
+            setPaymentMethods((rest as any).payment_methods);
+          }
+          // Hydrate saved operating hours from settings
+          const { data: settingsRow } = await supabase
+            .from("settings").select("operating_hours").eq("restaurant_id", rest.id).maybeSingle();
+          if (settingsRow && (settingsRow as any).operating_hours) {
+            setHours((settingsRow as any).operating_hours as OperatingHours);
+          }
+          try { localStorage.removeItem("koban_signup_restaurant_name"); } catch {}
           setStep(1); // skip identity step
         }
       }
