@@ -1176,6 +1176,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_public_restaurant_active: {
+        Args: { _restaurant_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "owner" | "manager" | "staff" | "kitchen"
