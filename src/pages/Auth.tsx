@@ -56,6 +56,11 @@ const Auth = () => {
           return;
         }
 
+        // Persist name so onboarding can hydrate immediately
+        if (restaurantName.trim()) {
+          try { localStorage.setItem("koban_signup_restaurant_name", restaurantName.trim()); } catch {}
+        }
+
         // Session exists — create the restaurant now (function needs the JWT)
         if (restaurantName.trim()) {
           const { data: restData, error: restError } = await supabase.functions.invoke("create-restaurant", {

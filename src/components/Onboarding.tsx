@@ -47,7 +47,9 @@ export default function Onboarding() {
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Step 1 — Identity
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => {
+    try { return localStorage.getItem("koban_signup_restaurant_name") || ""; } catch { return ""; }
+  });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#F97316");
@@ -62,6 +64,8 @@ export default function Onboarding() {
   const [menuFile, setMenuFile] = useState<File | null>(null);
   const [menuUploading, setMenuUploading] = useState(false);
   const [menuImported, setMenuImported] = useState(false);
+  const [menuStage, setMenuStage] = useState<"idle" | "uploading" | "analyzing" | "saving">("idle");
+  const [dragOver, setDragOver] = useState(false);
 
   // Step 4 — Payment
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["cash"]);
@@ -81,7 +85,7 @@ export default function Onboarding() {
       if (profile?.restaurant_id) {
         const { data: rest } = await supabase
           .from("restaurants")
-          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled")
+          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled, payment_methods")
           .eq("id", profile.restaurant_id)
           .single();
         if (rest) {
@@ -92,6 +96,16 @@ export default function Onboarding() {
           if (rest.logo_url) setLogoPreview(rest.logo_url);
           setPickupEnabled(rest.pickup_enabled);
           setDineInEnabled(rest.dine_in_enabled);
+          if (Array.isArray((rest as any).payment_methods) && (rest as any).payment_methods.length) {
+            setPaymentMethods((rest as any).payment_methods);
+          }
+          // Hydrate saved operating hours from settings
+          const { data: settingsRow } = await supabase
+            .from("settings").select("operating_hours").eq("restaurant_id", rest.id).maybeSingle();
+          if (settingsRow && (settingsRow as any).operating_hours) {
+            setHours((settingsRow as any).operating_hours as OperatingHours);
+          }
+          try { localStorage.removeItem("koban_signup_restaurant_name"); } catch {}
           setStep(1); // skip identity step
         }
       }
@@ -193,8 +207,13 @@ export default function Onboarding() {
   const handleMenuImport = async () => {
     if (!menuFile || !restaurantId) return;
     setMenuUploading(true);
+    setMenuStage("uploading");
     try {
-      const path = `${restaurantId}/imports/${Date.now()}-${menuFile.name}`;
+      // Sanitize filename to avoid storage "Invalid key" errors
+      const safeName = menuFile.name
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]+/g, "-");
+      const path = `${restaurantId}/imports/${Date.now()}-${safeName}`;
       const { error: upErr } = await supabase.storage.from("menu-images").upload(path, menuFile);
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
@@ -203,6 +222,7 @@ export default function Onboarding() {
         restaurant_id: restaurantId, file_url: urlData.publicUrl, status: "uploaded",
       });
 
+      setMenuStage("analyzing");
       const isImage = /\.(jpg|jpeg|png|webp)$/i.test(menuFile.name);
       const body = isImage
         ? { image_url: urlData.publicUrl }
@@ -220,6 +240,7 @@ export default function Onboarding() {
       if (!resp.ok) throw new Error("Erro ao processar cardápio");
 
       const parsed = await resp.json();
+      setMenuStage("saving");
       // Auto-save all parsed items
       let count = 0;
       for (let ci = 0; ci < (parsed.categories ?? []).length; ci++) {
@@ -243,6 +264,7 @@ export default function Onboarding() {
       toast.error(err.message);
     } finally {
       setMenuUploading(false);
+      setMenuStage("idle");
     }
   };
 
@@ -297,12 +319,65 @@ export default function Onboarding() {
     }
   };
 
-  // ---- Test Order simulation ----
+  // ---- Test Order simulation (creates a real order visible in dashboard/KDS) ----
   const handleTestOrder = async () => {
+    if (!restaurantId) return;
     setTestStarted(true);
-    // Simulate a short delay
-    await new Promise((r) => setTimeout(r, 2000));
-    setTestComplete(true);
+    try {
+      // Ensure a test customer exists (RLS: owner can insert)
+      let customerId: string | null = null;
+      const { data: existingCustomer } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("restaurant_id", restaurantId)
+        .eq("whatsapp", "+5500000000000")
+        .maybeSingle();
+      if (existingCustomer?.id) {
+        customerId = existingCustomer.id;
+      } else {
+        const { data: newCustomer } = await supabase
+          .from("customers")
+          .insert({ restaurant_id: restaurantId, name: "Cliente Teste", whatsapp: "+5500000000000" } as any)
+          .select("id").single();
+        customerId = newCustomer?.id ?? null;
+      }
+
+      // Try to use a real menu item, fallback to a placeholder name
+      const { data: sampleItem } = await supabase
+        .from("menu_items")
+        .select("id, name, price")
+        .eq("restaurant_id", restaurantId)
+        .limit(1).maybeSingle();
+
+      const itemName = sampleItem?.name ?? "Combo Teste 8 peças";
+      const itemPrice = Number(sampleItem?.price ?? 29.9);
+
+      const { data: order, error: orderErr } = await supabase.from("orders")
+        .insert({
+          restaurant_id: restaurantId,
+          customer_id: customerId,
+          total: itemPrice,
+          status: "new",
+          notes: "Pedido de teste do onboarding",
+        } as any)
+        .select("id").single();
+      if (orderErr) throw orderErr;
+
+      await supabase.from("order_items").insert({
+        order_id: order!.id,
+        menu_item_id: sampleItem?.id ?? null,
+        name: itemName,
+        quantity: 1,
+        unit_price: itemPrice,
+      } as any);
+
+      setTestComplete(true);
+      toast.success("Pedido teste enviado ao painel!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Erro ao enviar pedido teste");
+      setTestStarted(false);
+    }
   };
 
   const togglePayment = (id: string) => {
@@ -588,35 +663,92 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {menuChoice === "import" && !menuImported && (
-                    <div className="glass-card p-6 text-center">
-                      <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Envie um PDF ou imagem do seu cardápio.
+                  {menuChoice === "import" && !menuImported && !menuUploading && (
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOver(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) setMenuFile(f);
+                      }}
+                      className={`glass-card p-8 text-center border-2 border-dashed transition-all ${
+                        dragOver ? "border-primary bg-primary/5 scale-[1.01]" : "border-border"
+                      }`}
+                    >
+                      <Upload className={`w-12 h-12 mx-auto mb-3 transition-colors ${dragOver ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className="text-sm font-medium mb-1">
+                        {dragOver ? "Solte o arquivo aqui" : "Arraste e solte seu cardápio"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        PDF, JPG, PNG ou WEBP — ou clique para selecionar
                       </p>
                       <label className="cursor-pointer">
-                        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+                        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
                           <FileText className="w-4 h-4" />
-                          {menuUploading ? "Processando com IA..." : menuFile ? menuFile.name : "Selecionar Arquivo"}
+                          {menuFile ? menuFile.name : "Selecionar Arquivo"}
                         </div>
                         <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
-                            if (f) { setMenuFile(f); }
-                          }}
-                          disabled={menuUploading} />
+                            if (f) setMenuFile(f);
+                          }} />
                       </label>
-                      {menuFile && !menuUploading && (
-                        <Button className="mt-4" onClick={handleMenuImport}>
+                      {menuFile && (
+                        <Button className="mt-4 ml-2" onClick={handleMenuImport}>
                           <Upload className="w-4 h-4 mr-2" /> Processar com IA
                         </Button>
                       )}
                       <button
                         onClick={() => setMenuChoice(null)}
-                        className="block mx-auto mt-3 text-xs text-muted-foreground hover:text-foreground"
+                        className="block mx-auto mt-4 text-xs text-muted-foreground hover:text-foreground"
                       >
                         ← Voltar
                       </button>
+                    </div>
+                  )}
+
+                  {menuUploading && (
+                    <div className="glass-card p-8">
+                      <div className="flex flex-col items-center gap-5">
+                        <div className="relative w-20 h-20">
+                          <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                          <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-primary animate-pulse" />
+                          </div>
+                        </div>
+                        <div className="w-full max-w-sm space-y-2">
+                          {[
+                            { key: "uploading", label: "Enviando arquivo" },
+                            { key: "analyzing", label: "Analisando com IA" },
+                            { key: "saving", label: "Salvando itens no cardápio" },
+                          ].map((s, idx) => {
+                            const order = ["uploading", "analyzing", "saving"];
+                            const currentIdx = order.indexOf(menuStage);
+                            const done = idx < currentIdx;
+                            const active = idx === currentIdx;
+                            return (
+                              <div key={s.key} className="flex items-center gap-3 text-sm">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                                  done ? "bg-primary text-primary-foreground" :
+                                  active ? "border-2 border-primary" : "border-2 border-border"
+                                }`}>
+                                  {done && <Check className="w-3 h-3" />}
+                                  {active && <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />}
+                                </div>
+                                <span className={active ? "font-medium text-foreground" : done ? "text-muted-foreground" : "text-muted-foreground/60"}>
+                                  {s.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Isso pode levar alguns segundos. Não feche esta janela.
+                        </p>
+                      </div>
                     </div>
                   )}
 
