@@ -663,35 +663,92 @@ export default function Onboarding() {
                     </div>
                   )}
 
-                  {menuChoice === "import" && !menuImported && (
-                    <div className="glass-card p-6 text-center">
-                      <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Envie um PDF ou imagem do seu cardápio.
+                  {menuChoice === "import" && !menuImported && !menuUploading && (
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOver(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) setMenuFile(f);
+                      }}
+                      className={`glass-card p-8 text-center border-2 border-dashed transition-all ${
+                        dragOver ? "border-primary bg-primary/5 scale-[1.01]" : "border-border"
+                      }`}
+                    >
+                      <Upload className={`w-12 h-12 mx-auto mb-3 transition-colors ${dragOver ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className="text-sm font-medium mb-1">
+                        {dragOver ? "Solte o arquivo aqui" : "Arraste e solte seu cardápio"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        PDF, JPG, PNG ou WEBP — ou clique para selecionar
                       </p>
                       <label className="cursor-pointer">
-                        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+                        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
                           <FileText className="w-4 h-4" />
-                          {menuUploading ? "Processando com IA..." : menuFile ? menuFile.name : "Selecionar Arquivo"}
+                          {menuFile ? menuFile.name : "Selecionar Arquivo"}
                         </div>
                         <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
-                            if (f) { setMenuFile(f); }
-                          }}
-                          disabled={menuUploading} />
+                            if (f) setMenuFile(f);
+                          }} />
                       </label>
-                      {menuFile && !menuUploading && (
-                        <Button className="mt-4" onClick={handleMenuImport}>
+                      {menuFile && (
+                        <Button className="mt-4 ml-2" onClick={handleMenuImport}>
                           <Upload className="w-4 h-4 mr-2" /> Processar com IA
                         </Button>
                       )}
                       <button
                         onClick={() => setMenuChoice(null)}
-                        className="block mx-auto mt-3 text-xs text-muted-foreground hover:text-foreground"
+                        className="block mx-auto mt-4 text-xs text-muted-foreground hover:text-foreground"
                       >
                         ← Voltar
                       </button>
+                    </div>
+                  )}
+
+                  {menuUploading && (
+                    <div className="glass-card p-8">
+                      <div className="flex flex-col items-center gap-5">
+                        <div className="relative w-20 h-20">
+                          <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                          <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-primary animate-pulse" />
+                          </div>
+                        </div>
+                        <div className="w-full max-w-sm space-y-2">
+                          {[
+                            { key: "uploading", label: "Enviando arquivo" },
+                            { key: "analyzing", label: "Analisando com IA" },
+                            { key: "saving", label: "Salvando itens no cardápio" },
+                          ].map((s, idx) => {
+                            const order = ["uploading", "analyzing", "saving"];
+                            const currentIdx = order.indexOf(menuStage);
+                            const done = idx < currentIdx;
+                            const active = idx === currentIdx;
+                            return (
+                              <div key={s.key} className="flex items-center gap-3 text-sm">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                                  done ? "bg-primary text-primary-foreground" :
+                                  active ? "border-2 border-primary" : "border-2 border-border"
+                                }`}>
+                                  {done && <Check className="w-3 h-3" />}
+                                  {active && <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />}
+                                </div>
+                                <span className={active ? "font-medium text-foreground" : done ? "text-muted-foreground" : "text-muted-foreground/60"}>
+                                  {s.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Isso pode levar alguns segundos. Não feche esta janela.
+                        </p>
+                      </div>
                     </div>
                   )}
 
