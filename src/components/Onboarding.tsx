@@ -207,8 +207,13 @@ export default function Onboarding() {
   const handleMenuImport = async () => {
     if (!menuFile || !restaurantId) return;
     setMenuUploading(true);
+    setMenuStage("uploading");
     try {
-      const path = `${restaurantId}/imports/${Date.now()}-${menuFile.name}`;
+      // Sanitize filename to avoid storage "Invalid key" errors
+      const safeName = menuFile.name
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]+/g, "-");
+      const path = `${restaurantId}/imports/${Date.now()}-${safeName}`;
       const { error: upErr } = await supabase.storage.from("menu-images").upload(path, menuFile);
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
@@ -217,6 +222,7 @@ export default function Onboarding() {
         restaurant_id: restaurantId, file_url: urlData.publicUrl, status: "uploaded",
       });
 
+      setMenuStage("analyzing");
       const isImage = /\.(jpg|jpeg|png|webp)$/i.test(menuFile.name);
       const body = isImage
         ? { image_url: urlData.publicUrl }
@@ -234,6 +240,7 @@ export default function Onboarding() {
       if (!resp.ok) throw new Error("Erro ao processar cardápio");
 
       const parsed = await resp.json();
+      setMenuStage("saving");
       // Auto-save all parsed items
       let count = 0;
       for (let ci = 0; ci < (parsed.categories ?? []).length; ci++) {
@@ -257,6 +264,7 @@ export default function Onboarding() {
       toast.error(err.message);
     } finally {
       setMenuUploading(false);
+      setMenuStage("idle");
     }
   };
 
