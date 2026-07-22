@@ -50,6 +50,10 @@ const Settings = () => {
   const [whatsappApiKey, setWhatsappApiKey] = useState("");
   const [whatsappSenderId, setWhatsappSenderId] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["cash"]);
+  const [dineInEnabled, setDineInEnabled] = useState(true);
+  const [pickupEnabled, setPickupEnabled] = useState(true);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState<string>("0");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
