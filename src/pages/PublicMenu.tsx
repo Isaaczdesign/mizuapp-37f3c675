@@ -786,7 +786,7 @@ const PublicMenu = () => {
         )}
       </AnimatePresence>
 
-      {/* ── Step-Based Checkout ── */}
+      {/* ── Step-Based Checkout (4 steps) ── */}
       <AnimatePresence>
         {checkoutStep > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -802,9 +802,9 @@ const PublicMenu = () => {
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-2 px-4 pb-3 border-b border-border">
-                {["Dados", "Confirmação"].map((label, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 px-4 pb-3 border-b border-border overflow-x-auto">
+                {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => (
+                  <div key={i} className="flex items-center gap-1.5 shrink-0">
                     <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
                       checkoutStep > i + 1 ? "text-white" : checkoutStep === i + 1 ? "text-white" : "bg-secondary text-muted-foreground"
                     }`} style={checkoutStep >= i + 1 ? { backgroundColor: accentColor } : {}}>
@@ -813,13 +813,70 @@ const PublicMenu = () => {
                     <span className={`text-xs font-medium ${checkoutStep === i + 1 ? "text-foreground" : "text-muted-foreground"}`}>
                       {label}
                     </span>
-                    {i < 1 && <div className="w-8 h-px bg-border" />}
+                    {i < 3 && <div className="w-4 h-px bg-border" />}
                   </div>
                 ))}
               </div>
 
-              {/* Step 1: Customer data */}
+              {/* Step 1: Tipo de atendimento */}
               {checkoutStep === 1 && (
+                <div className="p-4 space-y-3 overflow-y-auto flex-1">
+                  <h3 className="font-display font-bold">Como deseja seu pedido?</h3>
+                  {restaurant.dine_in_enabled && (
+                    <button
+                      onClick={() => { setOrderType("dine_in"); setCheckoutStep(2); }}
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
+                        orderType === "dine_in" ? "" : "border-border bg-secondary/40"
+                      }`}
+                      style={orderType === "dine_in" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
+                    >
+                      <UtensilsCrossed className="w-5 h-5" style={{ color: accentColor }} />
+                      <div className="text-left">
+                        <p className="font-medium text-sm">Consumir no local</p>
+                        <p className="text-xs text-muted-foreground">Peça direto da mesa</p>
+                      </div>
+                    </button>
+                  )}
+                  {restaurant.pickup_enabled && (
+                    <button
+                      onClick={() => { setOrderType("pickup"); setCheckoutStep(2); }}
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
+                        orderType === "pickup" ? "" : "border-border bg-secondary/40"
+                      }`}
+                      style={orderType === "pickup" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
+                    >
+                      <ShoppingBag className="w-5 h-5" style={{ color: accentColor }} />
+                      <div className="text-left">
+                        <p className="font-medium text-sm">Retirar no balcão</p>
+                        <p className="text-xs text-muted-foreground">Buscar no restaurante</p>
+                      </div>
+                    </button>
+                  )}
+                  {restaurant.delivery_enabled && (
+                    <button
+                      onClick={() => { setOrderType("delivery"); setCheckoutStep(2); }}
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
+                        orderType === "delivery" ? "" : "border-border bg-secondary/40"
+                      }`}
+                      style={orderType === "delivery" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
+                    >
+                      <Truck className="w-5 h-5" style={{ color: accentColor }} />
+                      <div className="text-left flex-1">
+                        <p className="font-medium text-sm">Delivery</p>
+                        <p className="text-xs text-muted-foreground">
+                          Entrega em casa {restaurant.delivery_fee ? `· Taxa ${fmt(Number(restaurant.delivery_fee))}` : ""}
+                        </p>
+                      </div>
+                    </button>
+                  )}
+                  {!restaurant.dine_in_enabled && !restaurant.pickup_enabled && !restaurant.delivery_enabled && (
+                    <p className="text-sm text-muted-foreground text-center py-4">Nenhum tipo de atendimento disponível.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Step 2: Infos (customer + mesa/endereço) */}
+              {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
                   <div>
                     <label className="text-sm font-medium">Nome *</label>
@@ -831,24 +888,144 @@ const PublicMenu = () => {
                     <Input value={customerWhatsapp} onChange={(e) => setCustomerWhatsapp(e.target.value)}
                       required placeholder="(11) 99999-9999" className="mt-1" />
                   </div>
+
+                  {orderType === "dine_in" && !tableId && (
+                    <div>
+                      <label className="text-sm font-medium">Mesa *</label>
+                      {tables.length > 0 ? (
+                        <div className="grid grid-cols-4 gap-2 mt-2">
+                          {tables.map((t) => (
+                            <button key={t.id} type="button"
+                              onClick={() => setSelectedTableId(t.id)}
+                              className={`py-2 rounded-lg text-sm font-medium border transition-all ${
+                                selectedTableId === t.id ? "text-white" : "bg-secondary border-border"
+                              }`}
+                              style={selectedTableId === t.id ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+                            >
+                              {t.number}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground mt-1">Nenhuma mesa cadastrada.</p>
+                      )}
+                    </div>
+                  )}
+                  {orderType === "dine_in" && tableId && (
+                    <div className="p-3 rounded-xl bg-secondary/50 text-sm">
+                      🍽️ Mesa identificada via QR Code
+                    </div>
+                  )}
+
+                  {orderType === "delivery" && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="col-span-2">
+                          <label className="text-xs font-medium">Rua *</label>
+                          <Input value={deliveryStreet} onChange={(e) => setDeliveryStreet(e.target.value)} required placeholder="Rua" className="mt-1" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Nº *</label>
+                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required placeholder="123" className="mt-1" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Bairro *</label>
+                        <Input value={deliveryNeighborhood} onChange={(e) => setDeliveryNeighborhood(e.target.value)} required placeholder="Bairro" className="mt-1" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Cidade *</label>
+                        <Input value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} required placeholder="Cidade" className="mt-1" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Complemento</label>
+                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência..." className="mt-1" />
+                      </div>
+                    </div>
+                  )}
+
                   <label className="flex items-center gap-2 text-sm text-muted-foreground">
                     <input type="checkbox" checked={consentMarketing} onChange={(e) => setConsentMarketing(e.target.checked)}
-                      className="rounded accent-primary" style={{ accentColor }} />
+                      className="rounded" style={{ accentColor }} />
                     Aceito receber promoções por WhatsApp
                   </label>
-                  <Button
-                    className="w-full py-6 rounded-2xl font-bold text-base"
-                    style={{ backgroundColor: accentColor }}
-                    disabled={!customerName.trim() || !customerWhatsapp.trim()}
-                    onClick={() => setCheckoutStep(2)}
-                  >
-                    Continuar
-                  </Button>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(1)}>
+                      Voltar
+                    </Button>
+                    <Button
+                      className="flex-1 py-6 rounded-2xl font-bold"
+                      style={{ backgroundColor: accentColor }}
+                      disabled={
+                        !customerName.trim() || !customerWhatsapp.trim() ||
+                        (orderType === "dine_in" && !tableId && !selectedTableId) ||
+                        (orderType === "delivery" && (!deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
+                      }
+                      onClick={() => setCheckoutStep(3)}
+                    >
+                      Continuar
+                    </Button>
+                  </div>
                 </div>
               )}
 
-              {/* Step 2: Confirmation */}
-              {checkoutStep === 2 && (
+              {/* Step 3: Pagamento */}
+              {checkoutStep === 3 && (
+                <div className="p-4 space-y-3 overflow-y-auto flex-1">
+                  <h3 className="font-display font-bold">Forma de pagamento</h3>
+                  {(() => {
+                    const pm = restaurant.payment_methods;
+                    const available: { key: string; label: string }[] = [];
+                    const enabled = (k: string) =>
+                      Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
+                    if (enabled("pix")) available.push({ key: "pix", label: "PIX" });
+                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: "Cartão de Crédito" });
+                    if (enabled("debit_card")) available.push({ key: "debit_card", label: "Cartão de Débito" });
+                    if (enabled("cash")) available.push({ key: "cash", label: "Dinheiro" });
+                    if (available.length === 0) {
+                      available.push({ key: "pix", label: "PIX" }, { key: "cash", label: "Dinheiro" });
+                    }
+                    return available.map((p) => (
+                      <button key={p.key} type="button"
+                        onClick={() => setPaymentMethod(p.key)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                          paymentMethod === p.key ? "" : "border-border bg-secondary/40"
+                        }`}
+                        style={paymentMethod === p.key ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
+                      >
+                        <CreditCard className="w-4 h-4" style={{ color: accentColor }} />
+                        <span className="text-sm font-medium">{p.label}</span>
+                      </button>
+                    ));
+                  })()}
+
+                  {paymentMethod === "cash" && (
+                    <div>
+                      <label className="text-xs font-medium">Precisa de troco para quanto? (opcional)</label>
+                      <Input value={changeFor} onChange={(e) => setChangeFor(e.target.value)}
+                        type="number" step="0.01" placeholder="Ex: 100.00" className="mt-1" />
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(2)}>
+                      Voltar
+                    </Button>
+                    <Button
+                      className="flex-1 py-6 rounded-2xl font-bold"
+                      style={{ backgroundColor: accentColor }}
+                      disabled={!paymentMethod}
+                      onClick={() => setCheckoutStep(4)}
+                    >
+                      Revisar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Revisão */}
+              {checkoutStep === 4 && (
                 <form onSubmit={handleCheckout} className="p-4 space-y-4 overflow-y-auto flex-1">
                   <div className="space-y-2">
                     {cart.map((item) => (
@@ -858,17 +1035,39 @@ const PublicMenu = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="border-t border-border pt-3 flex justify-between">
-                    <span className="font-bold">Total</span>
-                    <span className="font-display text-xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
+                  <div className="border-t border-border pt-3 space-y-1 text-sm">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Subtotal</span><span>{fmt(cartTotal)}</span>
+                    </div>
+                    {deliveryFeeApplied > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Taxa de entrega</span><span>{fmt(deliveryFeeApplied)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between pt-1">
+                      <span className="font-bold">Total</span>
+                      <span className="font-display text-xl font-bold" style={{ color: accentColor }}>{fmt(grandTotal)}</span>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>📛 {customerName}</p>
-                    <p>📱 {customerWhatsapp}</p>
+                  <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-3">
+                    <p>👤 {customerName} · 📱 {customerWhatsapp}</p>
+                    <p>
+                      {orderType === "dine_in" && `🍽️ Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
+                      {orderType === "pickup" && `🛍️ Retirada no balcão`}
+                      {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
+                    </p>
+                    <p>💳 {paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
                   </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Observações</label>
+                    <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
+                      className="w-full mt-1 p-3 rounded-xl bg-secondary text-sm resize-none h-16 border-none outline-none"
+                      placeholder="Sem wasabi, alergia a amendoim..." />
+                  </div>
+
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl"
-                      onClick={() => setCheckoutStep(1)}>
+                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(3)}>
                       Voltar
                     </Button>
                     <Button type="submit" className="flex-1 py-6 rounded-2xl font-bold text-base"
