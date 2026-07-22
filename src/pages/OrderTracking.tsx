@@ -71,7 +71,8 @@ export default function OrderTracking() {
   }
 
   const isCanceled = order.status === "canceled";
-  const activeIdx = STATUS_FLOW.findIndex((s) => s.key === order.status);
+  const flow = order.order_type === "delivery" ? DELIVERY_FLOW : DEFAULT_FLOW;
+  const activeIdx = flow.findIndex((s) => s.key === order.status);
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 max-w-lg mx-auto">
