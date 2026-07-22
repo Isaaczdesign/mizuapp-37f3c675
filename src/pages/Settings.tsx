@@ -54,6 +54,8 @@ const Settings = () => {
   const [pickupEnabled, setPickupEnabled] = useState(true);
   const [deliveryEnabled, setDeliveryEnabled] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<string>("0");
+  const [avgPrepMinutes, setAvgPrepMinutes] = useState<string>("25");
+  const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -110,6 +112,8 @@ const Settings = () => {
       setWhatsappProvider(settings.whatsapp_provider ?? "");
       setWhatsappApiKey(settings.whatsapp_api_key ?? "");
       setWhatsappSenderId((settings as any).whatsapp_sender_id ?? "");
+      setAvgPrepMinutes(String((settings as any).avg_prep_minutes ?? 25));
+      setAvgDeliveryMinutes(String((settings as any).avg_delivery_minutes ?? 30));
     }
   }, [settings]);
 
@@ -149,6 +153,8 @@ const Settings = () => {
         whatsapp_provider: whatsappProvider || null,
         whatsapp_api_key: whatsappApiKey || null,
         whatsapp_sender_id: whatsappSenderId || null,
+        avg_prep_minutes: Math.max(0, parseInt(avgPrepMinutes, 10) || 0),
+        avg_delivery_minutes: Math.max(0, parseInt(avgDeliveryMinutes, 10) || 0),
       };
 
       if (settings?.id) {
