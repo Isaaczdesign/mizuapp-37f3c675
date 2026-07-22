@@ -25,6 +25,7 @@ interface Order {
   payment_change_for: number | null;
   delivery_address: any;
   delivery_fee: number;
+  delivery_eta: string | null;
   order_items: { id: string; name: string; quantity: number; unit_price: number; notes: string | null }[];
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
@@ -76,7 +77,8 @@ function getNextLabel(current: OrderStatus, type: string): string {
 
 function formatAddress(addr: any): string {
   if (!addr || typeof addr !== "object") return "";
-  const parts = [addr.street, addr.number, addr.neighborhood, addr.city].filter(Boolean);
+  const parts = [addr.street, addr.number, addr.complement, addr.neighborhood, addr.city, addr.cep]
+    .filter(Boolean);
   return parts.join(", ");
 }
 
@@ -112,7 +114,7 @@ const Orders = () => {
     if (!restaurantId) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, delivery_address, delivery_fee, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, delivery_address, delivery_fee, delivery_eta, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -127,7 +129,23 @@ const Orders = () => {
     const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
     if (error) { toast.error("Erro ao atualizar status"); return; }
     toast.success("Status atualizado!");
+    if (newStatus === ("out_for_delivery" as OrderStatus) || newStatus === ("delivered" as OrderStatus)) {
+      supabase.functions.invoke("send-order-whatsapp", {
+        body: { order_id: orderId, event: newStatus },
+      }).then(({ error: fnErr }) => {
+        if (fnErr) toast.error("Falha ao notificar cliente no WhatsApp");
+        else toast.success("📱 Cliente notificado no WhatsApp");
+      });
+    }
     setSelectedOrder(null);
+  }
+
+  async function saveEta(orderId: string, isoDatetime: string | null) {
+    const { error } = await supabase.from("orders").update({ delivery_eta: isoDatetime }).eq("id", orderId);
+    if (error) { toast.error("Erro ao salvar previsão"); return; }
+    toast.success("Previsão salva!");
+    setSelectedOrder((prev) => prev && prev.id === orderId ? { ...prev, delivery_eta: isoDatetime } : prev);
+    loadOrders();
   }
 
   if (loading) {
