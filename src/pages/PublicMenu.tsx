@@ -327,6 +327,7 @@ const PublicMenu = () => {
       } else if (orderType === "delivery") {
         orderPayload.delivery_fee = deliveryFeeApplied;
         orderPayload.delivery_address = {
+          cep: deliveryCep.replace(/\D/g, ""),
           street: deliveryStreet.trim(),
           number: deliveryNumber.trim(),
           neighborhood: deliveryNeighborhood.trim(),
