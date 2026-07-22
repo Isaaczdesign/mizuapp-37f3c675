@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed, Bike, Home } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TrackingOrder {
@@ -12,6 +12,7 @@ interface TrackingOrder {
   notes: string | null;
   created_at: string;
   delivery_eta: string | null;
+  delivery_address: any | null;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
