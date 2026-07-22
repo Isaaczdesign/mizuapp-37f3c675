@@ -11,6 +11,7 @@ interface TrackingOrder {
   total: number;
   notes: string | null;
   created_at: string;
+  delivery_eta: string | null;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
@@ -85,6 +86,18 @@ export default function OrderTracking() {
           {new Date(order.created_at).toLocaleString("pt-BR")}
         </p>
       </div>
+
+      {order.order_type === "delivery" && order.delivery_eta && !isCanceled && (
+        <div className="glass-card p-4 mb-6 flex items-center gap-3">
+          <Bike className="w-5 h-5 text-primary shrink-0" />
+          <div className="flex-1">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Previsão de entrega</p>
+            <p className="font-display font-bold text-lg">
+              {new Date(order.delivery_eta).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Timeline */}
       {isCanceled ? (

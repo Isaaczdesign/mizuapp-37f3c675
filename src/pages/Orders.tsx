@@ -25,6 +25,7 @@ interface Order {
   payment_change_for: number | null;
   delivery_address: any;
   delivery_fee: number;
+  delivery_eta: string | null;
   order_items: { id: string; name: string; quantity: number; unit_price: number; notes: string | null }[];
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
@@ -76,7 +77,8 @@ function getNextLabel(current: OrderStatus, type: string): string {
 
 function formatAddress(addr: any): string {
   if (!addr || typeof addr !== "object") return "";
-  const parts = [addr.street, addr.number, addr.neighborhood, addr.city].filter(Boolean);
+  const parts = [addr.street, addr.number, addr.complement, addr.neighborhood, addr.city, addr.cep]
+    .filter(Boolean);
   return parts.join(", ");
 }
 
@@ -112,7 +114,7 @@ const Orders = () => {
     if (!restaurantId) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, delivery_address, delivery_fee, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, delivery_address, delivery_fee, delivery_eta, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -127,7 +129,23 @@ const Orders = () => {
     const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
     if (error) { toast.error("Erro ao atualizar status"); return; }
     toast.success("Status atualizado!");
+    if (newStatus === ("out_for_delivery" as OrderStatus) || newStatus === ("delivered" as OrderStatus)) {
+      supabase.functions.invoke("send-order-whatsapp", {
+        body: { order_id: orderId, event: newStatus },
+      }).then(({ error: fnErr }) => {
+        if (fnErr) toast.error("Falha ao notificar cliente no WhatsApp");
+        else toast.success("📱 Cliente notificado no WhatsApp");
+      });
+    }
     setSelectedOrder(null);
+  }
+
+  async function saveEta(orderId: string, isoDatetime: string | null) {
+    const { error } = await supabase.from("orders").update({ delivery_eta: isoDatetime }).eq("id", orderId);
+    if (error) { toast.error("Erro ao salvar previsão"); return; }
+    toast.success("Previsão salva!");
+    setSelectedOrder((prev) => prev && prev.id === orderId ? { ...prev, delivery_eta: isoDatetime } : prev);
+    loadOrders();
   }
 
   if (loading) {
@@ -288,7 +306,23 @@ const Orders = () => {
                 <p><strong>Mesa:</strong> {selectedOrder.restaurant_tables.number}</p>
               )}
               {selectedOrder.order_type === "delivery" && selectedOrder.delivery_address && (
-                <p><strong>Endereço:</strong> {formatAddress(selectedOrder.delivery_address)}</p>
+                <div className="p-2 rounded-lg bg-secondary/40 space-y-0.5">
+                  <p className="font-semibold flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> Endereço de entrega</p>
+                  {selectedOrder.delivery_address.street && (
+                    <p>{selectedOrder.delivery_address.street}, {selectedOrder.delivery_address.number || "s/n"}</p>
+                  )}
+                  {selectedOrder.delivery_address.complement && (
+                    <p className="text-muted-foreground">Compl.: {selectedOrder.delivery_address.complement}</p>
+                  )}
+                  {(selectedOrder.delivery_address.neighborhood || selectedOrder.delivery_address.city) && (
+                    <p className="text-muted-foreground">
+                      {[selectedOrder.delivery_address.neighborhood, selectedOrder.delivery_address.city].filter(Boolean).join(" - ")}
+                    </p>
+                  )}
+                  {selectedOrder.delivery_address.cep && (
+                    <p className="text-muted-foreground">CEP: {selectedOrder.delivery_address.cep}</p>
+                  )}
+                </div>
               )}
               {selectedOrder.payment_method && (
                 <p>
@@ -300,6 +334,37 @@ const Orders = () => {
               )}
               {selectedOrder.delivery_fee > 0 && (
                 <p><strong>Taxa de entrega:</strong> R${Number(selectedOrder.delivery_fee).toFixed(2)}</p>
+              )}
+              {selectedOrder.order_type === "delivery" && (
+                <div className="pt-2 border-t border-border">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Previsão de entrega (ETA)</label>
+                  <div className="flex gap-2 mt-1">
+                    <input
+                      type="datetime-local"
+                      className="flex-1 bg-background border border-border rounded-lg px-2 py-1.5 text-sm"
+                      defaultValue={selectedOrder.delivery_eta
+                        ? new Date(new Date(selectedOrder.delivery_eta).getTime() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)
+                        : ""}
+                      onBlur={(e) => {
+                        const v = e.target.value;
+                        const iso = v ? new Date(v).toISOString() : null;
+                        if (iso !== selectedOrder.delivery_eta) saveEta(selectedOrder.id, iso);
+                      }}
+                    />
+                    {selectedOrder.delivery_eta && (
+                      <button onClick={() => saveEta(selectedOrder.id, null)} className="text-xs px-2 rounded-lg bg-secondary hover:bg-secondary/80">Limpar</button>
+                    )}
+                  </div>
+                  <div className="flex gap-1 mt-2 flex-wrap">
+                    {[20, 30, 45, 60].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => saveEta(selectedOrder.id, new Date(Date.now() + m*60000).toISOString())}
+                        className="text-[11px] px-2 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
+                      >+{m} min</button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 

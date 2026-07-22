@@ -703,6 +703,7 @@ export type Database = {
           created_at: string
           customer_id: string | null
           delivery_address: Json | null
+          delivery_eta: string | null
           delivery_fee: number
           id: string
           notes: string | null
@@ -721,6 +722,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           delivery_address?: Json | null
+          delivery_eta?: string | null
           delivery_fee?: number
           id?: string
           notes?: string | null
@@ -739,6 +741,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           delivery_address?: Json | null
+          delivery_eta?: string | null
           delivery_fee?: number
           id?: string
           notes?: string | null
@@ -1158,6 +1161,7 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           created_at: string
+          delivery_eta: string
           id: string
           items: Json
           notes: string
