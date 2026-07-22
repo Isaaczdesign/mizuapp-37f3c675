@@ -56,6 +56,7 @@ const Settings = () => {
   const [deliveryFee, setDeliveryFee] = useState<string>("0");
   const [avgPrepMinutes, setAvgPrepMinutes] = useState<string>("25");
   const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
+  const [address, setAddress] = useState<string>("");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
