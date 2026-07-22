@@ -149,20 +149,19 @@ export default function Onboarding() {
       setSlug(rest.slug);
 
       // Upload logo if selected
+      let newLogoUrl: string | null = null;
       if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
+        const ext = (logoFile.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
         const path = `${rest.id}/logo.${ext}`;
-        await supabase.storage.from("menu-images").upload(path, logoFile, { upsert: true });
+        const { error: upErr } = await supabase.storage.from("menu-images").upload(path, logoFile, { upsert: true, contentType: logoFile.type });
+        if (upErr) throw new Error(`Falha ao enviar logo: ${upErr.message}`);
         const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
-        await supabase.from("restaurants").update({
-          logo_url: urlData.publicUrl,
-          primary_color: primaryColor,
-        } as any).eq("id", rest.id);
-      } else {
-        await supabase.from("restaurants").update({
-          primary_color: primaryColor,
-        } as any).eq("id", rest.id);
+        newLogoUrl = urlData.publicUrl;
       }
+      await supabase.from("restaurants").update({
+        primary_color: primaryColor,
+        ...(newLogoUrl ? { logo_url: newLogoUrl } : {}),
+      } as any).eq("id", rest.id);
 
       toast.success("Restaurante criado!");
       setStep(1);
