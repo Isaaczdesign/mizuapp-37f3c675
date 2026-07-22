@@ -332,6 +332,50 @@ const Settings = () => {
             </div>
           </div>
 
+          {/* Tipos de atendimento */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <Truck className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Tipos de Atendimento</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Escolha quais opções aparecem para o cliente no checkout do cardápio público.</p>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border">
+              <div>
+                <p className="font-medium text-sm">🍽️ Consumo no local (Mesa)</p>
+                <p className="text-xs text-muted-foreground">Pedido vinculado a uma mesa via QR Code</p>
+              </div>
+              <Switch checked={dineInEnabled} onCheckedChange={setDineInEnabled} />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border">
+              <div>
+                <p className="font-medium text-sm">🛍️ Retirada no balcão</p>
+                <p className="text-xs text-muted-foreground">Cliente busca o pedido no restaurante</p>
+              </div>
+              <Switch checked={pickupEnabled} onCheckedChange={setPickupEnabled} />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border">
+              <div>
+                <p className="font-medium text-sm">🛵 Delivery</p>
+                <p className="text-xs text-muted-foreground">Entrega no endereço do cliente</p>
+              </div>
+              <Switch checked={deliveryEnabled} onCheckedChange={setDeliveryEnabled} />
+            </div>
+            {deliveryEnabled && (
+              <div>
+                <Label>Taxa de entrega (R$)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={deliveryFee}
+                  onChange={(e) => setDeliveryFee(e.target.value)}
+                  className="mt-1 max-w-[160px]"
+                  placeholder="0,00"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Payment Methods */}
           <div className="glass-card p-6 space-y-4">
             <div className="flex items-center gap-3 mb-2">
