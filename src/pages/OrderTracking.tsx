@@ -1,23 +1,32 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed, Bike, Home } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TrackingOrder {
   id: string;
   status: string;
+  order_type: string;
   total: number;
   notes: string | null;
   created_at: string;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
-const STATUS_FLOW: { key: string; label: string; icon: any }[] = [
+const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
   { key: "new", label: "Recebido", icon: Clock },
   { key: "preparing", label: "Preparando", icon: ChefHat },
   { key: "ready", label: "Pronto", icon: PackageCheck },
   { key: "completed", label: "Concluído", icon: Check },
+];
+
+const DELIVERY_FLOW: { key: string; label: string; icon: any }[] = [
+  { key: "new", label: "Recebido", icon: Clock },
+  { key: "preparing", label: "Preparando", icon: ChefHat },
+  { key: "ready", label: "Pronto p/ envio", icon: PackageCheck },
+  { key: "out_for_delivery", label: "A caminho", icon: Bike },
+  { key: "delivered", label: "Entregue", icon: Home },
 ];
 
 const fmt = (v: number) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
