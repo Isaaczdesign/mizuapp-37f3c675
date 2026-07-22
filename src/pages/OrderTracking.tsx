@@ -13,6 +13,7 @@ interface TrackingOrder {
   created_at: string;
   delivery_eta: string | null;
   delivery_address: any | null;
+  restaurant_address: string | null;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
