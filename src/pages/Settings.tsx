@@ -367,18 +367,43 @@ const Settings = () => {
               <Switch checked={deliveryEnabled} onCheckedChange={setDeliveryEnabled} />
             </div>
             {deliveryEnabled && (
-              <div>
-                <Label>Taxa de entrega (R$)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={deliveryFee}
-                  onChange={(e) => setDeliveryFee(e.target.value)}
-                  className="mt-1 max-w-[160px]"
-                  placeholder="0,00"
-                />
-              </div>
+              <>
+                <div>
+                  <Label>Taxa de entrega (R$)</Label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={deliveryFee}
+                    onChange={(e) => setDeliveryFee(e.target.value)}
+                    className="mt-1 max-w-[160px]"
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Tempo médio de preparo (min)</Label>
+                    <Input
+                      type="number" min="0" step="1"
+                      value={avgPrepMinutes}
+                      onChange={(e) => setAvgPrepMinutes(e.target.value)}
+                      className="mt-1"
+                      placeholder="25"
+                    />
+                  </div>
+                  <div>
+                    <Label>Tempo médio de entrega (min)</Label>
+                    <Input
+                      type="number" min="0" step="1"
+                      value={avgDeliveryMinutes}
+                      onChange={(e) => setAvgDeliveryMinutes(e.target.value)}
+                      className="mt-1"
+                      placeholder="30"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  A previsão de entrega (ETA) é calculada automaticamente ao marcar o pedido como <strong>Pronto p/ envio</strong>: horário atual + tempo médio de entrega.
+                </p>
+              </>
             )}
           </div>
 
