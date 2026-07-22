@@ -1,0 +1,1 @@
+ALTER TABLE public.orders DISABLE TRIGGER trg_orders_audit;
