@@ -960,6 +960,8 @@ export type Database = {
       }
       settings: {
         Row: {
+          avg_delivery_minutes: number
+          avg_prep_minutes: number
           created_at: string
           id: string
           operating_hours: Json | null
@@ -970,6 +972,8 @@ export type Database = {
           whatsapp_sender_id: string | null
         }
         Insert: {
+          avg_delivery_minutes?: number
+          avg_prep_minutes?: number
           created_at?: string
           id?: string
           operating_hours?: Json | null
@@ -980,6 +984,8 @@ export type Database = {
           whatsapp_sender_id?: string | null
         }
         Update: {
+          avg_delivery_minutes?: number
+          avg_prep_minutes?: number
           created_at?: string
           id?: string
           operating_hours?: Json | null
@@ -1161,6 +1167,7 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           created_at: string
+          delivery_address: Json
           delivery_eta: string
           id: string
           items: Json
