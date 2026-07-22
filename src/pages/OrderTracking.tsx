@@ -105,8 +105,11 @@ export default function OrderTracking() {
         const a = order.delivery_address;
         const line1 = [a.street, a.number].filter(Boolean).join(", ");
         const line2 = [a.neighborhood, a.city].filter(Boolean).join(" - ");
-        const query = [line1, a.complement, line2, a.cep].filter(Boolean).join(", ");
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+        const destination = [line1, a.complement, line2, a.cep].filter(Boolean).join(", ");
+        const origin = (order.restaurant_address || "").trim();
+        const mapsUrl = origin
+          ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
         return (
           <div className="glass-card p-4 mb-6 space-y-3">
             <div className="flex items-start gap-3">
@@ -119,6 +122,11 @@ export default function OrderTracking() {
                 {a.cep && <p className="text-xs text-muted-foreground">CEP: {a.cep}</p>}
               </div>
             </div>
+            {origin && (
+              <p className="text-[11px] text-muted-foreground pl-8">
+                Rota partindo de: <span className="text-foreground">{origin}</span>
+              </p>
+            )}
             <a
               href={mapsUrl}
               target="_blank"
@@ -126,7 +134,7 @@ export default function OrderTracking() {
               className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
             >
               <ExternalLink className="w-4 h-4" />
-              Abrir no Google Maps
+              {origin ? "Ver rota no Google Maps" : "Abrir no Google Maps"}
             </a>
           </div>
         );
