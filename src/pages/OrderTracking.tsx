@@ -100,6 +100,38 @@ export default function OrderTracking() {
         </div>
       )}
 
+      {order.order_type === "delivery" && order.delivery_address && (() => {
+        const a = order.delivery_address;
+        const line1 = [a.street, a.number].filter(Boolean).join(", ");
+        const line2 = [a.neighborhood, a.city].filter(Boolean).join(" - ");
+        const query = [line1, a.complement, line2, a.cep].filter(Boolean).join(", ");
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+        return (
+          <div className="glass-card p-4 mb-6 space-y-3">
+            <div className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Endereço de entrega</p>
+                {line1 && <p className="font-medium text-sm">{line1}</p>}
+                {a.complement && <p className="text-xs text-muted-foreground">Compl.: {a.complement}</p>}
+                {line2 && <p className="text-xs text-muted-foreground">{line2}</p>}
+                {a.cep && <p className="text-xs text-muted-foreground">CEP: {a.cep}</p>}
+              </div>
+            </div>
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Abrir no Google Maps
+            </a>
+          </div>
+        );
+      })()}
+
+
       {/* Timeline */}
       {isCanceled ? (
         <div className="glass-card p-6 flex flex-col items-center text-center mb-6">
