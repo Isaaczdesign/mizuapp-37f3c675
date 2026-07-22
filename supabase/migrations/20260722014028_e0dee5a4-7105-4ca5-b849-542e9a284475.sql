@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.log_order_audit() TO anon, authenticated;

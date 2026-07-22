@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.is_public_restaurant_active(uuid) TO anon, authenticated;

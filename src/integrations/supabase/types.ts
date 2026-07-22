@@ -702,8 +702,14 @@ export type Database = {
         Row: {
           created_at: string
           customer_id: string | null
+          delivery_address: Json | null
+          delivery_fee: number
           id: string
           notes: string | null
+          order_type: string
+          payment_change_for: number | null
+          payment_method: string | null
+          pickup_time: string | null
           restaurant_id: string
           status: Database["public"]["Enums"]["order_status"]
           table_id: string | null
@@ -714,8 +720,14 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_id?: string | null
+          delivery_address?: Json | null
+          delivery_fee?: number
           id?: string
           notes?: string | null
+          order_type?: string
+          payment_change_for?: number | null
+          payment_method?: string | null
+          pickup_time?: string | null
           restaurant_id: string
           status?: Database["public"]["Enums"]["order_status"]
           table_id?: string | null
@@ -726,8 +738,14 @@ export type Database = {
         Update: {
           created_at?: string
           customer_id?: string | null
+          delivery_address?: Json | null
+          delivery_fee?: number
           id?: string
           notes?: string | null
+          order_type?: string
+          payment_change_for?: number | null
+          payment_method?: string | null
+          pickup_time?: string | null
           restaurant_id?: string
           status?: Database["public"]["Enums"]["order_status"]
           table_id?: string | null
@@ -875,6 +893,8 @@ export type Database = {
         Row: {
           banner_url: string | null
           created_at: string
+          delivery_enabled: boolean
+          delivery_fee: number
           description: string | null
           dine_in_enabled: boolean
           id: string
@@ -894,6 +914,8 @@ export type Database = {
         Insert: {
           banner_url?: string | null
           created_at?: string
+          delivery_enabled?: boolean
+          delivery_fee?: number
           description?: string | null
           dine_in_enabled?: boolean
           id?: string
@@ -913,6 +935,8 @@ export type Database = {
         Update: {
           banner_url?: string | null
           created_at?: string
+          delivery_enabled?: boolean
+          delivery_fee?: number
           description?: string | null
           dine_in_enabled?: boolean
           id?: string
@@ -1145,6 +1169,8 @@ export type Database = {
         Args: { _slug: string }
         Returns: {
           banner_url: string
+          delivery_enabled: boolean
+          delivery_fee: number
           description: string
           dine_in_enabled: boolean
           id: string
@@ -1158,6 +1184,13 @@ export type Database = {
           pickup_enabled: boolean
           primary_color: string
           slug: string
+        }[]
+      }
+      get_public_tables: {
+        Args: { _restaurant_id: string }
+        Returns: {
+          id: string
+          number: number
         }[]
       }
       get_table_by_token: {
