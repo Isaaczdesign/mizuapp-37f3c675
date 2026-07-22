@@ -249,7 +249,7 @@ const Orders = () => {
                               {getNextLabel(order.status, order.order_type)}
                             </Button>
                           )}
-                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (
+                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (order.status as string) !== "delivered" && (
                             <button onClick={() => updateStatus(order.id, "canceled")} className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition-colors">
                               <XIcon className="w-3.5 h-3.5" />
                             </button>
