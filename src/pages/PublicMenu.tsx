@@ -91,21 +91,33 @@ function MenuSkeleton() {
 const PublicMenu = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tableToken = searchParams.get("t");
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [tableId, setTableId] = useState<string | null>(null);
+  const [tables, setTables] = useState<{ id: string; number: number }[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState(0); // 0=closed, 1=dados, 2=confirmar
+  const [checkoutStep, setCheckoutStep] = useState(0); // 0=closed, 1=tipo, 2=infos, 3=pagamento, 4=revisão
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
-  const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [operatingHours, setOperatingHours] = useState<any>(null);
+
+  // Order type + delivery + payment
+  const [orderType, setOrderType] = useState<OrderType | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [deliveryStreet, setDeliveryStreet] = useState("");
+  const [deliveryNumber, setDeliveryNumber] = useState("");
+  const [deliveryNeighborhood, setDeliveryNeighborhood] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [deliveryComplement, setDeliveryComplement] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [changeFor, setChangeFor] = useState("");
 
   const [customerName, setCustomerName] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
