@@ -286,12 +286,14 @@ const PublicMenu = () => {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
+  const deliveryFeeApplied = orderType === "delivery" ? Number(restaurant?.delivery_fee ?? 0) : 0;
+  const grandTotal = cartTotal + deliveryFeeApplied;
+
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault();
-    if (!restaurant || !cart.length) return;
+    if (!restaurant || !cart.length || !orderType) return;
     setSubmitting(true);
     try {
-      // Find or create customer via SECURITY DEFINER RPC (anon has no SELECT/UPDATE on customers)
       const { data: customerId, error: custErr } = await supabase.rpc("find_or_create_customer", {
         _restaurant_id: restaurant.id,
         _name: customerName.trim(),
@@ -300,9 +302,32 @@ const PublicMenu = () => {
       });
       if (custErr || !customerId) throw custErr ?? new Error("Falha ao registrar cliente");
 
+      const orderPayload: any = {
+        restaurant_id: restaurant.id,
+        customer_id: customerId,
+        total: grandTotal,
+        notes: orderNotes || null,
+        order_type: orderType,
+        payment_method: paymentMethod,
+        payment_change_for: paymentMethod === "cash" && changeFor ? Number(changeFor) : null,
+      };
+
+      if (orderType === "dine_in") {
+        orderPayload.table_id = tableId ?? selectedTableId;
+      } else if (orderType === "delivery") {
+        orderPayload.delivery_fee = deliveryFeeApplied;
+        orderPayload.delivery_address = {
+          street: deliveryStreet.trim(),
+          number: deliveryNumber.trim(),
+          neighborhood: deliveryNeighborhood.trim(),
+          city: deliveryCity.trim(),
+          complement: deliveryComplement.trim() || null,
+        };
+      }
+
       const { data: order, error: orderErr } = await supabase.from("orders")
-        .insert({ restaurant_id: restaurant.id, table_id: tableId, customer_id: customerId, total: cartTotal, notes: orderNotes || null })
-        .select("id").single();
+        .insert(orderPayload)
+        .select("id, tracking_token").single();
       if (orderErr) throw orderErr;
 
       const orderItems = cart.map((item) => ({
@@ -313,12 +338,13 @@ const PublicMenu = () => {
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
       if (itemsErr) throw itemsErr;
 
-      setOrderSuccess(order.id.slice(0, 8).toUpperCase());
+      // Do NOT clear cart until navigation succeeded — but we redirect now.
       setCart([]); setCheckoutStep(0); setShowCart(false);
       setCustomerName(""); setCustomerWhatsapp(""); setOrderNotes("");
+      navigate(`/pedido/${order.tracking_token}`);
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao enviar pedido. Tente novamente.");
+      toast.error("Erro ao enviar pedido. Tente novamente. Seu carrinho está preservado.");
     } finally {
       setSubmitting(false);
     }
@@ -334,30 +360,6 @@ const PublicMenu = () => {
         <UtensilsCrossed className="w-16 h-16 text-muted-foreground mb-4" />
         <h2 className="font-display text-xl font-bold mb-2">Restaurante não encontrado</h2>
         <p className="text-sm text-muted-foreground">Verifique o link e tente novamente.</p>
-      </div>
-    );
-  }
-
-  // ── Order success ──
-  if (orderSuccess) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          className="glass-card p-8 text-center max-w-sm w-full"
-        >
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ backgroundColor: accentColor + "15" }}>
-            <Check className="w-10 h-10" style={{ color: accentColor }} />
-          </div>
-          <h2 className="font-display text-2xl font-bold mb-2">Pedido Enviado!</h2>
-          <p className="text-muted-foreground mb-1">Seu pedido já está na cozinha.</p>
-          <p className="font-mono text-3xl font-bold my-4" style={{ color: accentColor }}>#{orderSuccess}</p>
-          <p className="text-xs text-muted-foreground mb-6">Guarde este código para acompanhar.</p>
-          <Button onClick={() => setOrderSuccess(null)} className="w-full" style={{ backgroundColor: accentColor }}>
-            Fazer Novo Pedido
-          </Button>
-        </motion.div>
       </div>
     );
   }
