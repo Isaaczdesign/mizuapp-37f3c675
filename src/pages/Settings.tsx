@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Upload, Crown, User, Globe, MessageSquare, Palette, CreditCard, UtensilsCrossed } from "lucide-react";
+import { Save, Upload, Crown, User, Globe, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -49,6 +50,10 @@ const Settings = () => {
   const [whatsappApiKey, setWhatsappApiKey] = useState("");
   const [whatsappSenderId, setWhatsappSenderId] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["cash"]);
+  const [dineInEnabled, setDineInEnabled] = useState(true);
+  const [pickupEnabled, setPickupEnabled] = useState(true);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState<string>("0");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -90,6 +95,10 @@ const Settings = () => {
       setPickupNote((restaurant as any).pickup_dine_in_note ?? "");
       const pm = (restaurant as any).payment_methods;
       if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
+      setDineInEnabled(((restaurant as any).dine_in_enabled ?? true) as boolean);
+      setPickupEnabled(((restaurant as any).pickup_enabled ?? true) as boolean);
+      setDeliveryEnabled(((restaurant as any).delivery_enabled ?? false) as boolean);
+      setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
     }
   }, [restaurant]);
 
@@ -129,6 +138,8 @@ const Settings = () => {
           name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
           primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
           payment_methods: paymentMethods,
+          dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
+          delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
         } as any)
         .eq("id", rid);
       if (restError) throw restError;
@@ -319,6 +330,50 @@ const Settings = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Tipos de atendimento */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <Truck className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Tipos de Atendimento</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Escolha quais opções aparecem para o cliente no checkout do cardápio público.</p>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border">
+              <div>
+                <p className="font-medium text-sm">🍽️ Consumo no local (Mesa)</p>
+                <p className="text-xs text-muted-foreground">Pedido vinculado a uma mesa via QR Code</p>
+              </div>
+              <Switch checked={dineInEnabled} onCheckedChange={setDineInEnabled} />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border">
+              <div>
+                <p className="font-medium text-sm">🛍️ Retirada no balcão</p>
+                <p className="text-xs text-muted-foreground">Cliente busca o pedido no restaurante</p>
+              </div>
+              <Switch checked={pickupEnabled} onCheckedChange={setPickupEnabled} />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border">
+              <div>
+                <p className="font-medium text-sm">🛵 Delivery</p>
+                <p className="text-xs text-muted-foreground">Entrega no endereço do cliente</p>
+              </div>
+              <Switch checked={deliveryEnabled} onCheckedChange={setDeliveryEnabled} />
+            </div>
+            {deliveryEnabled && (
+              <div>
+                <Label>Taxa de entrega (R$)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={deliveryFee}
+                  onChange={(e) => setDeliveryFee(e.target.value)}
+                  className="mt-1 max-w-[160px]"
+                  placeholder="0,00"
+                />
+              </div>
+            )}
           </div>
 
           {/* Payment Methods */}
