@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, Bell, BellRing, FileText } from "lucide-react";
+import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
+type OrderType = "all" | "dine_in" | "pickup" | "delivery";
 
 interface Order {
   id: string;
@@ -18,6 +19,11 @@ interface Order {
   updated_at: string;
   table_id: string | null;
   customer_id: string | null;
+  order_type: string;
+  payment_method: string | null;
+  payment_change_for: number | null;
+  delivery_address: any;
+  delivery_fee: number;
   order_items: { id: string; name: string; quantity: number; unit_price: number; notes: string | null }[];
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
@@ -31,43 +37,43 @@ const columns: { status: OrderStatus; label: string; color: string }[] = [
   { status: "canceled", label: "Cancelados", color: "bg-destructive" },
 ];
 
+const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
+  dine_in: { label: "Mesa", icon: UtensilsCrossed, color: "text-blue-400 bg-blue-500/15" },
+  pickup: { label: "Retirada", icon: ShoppingBag, color: "text-amber-400 bg-amber-500/15" },
+  delivery: { label: "Delivery", icon: Truck, color: "text-emerald-400 bg-emerald-500/15" },
+};
+
+// Next-status flow per type (dine_in has no "delivered" — pickup/delivery finish at completed = entregue)
+function getNextStatus(current: OrderStatus, _type: string): OrderStatus | null {
+  const flow: Record<string, OrderStatus> = { new: "preparing", preparing: "ready", ready: "completed" };
+  return flow[current] ?? null;
+}
+
+function getNextLabel(current: OrderStatus, type: string): string {
+  if (current === "ready") {
+    if (type === "pickup") return "Retirado";
+    if (type === "delivery") return "Entregue";
+    return "Finalizar";
+  }
+  const labels: Record<string, string> = { new: "Confirmar", preparing: "Pronto" };
+  return labels[current] ?? "Avançar";
+}
+
+function formatAddress(addr: any): string {
+  if (!addr || typeof addr !== "object") return "";
+  const parts = [addr.street, addr.number, addr.neighborhood, addr.city].filter(Boolean);
+  return parts.join(", ");
+}
+
 const Orders = () => {
   const { profile, roles } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [typeFilter, setTypeFilter] = useState<OrderType>("all");
   const restaurantId = profile?.restaurant_id;
   const canCancel = roles.includes("owner") || roles.includes("manager");
   const knownOrderIds = useRef<Set<string>>(new Set());
-  const isInitialLoad = useRef(true);
-
-  // Notification sound
-  const playNotificationSound = useCallback(() => {
-    try {
-      const ctx = new AudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      osc.type = "sine";
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.5);
-      // Second beep
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.frequency.value = 1100;
-      osc2.type = "sine";
-      gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.15);
-      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.65);
-      osc2.start(ctx.currentTime + 0.15);
-      osc2.stop(ctx.currentTime + 0.65);
-    } catch {}
-  }, []);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -75,12 +81,7 @@ const Orders = () => {
 
     const channel = supabase
       .channel("orders-panel")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, (payload) => {
-        playNotificationSound();
-        toast.success("🔔 Novo pedido recebido!", {
-          description: `Pedido #${(payload.new as any).id?.slice(0, 6)} — R$${Number((payload.new as any).total).toFixed(2)}`,
-          duration: 8000,
-        });
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
         loadOrders();
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
@@ -95,17 +96,13 @@ const Orders = () => {
     if (!restaurantId) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, delivery_address, delivery_fee, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
       .limit(100);
 
     const newOrders = (data as unknown as Order[]) ?? [];
-    
-    // Track known IDs for future comparison
     newOrders.forEach(o => knownOrderIds.current.add(o.id));
-    isInitialLoad.current = false;
-
     setOrders(newOrders);
     setLoading(false);
   }
@@ -117,16 +114,6 @@ const Orders = () => {
     setSelectedOrder(null);
   }
 
-  const getNextStatus = (current: OrderStatus): OrderStatus | null => {
-    const flow: Record<string, OrderStatus> = { new: "preparing", preparing: "ready", ready: "completed" };
-    return flow[current] ?? null;
-  };
-
-  const getNextLabel = (current: OrderStatus): string => {
-    const labels: Record<string, string> = { new: "Confirmar", preparing: "Pronto", ready: "Concluir" };
-    return labels[current] ?? "Avançar";
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -135,34 +122,77 @@ const Orders = () => {
     );
   }
 
+  const filtered = typeFilter === "all" ? orders : orders.filter((o) => o.order_type === typeFilter);
+  const typeCounts = {
+    all: orders.length,
+    dine_in: orders.filter((o) => o.order_type === "dine_in").length,
+    pickup: orders.filter((o) => o.order_type === "pickup").length,
+    delivery: orders.filter((o) => o.order_type === "delivery").length,
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
-      <h1 className="font-display text-2xl font-bold mb-6">
+      <h1 className="font-display text-2xl font-bold mb-4">
         📋 <span className="gradient-text">Pedidos</span>
       </h1>
 
+      {/* Type filter tabs */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        {([
+          { key: "all", label: "Todos" },
+          { key: "dine_in", label: "Mesa" },
+          { key: "pickup", label: "Retirada" },
+          { key: "delivery", label: "Delivery" },
+        ] as { key: OrderType; label: string }[]).map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTypeFilter(t.key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+              typeFilter === t.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+            }`}
+          >
+            {t.label} · {typeCounts[t.key]}
+          </button>
+        ))}
+      </div>
+
       <div className="flex gap-4 overflow-x-auto pb-4">
         {columns.map((col) => {
-          const colOrders = orders.filter((o) => o.status === col.status);
+          const colOrders = filtered.filter((o) => o.status === col.status);
           return (
             <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col">
               <div className={`${col.color} text-primary-foreground rounded-t-xl px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
                 <span>{col.label}</span>
                 <span className="bg-background/20 rounded-full px-2 py-0.5 text-xs">{colOrders.length}</span>
               </div>
-              <div className="flex-1 bg-card/20 rounded-b-xl border border-border border-t-0 p-2 space-y-2 max-h-[calc(100vh-160px)] overflow-y-auto">
+              <div className="flex-1 bg-card/20 rounded-b-xl border border-border border-t-0 p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {colOrders.map((order) => {
-                  const next = getNextStatus(order.status);
+                  const next = getNextStatus(order.status, order.order_type);
+                  const meta = TYPE_META[order.order_type] ?? TYPE_META.dine_in;
+                  const TypeIcon = meta.icon;
                   return (
                     <div key={order.id} className="glass-card p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
+                        <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${meta.color}`}>
+                          <TypeIcon className="w-3 h-3" />
+                          {meta.label}
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(order.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
-                      {order.restaurant_tables && (
-                        <p className="text-sm font-semibold">Mesa {order.restaurant_tables.number}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
+                      </div>
+
+                      {order.order_type === "dine_in" && order.restaurant_tables && (
+                        <p className="text-sm font-semibold">🍽️ Mesa {order.restaurant_tables.number}</p>
+                      )}
+                      {order.order_type === "delivery" && order.delivery_address && (
+                        <p className="text-xs text-muted-foreground flex items-start gap-1">
+                          <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
+                          <span className="line-clamp-2">{formatAddress(order.delivery_address)}</span>
+                        </p>
                       )}
                       {order.customers && (
                         <p className="text-xs text-muted-foreground">{order.customers.name}</p>
@@ -174,14 +204,14 @@ const Orders = () => {
                         {order.order_items.length > 3 && <li className="text-muted-foreground">+{order.order_items.length - 3} itens</li>}
                       </ul>
                       <div className="flex items-center justify-between pt-1">
-                        <span className="font-display font-bold text-sm text-primary">R${order.total.toFixed(2)}</span>
+                        <span className="font-display font-bold text-sm text-primary">R${Number(order.total).toFixed(2)}</span>
                         <div className="flex gap-1">
                           <button onClick={() => setSelectedOrder(order)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
                             <Eye className="w-3.5 h-3.5" />
                           </button>
                           {next && (
                             <Button variant="hero" size="sm" className="text-xs h-7" onClick={() => updateStatus(order.id, next)}>
-                              {getNextLabel(order.status)}
+                              {getNextLabel(order.status, order.order_type)}
                             </Button>
                           )}
                           {canCancel && order.status !== "canceled" && order.status !== "completed" && (
@@ -210,16 +240,35 @@ const Orders = () => {
               <h2 className="font-display text-lg font-bold">Pedido #{selectedOrder.id.slice(0, 8)}</h2>
               <button onClick={() => setSelectedOrder(null)}><XIcon className="w-5 h-5" /></button>
             </div>
-            {selectedOrder.customers && (
-              <div className="mb-3 text-sm">
-                <p><strong>Cliente:</strong> {selectedOrder.customers.name}</p>
-                <p><strong>WhatsApp:</strong> {selectedOrder.customers.whatsapp}</p>
-              </div>
-            )}
-            {selectedOrder.restaurant_tables && (
-              <p className="text-sm mb-3"><strong>Mesa:</strong> {selectedOrder.restaurant_tables.number}</p>
-            )}
-            <div className="space-y-2 mb-4">
+
+            <div className="mb-3 space-y-1 text-sm">
+              <p><strong>Tipo:</strong> {TYPE_META[selectedOrder.order_type]?.label ?? selectedOrder.order_type}</p>
+              {selectedOrder.customers && (
+                <>
+                  <p><strong>Cliente:</strong> {selectedOrder.customers.name}</p>
+                  <p><strong>WhatsApp:</strong> {selectedOrder.customers.whatsapp}</p>
+                </>
+              )}
+              {selectedOrder.restaurant_tables && (
+                <p><strong>Mesa:</strong> {selectedOrder.restaurant_tables.number}</p>
+              )}
+              {selectedOrder.order_type === "delivery" && selectedOrder.delivery_address && (
+                <p><strong>Endereço:</strong> {formatAddress(selectedOrder.delivery_address)}</p>
+              )}
+              {selectedOrder.payment_method && (
+                <p>
+                  <strong>Pagamento:</strong> {selectedOrder.payment_method}
+                  {selectedOrder.payment_change_for && Number(selectedOrder.payment_change_for) > 0 && (
+                    <> · Troco p/ R${Number(selectedOrder.payment_change_for).toFixed(2)}</>
+                  )}
+                </p>
+              )}
+              {selectedOrder.delivery_fee > 0 && (
+                <p><strong>Taxa de entrega:</strong> R${Number(selectedOrder.delivery_fee).toFixed(2)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2 mb-4 border-t border-border pt-3">
               {selectedOrder.order_items.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
                   <span>{item.quantity}x {item.name}</span>
@@ -230,7 +279,7 @@ const Orders = () => {
             {selectedOrder.notes && <p className="text-sm text-muted-foreground mb-3 italic">📝 {selectedOrder.notes}</p>}
             <div className="flex justify-between font-display font-bold text-lg border-t border-border pt-3 mb-4">
               <span>Total</span>
-              <span className="gradient-text">R${selectedOrder.total.toFixed(2)}</span>
+              <span className="gradient-text">R${Number(selectedOrder.total).toFixed(2)}</span>
             </div>
             <Button
               variant="hero"

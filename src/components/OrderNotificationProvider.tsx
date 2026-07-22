@@ -38,6 +38,7 @@ export default function OrderNotificationProvider() {
   const { prefs, save } = useNotificationPrefs();
   const [popup, setPopup] = useState<OrderPopup | null>(null);
   const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seenOrderIds = useRef<Set<string>>(new Set());
 
   const playSound = useCallback(() => {
     if (!prefs.sound_enabled) return;
@@ -104,6 +105,8 @@ export default function OrderNotificationProvider() {
 
   const handleNewOrder = useCallback(async (payload: any) => {
     const order = payload.new as NewOrderPayload;
+    if (seenOrderIds.current.has(order.id)) return;
+    seenOrderIds.current.add(order.id);
     const enriched = await enrichOrder(order);
 
     playSound();
