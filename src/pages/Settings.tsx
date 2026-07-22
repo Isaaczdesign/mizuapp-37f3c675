@@ -95,6 +95,10 @@ const Settings = () => {
       setPickupNote((restaurant as any).pickup_dine_in_note ?? "");
       const pm = (restaurant as any).payment_methods;
       if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
+      setDineInEnabled(((restaurant as any).dine_in_enabled ?? true) as boolean);
+      setPickupEnabled(((restaurant as any).pickup_enabled ?? true) as boolean);
+      setDeliveryEnabled(((restaurant as any).delivery_enabled ?? false) as boolean);
+      setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
     }
   }, [restaurant]);
 
