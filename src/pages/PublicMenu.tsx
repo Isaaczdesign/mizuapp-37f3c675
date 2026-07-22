@@ -111,6 +111,7 @@ const PublicMenu = () => {
   // Order type + delivery + payment
   const [orderType, setOrderType] = useState<OrderType | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [deliveryCep, setDeliveryCep] = useState("");
   const [deliveryStreet, setDeliveryStreet] = useState("");
   const [deliveryNumber, setDeliveryNumber] = useState("");
   const [deliveryNeighborhood, setDeliveryNeighborhood] = useState("");
