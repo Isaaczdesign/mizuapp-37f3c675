@@ -19,6 +19,7 @@ import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import NotificationSettings from "./pages/NotificationSettings";
+import OrderTracking from "./pages/OrderTracking";
 
 const queryClient = new QueryClient();
 
