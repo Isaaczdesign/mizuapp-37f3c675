@@ -110,23 +110,18 @@ const Settings = () => {
       let logo_url = restaurant?.logo_url ?? null;
       let banner_url = (restaurant as any)?.banner_url ?? null;
 
-      if (logoFile) {
-        const ext = (logoFile.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const path = `${rid}/logo.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("menu-images").upload(path, logoFile, { upsert: true, contentType: logoFile.type });
-        if (uploadError) throw new Error(`Falha ao enviar logo: ${uploadError.message}`);
-        const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
-        logo_url = urlData.publicUrl;
-      }
+      const uploadViaEdge = async (file: File, kind: "logo" | "banner") => {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("kind", kind);
+        const { data, error } = await supabase.functions.invoke("upload-restaurant-image", { body: fd });
+        if (error) throw new Error(`Falha ao enviar ${kind}: ${error.message}`);
+        if (!data?.url) throw new Error(`Falha ao enviar ${kind}`);
+        return data.url as string;
+      };
 
-      if (bannerFile) {
-        const ext = (bannerFile.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const path = `${rid}/banner.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("menu-images").upload(path, bannerFile, { upsert: true, contentType: bannerFile.type });
-        if (uploadError) throw new Error(`Falha ao enviar banner: ${uploadError.message}`);
-        const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
-        banner_url = urlData.publicUrl;
-      }
+      if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
+      if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
 
       const { error: restError } = await supabase
         .from("restaurants")
