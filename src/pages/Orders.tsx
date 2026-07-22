@@ -192,7 +192,7 @@ const Orders = () => {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => {
+        {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
           const colOrders = filtered.filter((o) => o.status === col.status);
           return (
             <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col">
