@@ -29,8 +29,10 @@ interface Restaurant {
   id: string; name: string; logo_url: string | null; primary_color: string | null;
   banner_url: string | null; description: string | null; pickup_dine_in_note: string | null;
   owner_phone: string | null; upsell_item_ids: string[] | null;
-  pickup_enabled: boolean; dine_in_enabled: boolean;
+  pickup_enabled: boolean; dine_in_enabled: boolean; delivery_enabled: boolean;
+  delivery_fee: number | null; payment_methods: any;
 }
+type OrderType = "dine_in" | "pickup" | "delivery";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
