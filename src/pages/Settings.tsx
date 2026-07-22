@@ -146,6 +146,7 @@ const Settings = () => {
           payment_methods: paymentMethods,
           dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
           delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
+          address: address || null,
         } as any)
         .eq("id", rid);
       if (restError) throw restError;
