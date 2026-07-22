@@ -102,6 +102,7 @@ const Settings = () => {
       setPickupEnabled(((restaurant as any).pickup_enabled ?? true) as boolean);
       setDeliveryEnabled(((restaurant as any).delivery_enabled ?? false) as boolean);
       setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
+      setAddress(((restaurant as any).address ?? "") as string);
     }
   }, [restaurant]);
 
