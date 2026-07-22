@@ -111,6 +111,7 @@ const PublicMenu = () => {
   // Order type + delivery + payment
   const [orderType, setOrderType] = useState<OrderType | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [deliveryCep, setDeliveryCep] = useState("");
   const [deliveryStreet, setDeliveryStreet] = useState("");
   const [deliveryNumber, setDeliveryNumber] = useState("");
   const [deliveryNeighborhood, setDeliveryNeighborhood] = useState("");
@@ -326,6 +327,7 @@ const PublicMenu = () => {
       } else if (orderType === "delivery") {
         orderPayload.delivery_fee = deliveryFeeApplied;
         orderPayload.delivery_address = {
+          cep: deliveryCep.replace(/\D/g, ""),
           street: deliveryStreet.trim(),
           number: deliveryNumber.trim(),
           neighborhood: deliveryNeighborhood.trim(),
@@ -919,6 +921,23 @@ const PublicMenu = () => {
 
                   {orderType === "delivery" && (
                     <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-medium">CEP *</label>
+                        <Input
+                          value={deliveryCep}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                            setDeliveryCep(digits.length > 5 ? `${digits.slice(0,5)}-${digits.slice(5)}` : digits);
+                          }}
+                          required
+                          inputMode="numeric"
+                          placeholder="00000-000"
+                          className="mt-1"
+                        />
+                        {deliveryCep && deliveryCep.replace(/\D/g, "").length !== 8 && (
+                          <p className="text-[11px] text-destructive mt-1">CEP deve ter 8 dígitos</p>
+                        )}
+                      </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="col-span-2">
                           <label className="text-xs font-medium">Rua *</label>
@@ -926,7 +945,7 @@ const PublicMenu = () => {
                         </div>
                         <div>
                           <label className="text-xs font-medium">Nº *</label>
-                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required placeholder="123" className="mt-1" />
+                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required inputMode="numeric" placeholder="123" className="mt-1" />
                         </div>
                       </div>
                       <div>
@@ -939,7 +958,7 @@ const PublicMenu = () => {
                       </div>
                       <div>
                         <label className="text-xs font-medium">Complemento</label>
-                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência..." className="mt-1" />
+                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência, ponto de apoio..." className="mt-1" />
                       </div>
                     </div>
                   )}
@@ -960,7 +979,7 @@ const PublicMenu = () => {
                       disabled={
                         !customerName.trim() || !customerWhatsapp.trim() ||
                         (orderType === "dine_in" && !tableId && !selectedTableId) ||
-                        (orderType === "delivery" && (!deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
+                        (orderType === "delivery" && (deliveryCep.replace(/\D/g,"").length !== 8 || !deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
                       }
                       onClick={() => setCheckoutStep(3)}
                     >

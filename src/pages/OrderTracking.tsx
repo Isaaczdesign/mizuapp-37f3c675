@@ -1,23 +1,32 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed, Bike, Home } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TrackingOrder {
   id: string;
   status: string;
+  order_type: string;
   total: number;
   notes: string | null;
   created_at: string;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
-const STATUS_FLOW: { key: string; label: string; icon: any }[] = [
+const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
   { key: "new", label: "Recebido", icon: Clock },
   { key: "preparing", label: "Preparando", icon: ChefHat },
   { key: "ready", label: "Pronto", icon: PackageCheck },
   { key: "completed", label: "Concluído", icon: Check },
+];
+
+const DELIVERY_FLOW: { key: string; label: string; icon: any }[] = [
+  { key: "new", label: "Recebido", icon: Clock },
+  { key: "preparing", label: "Preparando", icon: ChefHat },
+  { key: "ready", label: "Pronto p/ envio", icon: PackageCheck },
+  { key: "out_for_delivery", label: "A caminho", icon: Bike },
+  { key: "delivered", label: "Entregue", icon: Home },
 ];
 
 const fmt = (v: number) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -62,7 +71,8 @@ export default function OrderTracking() {
   }
 
   const isCanceled = order.status === "canceled";
-  const activeIdx = STATUS_FLOW.findIndex((s) => s.key === order.status);
+  const flow = order.order_type === "delivery" ? DELIVERY_FLOW : DEFAULT_FLOW;
+  const activeIdx = flow.findIndex((s) => s.key === order.status);
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 max-w-lg mx-auto">
@@ -86,7 +96,7 @@ export default function OrderTracking() {
       ) : (
         <div className="glass-card p-5 mb-6">
           <div className="space-y-4">
-            {STATUS_FLOW.map((step, i) => {
+            {flow.map((step, i) => {
               const done = i <= activeIdx;
               const active = i === activeIdx;
               const Icon = step.icon;

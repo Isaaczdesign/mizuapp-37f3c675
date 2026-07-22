@@ -30,10 +30,12 @@ interface Order {
   customers: { name: string; whatsapp: string } | null;
 }
 
-const columns: { status: OrderStatus; label: string; color: string }[] = [
+const columns: { status: OrderStatus; label: string; color: string; deliveryOnly?: boolean }[] = [
   { status: "new", label: "Novos", color: "bg-primary" },
   { status: "preparing", label: "Preparando", color: "bg-yellow-500" },
   { status: "ready", label: "Prontos", color: "bg-green-500" },
+  { status: "out_for_delivery" as OrderStatus, label: "A caminho", color: "bg-sky-500", deliveryOnly: true },
+  { status: "delivered" as OrderStatus, label: "Entregues", color: "bg-emerald-600", deliveryOnly: true },
   { status: "completed", label: "Concluídos", color: "bg-muted" },
   { status: "canceled", label: "Cancelados", color: "bg-destructive" },
 ];
@@ -44,16 +46,28 @@ const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
   delivery: { label: "Delivery", icon: Truck, color: "text-emerald-400 bg-emerald-500/15" },
 };
 
-// Next-status flow per type (dine_in has no "delivered" — pickup/delivery finish at completed = entregue)
-function getNextStatus(current: OrderStatus, _type: string): OrderStatus | null {
+// Next-status flow per type. Delivery: ready → out_for_delivery → delivered.
+function getNextStatus(current: OrderStatus, type: string): OrderStatus | null {
+  if (type === "delivery") {
+    const flow: Record<string, OrderStatus> = {
+      new: "preparing",
+      preparing: "ready",
+      ready: "out_for_delivery" as OrderStatus,
+      out_for_delivery: "delivered" as OrderStatus,
+    };
+    return flow[current] ?? null;
+  }
   const flow: Record<string, OrderStatus> = { new: "preparing", preparing: "ready", ready: "completed" };
   return flow[current] ?? null;
 }
 
 function getNextLabel(current: OrderStatus, type: string): string {
+  if (type === "delivery") {
+    if (current === "ready") return "Saiu p/ entrega";
+    if ((current as string) === "out_for_delivery") return "Entregue";
+  }
   if (current === "ready") {
     if (type === "pickup") return "Retirado";
-    if (type === "delivery") return "Entregue";
     return "Finalizar";
   }
   const labels: Record<string, string> = { new: "Confirmar", preparing: "Pronto" };
@@ -178,7 +192,7 @@ const Orders = () => {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => {
+        {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
           const colOrders = filtered.filter((o) => o.status === col.status);
           return (
             <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col">
@@ -235,7 +249,7 @@ const Orders = () => {
                               {getNextLabel(order.status, order.order_type)}
                             </Button>
                           )}
-                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (
+                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (order.status as string) !== "delivered" && (
                             <button onClick={() => updateStatus(order.id, "canceled")} className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition-colors">
                               <XIcon className="w-3.5 h-3.5" />
                             </button>
