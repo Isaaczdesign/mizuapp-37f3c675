@@ -928,6 +928,17 @@ const PublicMenu = () => {
                           onChange={(e) => {
                             const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
                             setDeliveryCep(digits.length > 5 ? `${digits.slice(0,5)}-${digits.slice(5)}` : digits);
+                            if (digits.length === 8) {
+                              fetch(`https://viacep.com.br/ws/${digits}/json/`)
+                                .then((r) => r.json())
+                                .then((d) => {
+                                  if (d?.erro) { toast.error("CEP não encontrado"); return; }
+                                  if (d.logradouro && !deliveryStreet) setDeliveryStreet(d.logradouro);
+                                  if (d.bairro) setDeliveryNeighborhood(d.bairro);
+                                  if (d.localidade) setDeliveryCity(d.localidade);
+                                })
+                                .catch(() => {});
+                            }
                           }}
                           required
                           inputMode="numeric"
