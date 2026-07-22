@@ -168,7 +168,16 @@ const PublicMenu = () => {
     if (tableToken) {
       const { data: tableRows } = await (supabase as any).rpc("get_table_by_token", { _token: tableToken });
       const table = Array.isArray(tableRows) ? tableRows[0] : tableRows;
-      if (table && table.restaurant_id === rest.id) setTableId(table.id);
+      if (table && table.restaurant_id === rest.id) {
+        setTableId(table.id);
+        setOrderType("dine_in");
+      }
+    }
+
+    // Load public tables list (for dine-in without QR token)
+    if (rest.dine_in_enabled) {
+      const { data: tbls } = await (supabase as any).rpc("get_public_tables", { _restaurant_id: rest.id });
+      if (Array.isArray(tbls)) setTables(tbls);
     }
 
     const [catRes, itemRes] = await Promise.all([
