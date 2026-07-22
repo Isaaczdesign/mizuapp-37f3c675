@@ -1136,7 +1136,6 @@ export type Database = {
       }
     }
     Functions: {
-      _debug_who: { Args: never; Returns: Json }
       check_rate_limit: {
         Args: {
           _bucket: string
