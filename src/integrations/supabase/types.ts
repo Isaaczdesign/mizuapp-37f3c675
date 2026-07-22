@@ -1161,6 +1161,7 @@ export type Database = {
           id: string
           items: Json
           notes: string
+          order_type: string
           status: string
           total: number
         }[]
@@ -1218,7 +1219,14 @@ export type Database = {
       app_role: "owner" | "manager" | "staff" | "kitchen"
       automation_trigger: "post_purchase_d1" | "inactive_7d" | "inactive_30d"
       customer_segment: "new" | "frequent" | "inactive_7d" | "inactive_30d"
-      order_status: "new" | "preparing" | "ready" | "completed" | "canceled"
+      order_status:
+        | "new"
+        | "preparing"
+        | "ready"
+        | "completed"
+        | "canceled"
+        | "out_for_delivery"
+        | "delivered"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1349,7 +1357,15 @@ export const Constants = {
       app_role: ["owner", "manager", "staff", "kitchen"],
       automation_trigger: ["post_purchase_d1", "inactive_7d", "inactive_30d"],
       customer_segment: ["new", "frequent", "inactive_7d", "inactive_30d"],
-      order_status: ["new", "preparing", "ready", "completed", "canceled"],
+      order_status: [
+        "new",
+        "preparing",
+        "ready",
+        "completed",
+        "canceled",
+        "out_for_delivery",
+        "delivered",
+      ],
     },
   },
 } as const
