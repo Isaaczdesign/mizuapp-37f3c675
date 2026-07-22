@@ -372,6 +372,18 @@ const Settings = () => {
             {deliveryEnabled && (
               <>
                 <div>
+                  <Label>Endereço da unidade (origem da rota)</Label>
+                  <Input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="mt-1"
+                    placeholder="Ex: Rua das Flores, 123 - Centro, São Paulo - SP"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Usado para gerar a rota no Google Maps da unidade até o endereço do cliente.
+                  </p>
+                </div>
+                <div>
                   <Label>Taxa de entrega (R$)</Label>
                   <Input
                     type="number" min="0" step="0.01"
