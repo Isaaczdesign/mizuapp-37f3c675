@@ -979,7 +979,7 @@ const PublicMenu = () => {
                       disabled={
                         !customerName.trim() || !customerWhatsapp.trim() ||
                         (orderType === "dine_in" && !tableId && !selectedTableId) ||
-                        (orderType === "delivery" && (!deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
+                        (orderType === "delivery" && (deliveryCep.replace(/\D/g,"").length !== 8 || !deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
                       }
                       onClick={() => setCheckoutStep(3)}
                     >
