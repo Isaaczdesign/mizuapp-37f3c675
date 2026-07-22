@@ -56,6 +56,7 @@ const Settings = () => {
   const [deliveryFee, setDeliveryFee] = useState<string>("0");
   const [avgPrepMinutes, setAvgPrepMinutes] = useState<string>("25");
   const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
+  const [address, setAddress] = useState<string>("");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -101,6 +102,7 @@ const Settings = () => {
       setPickupEnabled(((restaurant as any).pickup_enabled ?? true) as boolean);
       setDeliveryEnabled(((restaurant as any).delivery_enabled ?? false) as boolean);
       setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
+      setAddress(((restaurant as any).address ?? "") as string);
     }
   }, [restaurant]);
 
@@ -144,6 +146,7 @@ const Settings = () => {
           payment_methods: paymentMethods,
           dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
           delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
+          address: address || null,
         } as any)
         .eq("id", rid);
       if (restError) throw restError;
@@ -368,6 +371,18 @@ const Settings = () => {
             </div>
             {deliveryEnabled && (
               <>
+                <div>
+                  <Label>Endereço da unidade (origem da rota)</Label>
+                  <Input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="mt-1"
+                    placeholder="Ex: Rua das Flores, 123 - Centro, São Paulo - SP"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Usado para gerar a rota no Google Maps da unidade até o endereço do cliente.
+                  </p>
+                </div>
                 <div>
                   <Label>Taxa de entrega (R$)</Label>
                   <Input

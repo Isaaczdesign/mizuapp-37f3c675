@@ -894,6 +894,7 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          address: string | null
           banner_url: string | null
           created_at: string
           delivery_enabled: boolean
@@ -915,6 +916,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           banner_url?: string | null
           created_at?: string
           delivery_enabled?: boolean
@@ -936,6 +938,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           banner_url?: string | null
           created_at?: string
           delivery_enabled?: boolean
@@ -1173,6 +1176,7 @@ export type Database = {
           items: Json
           notes: string
           order_type: string
+          restaurant_address: string
           status: string
           total: number
         }[]
