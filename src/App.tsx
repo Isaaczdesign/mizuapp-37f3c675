@@ -55,6 +55,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
             <Route path="/r/:slug" element={<PublicMenu />} />
+            <Route path="/pedido/:token" element={<OrderTracking />} />
             <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Dashboard /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Orders /></ProtectedRoute>} />
             <Route path="/kds" element={<ProtectedRoute><KDS /></ProtectedRoute>} />
