@@ -96,7 +96,7 @@ export default function OrderTracking() {
       ) : (
         <div className="glass-card p-5 mb-6">
           <div className="space-y-4">
-            {STATUS_FLOW.map((step, i) => {
+            {flow.map((step, i) => {
               const done = i <= activeIdx;
               const active = i === activeIdx;
               const Icon = step.icon;
