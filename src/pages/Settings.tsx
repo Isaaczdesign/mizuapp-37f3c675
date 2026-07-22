@@ -138,6 +138,8 @@ const Settings = () => {
           name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
           primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
           payment_methods: paymentMethods,
+          dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
+          delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
         } as any)
         .eq("id", rid);
       if (restError) throw restError;
