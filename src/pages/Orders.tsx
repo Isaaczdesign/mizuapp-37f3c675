@@ -126,9 +126,23 @@ const Orders = () => {
   }
 
   async function updateStatus(orderId: string, newStatus: OrderStatus) {
-    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
+    const order = orders.find((o) => o.id === orderId);
+    const patch: any = { status: newStatus };
+
+    // Auto-fill ETA when a delivery order transitions to "ready" (Pronto p/ envio)
+    if (order?.order_type === "delivery" && newStatus === "ready" && !order.delivery_eta) {
+      const { data: s } = await supabase
+        .from("settings")
+        .select("avg_delivery_minutes")
+        .eq("restaurant_id", restaurantId!)
+        .maybeSingle();
+      const mins = (s as any)?.avg_delivery_minutes ?? 30;
+      if (mins > 0) patch.delivery_eta = new Date(Date.now() + mins * 60000).toISOString();
+    }
+
+    const { error } = await supabase.from("orders").update(patch).eq("id", orderId);
     if (error) { toast.error("Erro ao atualizar status"); return; }
-    toast.success("Status atualizado!");
+    toast.success(patch.delivery_eta ? "Status atualizado! Previsão calculada automaticamente." : "Status atualizado!");
     if (newStatus === ("out_for_delivery" as OrderStatus) || newStatus === ("delivered" as OrderStatus)) {
       supabase.functions.invoke("send-order-whatsapp", {
         body: { order_id: orderId, event: newStatus },

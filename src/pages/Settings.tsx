@@ -54,6 +54,8 @@ const Settings = () => {
   const [pickupEnabled, setPickupEnabled] = useState(true);
   const [deliveryEnabled, setDeliveryEnabled] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<string>("0");
+  const [avgPrepMinutes, setAvgPrepMinutes] = useState<string>("25");
+  const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -110,6 +112,8 @@ const Settings = () => {
       setWhatsappProvider(settings.whatsapp_provider ?? "");
       setWhatsappApiKey(settings.whatsapp_api_key ?? "");
       setWhatsappSenderId((settings as any).whatsapp_sender_id ?? "");
+      setAvgPrepMinutes(String((settings as any).avg_prep_minutes ?? 25));
+      setAvgDeliveryMinutes(String((settings as any).avg_delivery_minutes ?? 30));
     }
   }, [settings]);
 
@@ -149,6 +153,8 @@ const Settings = () => {
         whatsapp_provider: whatsappProvider || null,
         whatsapp_api_key: whatsappApiKey || null,
         whatsapp_sender_id: whatsappSenderId || null,
+        avg_prep_minutes: Math.max(0, parseInt(avgPrepMinutes, 10) || 0),
+        avg_delivery_minutes: Math.max(0, parseInt(avgDeliveryMinutes, 10) || 0),
       };
 
       if (settings?.id) {
@@ -361,18 +367,43 @@ const Settings = () => {
               <Switch checked={deliveryEnabled} onCheckedChange={setDeliveryEnabled} />
             </div>
             {deliveryEnabled && (
-              <div>
-                <Label>Taxa de entrega (R$)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={deliveryFee}
-                  onChange={(e) => setDeliveryFee(e.target.value)}
-                  className="mt-1 max-w-[160px]"
-                  placeholder="0,00"
-                />
-              </div>
+              <>
+                <div>
+                  <Label>Taxa de entrega (R$)</Label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={deliveryFee}
+                    onChange={(e) => setDeliveryFee(e.target.value)}
+                    className="mt-1 max-w-[160px]"
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Tempo médio de preparo (min)</Label>
+                    <Input
+                      type="number" min="0" step="1"
+                      value={avgPrepMinutes}
+                      onChange={(e) => setAvgPrepMinutes(e.target.value)}
+                      className="mt-1"
+                      placeholder="25"
+                    />
+                  </div>
+                  <div>
+                    <Label>Tempo médio de entrega (min)</Label>
+                    <Input
+                      type="number" min="0" step="1"
+                      value={avgDeliveryMinutes}
+                      onChange={(e) => setAvgDeliveryMinutes(e.target.value)}
+                      className="mt-1"
+                      placeholder="30"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  A previsão de entrega (ETA) é calculada automaticamente ao marcar o pedido como <strong>Pronto p/ envio</strong>: horário atual + tempo médio de entrega.
+                </p>
+              </>
             )}
           </div>
 
