@@ -56,10 +56,31 @@ Deno.serve(async (req) => {
     const path = `${rid}/${kind}.${ext}`
     const buf = new Uint8Array(await file.arrayBuffer())
 
+    const logFailure = async (stage: string, message: string) => {
+      try {
+        await admin.from('audit_logs').insert({
+          restaurant_id: rid,
+          user_id: userId,
+          action: `${kind}_upload.failed`,
+          entity_type: 'storage_object',
+          metadata: {
+            stage,
+            error: message,
+            storage_bucket: 'menu-images',
+            storage_path: path,
+            file_name: file.name,
+            file_size: file.size,
+            content_type: file.type,
+          },
+        })
+      } catch (_) { /* never block the response on audit failure */ }
+    }
+
     const { error: upErr } = await admin.storage.from('menu-images').upload(path, buf, {
       upsert: true, contentType: file.type,
     })
     if (upErr) {
+      await logFailure('storage_upload', upErr.message)
       return new Response(JSON.stringify({ error: upErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -70,6 +91,7 @@ Deno.serve(async (req) => {
     update[kind === 'logo' ? 'logo_url' : 'banner_url'] = publicUrl
     const { error: updErr } = await admin.from('restaurants').update(update).eq('id', rid)
     if (updErr) {
+      await logFailure('restaurants_update', updErr.message)
       return new Response(JSON.stringify({ error: updErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
