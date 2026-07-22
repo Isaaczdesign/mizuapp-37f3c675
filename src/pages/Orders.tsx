@@ -75,12 +75,8 @@ const Orders = () => {
 
     const channel = supabase
       .channel("orders-panel")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, (payload) => {
-        playNotificationSound();
-        toast.success("🔔 Novo pedido recebido!", {
-          description: `Pedido #${(payload.new as any).id?.slice(0, 6)} — R$${Number((payload.new as any).total).toFixed(2)}`,
-          duration: 8000,
-        });
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
+        // Notification sound/popup handled globally by OrderNotificationProvider; just refresh list.
         loadOrders();
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
