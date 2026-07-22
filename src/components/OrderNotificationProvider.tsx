@@ -38,6 +38,7 @@ export default function OrderNotificationProvider() {
   const { prefs, save } = useNotificationPrefs();
   const [popup, setPopup] = useState<OrderPopup | null>(null);
   const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seenOrderIds = useRef<Set<string>>(new Set());
 
   const playSound = useCallback(() => {
     if (!prefs.sound_enabled) return;
