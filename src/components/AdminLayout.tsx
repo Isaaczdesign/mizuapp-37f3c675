@@ -129,7 +129,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           variant="secondary"
           size="icon"
           onClick={() => setHidden((h) => !h)}
-          className="fixed top-3 right-3 z-50 h-9 w-9 rounded-full shadow-lg"
+          className="fixed bottom-20 left-3 md:bottom-4 md:left-4 z-50 h-9 w-9 rounded-full shadow-lg opacity-70 hover:opacity-100"
           aria-label={hidden ? "Mostrar menu lateral" : "Ocultar menu lateral"}
           title={hidden ? "Mostrar menu lateral" : "Ocultar menu lateral"}
         >
