@@ -122,6 +122,58 @@ export default function OrderTracking() {
         </p>
       </div>
 
+      {/* Payment status / PIX QR */}
+      {payment && (() => {
+        const meta = PAYMENT_META[payment.payment_status] ?? PAYMENT_META.pending;
+        const PayIcon = meta.icon;
+        const showQR = payment.payment_status !== "approved" && payment.mp_qr_code;
+        return (
+          <div className={`glass-card p-4 mb-6 border ${meta.color.split(" ").filter(c => c.startsWith("border-")).join(" ") || "border-border"}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${meta.color}`}>
+                <PayIcon className={`w-5 h-5 ${payment.payment_status === "pending" || payment.payment_status === "in_process" ? "animate-spin" : ""}`} />
+              </div>
+              <div className="flex-1">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Status do pagamento</p>
+                <p className="font-display font-bold text-sm">{meta.label}</p>
+              </div>
+            </div>
+
+            {showQR && payment.mp_qr_code_base64 && (
+              <div className="space-y-3">
+                <div className="bg-white p-3 rounded-xl flex justify-center">
+                  <img
+                    src={`data:image/png;base64,${payment.mp_qr_code_base64}`}
+                    alt="QR Code PIX"
+                    className="w-48 h-48"
+                  />
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  Escaneie com o app do seu banco ou copie o código abaixo
+                </p>
+                <button
+                  onClick={copyPix}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copiar código PIX
+                </button>
+                <p className="text-[10px] text-center text-muted-foreground">
+                  Esta tela atualiza automaticamente assim que o pagamento é confirmado.
+                </p>
+              </div>
+            )}
+
+            {payment.payment_status === "approved" && (
+              <p className="text-xs text-emerald-400">
+                ✓ Pagamento confirmado. Seu pedido já foi enviado para a cozinha.
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+
       {order.order_type === "delivery" && order.delivery_eta && !isCanceled && (
         <div className="glass-card p-4 mb-6 flex items-center gap-3">
           <Bike className="w-5 h-5 text-primary shrink-0" />
