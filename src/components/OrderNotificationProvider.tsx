@@ -106,6 +106,12 @@ export default function OrderNotificationProvider() {
 
   const handleNewOrder = useCallback(async (payload: any) => {
     const order = payload.new as NewOrderPayload;
+    // Ignora pedidos com pagamento online ainda pendente/recusado — só notifica quando pago
+    // (payment_status null = pagamento offline como dinheiro/maquininha, sempre notifica).
+    const ps = order.payment_status;
+    if (ps != null && ps !== "paid" && ps !== "approved") {
+      return;
+    }
     if (seenOrderIds.current.has(order.id)) return;
     seenOrderIds.current.add(order.id);
     const enriched = await enrichOrder(order);
