@@ -88,11 +88,46 @@ function getNextLabel(current: OrderStatus, type: string): string {
   return labels[current] ?? "Avançar";
 }
 
+function parseAddress(addr: any): any | null {
+  if (!addr) return null;
+  if (typeof addr === "string") {
+    try {
+      return JSON.parse(addr);
+    } catch {
+      return { formatted: addr };
+    }
+  }
+  return typeof addr === "object" ? addr : null;
+}
+
+function getAddressField(addr: any, keys: string[]): string {
+  const parsed = parseAddress(addr);
+  if (!parsed) return "";
+  for (const key of keys) {
+    const value = parsed[key];
+    if (value != null && String(value).trim()) return String(value).trim();
+  }
+  return "";
+}
+
 function formatAddress(addr: any): string {
-  if (!addr || typeof addr !== "object") return "";
-  const parts = [addr.street, addr.number, addr.complement, addr.neighborhood, addr.city, addr.cep]
-    .filter(Boolean);
+  const parsed = parseAddress(addr);
+  if (!parsed) return "";
+  const formatted = getAddressField(parsed, ["formatted", "formatted_address", "address", "endereco"]);
+  if (formatted) return formatted;
+  const parts = [
+    getAddressField(parsed, ["street", "rua", "logradouro"]),
+    getAddressField(parsed, ["number", "numero", "número"]),
+    getAddressField(parsed, ["complement", "complemento"]),
+    getAddressField(parsed, ["neighborhood", "bairro"]),
+    getAddressField(parsed, ["city", "cidade", "localidade"]),
+    getAddressField(parsed, ["cep", "zip", "zip_code", "postal_code"]),
+  ].filter(Boolean);
   return parts.join(", ");
+}
+
+function hasDeliveryRoute(order: Order | null): boolean {
+  return Boolean(order?.delivery_address && formatAddress(order.delivery_address));
 }
 
 const Orders = () => {
@@ -214,6 +249,8 @@ const Orders = () => {
     pickup: orders.filter((o) => o.order_type === "pickup").length,
     delivery: orders.filter((o) => o.order_type === "delivery").length,
   };
+  const selectedAddress = selectedOrder?.delivery_address;
+  const selectedHasRoute = hasDeliveryRoute(selectedOrder);
 
   return (
     <AdminLayout collapsible>
@@ -309,7 +346,7 @@ const Orders = () => {
                       {order.order_type === "dine_in" && order.restaurant_tables && (
                         <p className="text-sm font-semibold">🍽️ Mesa {order.restaurant_tables.number}</p>
                       )}
-                      {order.order_type === "delivery" && order.delivery_address && (
+                      {hasDeliveryRoute(order) && (
                         <>
                           <p className="text-xs text-muted-foreground flex items-start gap-1">
                             <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
@@ -373,9 +410,9 @@ const Orders = () => {
               <button onClick={() => setSelectedOrder(null)}><XIcon className="w-5 h-5" /></button>
             </div>
 
-            {selectedOrder.order_type === "delivery" && selectedOrder.delivery_address && (
+            {selectedHasRoute && selectedAddress && (
               <a
-                href={buildRouteUrl(selectedOrder.delivery_address)}
+                href={buildRouteUrl(selectedAddress)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mb-4 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
@@ -397,26 +434,37 @@ const Orders = () => {
               {selectedOrder.restaurant_tables && (
                 <p><strong>Mesa:</strong> {selectedOrder.restaurant_tables.number}</p>
               )}
-              {selectedOrder.order_type === "delivery" && selectedOrder.delivery_address && (
+              {selectedHasRoute && selectedAddress && (() => {
+                const address = parseAddress(selectedAddress) ?? {};
+                const street = getAddressField(address, ["street", "rua", "logradouro"]);
+                const number = getAddressField(address, ["number", "numero", "número"]);
+                const complement = getAddressField(address, ["complement", "complemento"]);
+                const neighborhood = getAddressField(address, ["neighborhood", "bairro"]);
+                const city = getAddressField(address, ["city", "cidade", "localidade"]);
+                const cep = getAddressField(address, ["cep", "zip", "zip_code", "postal_code"]);
+                const addressLine = formatAddress(address);
+                return (
                 <div className="p-2 rounded-lg bg-secondary/40 space-y-0.5">
                   <p className="font-semibold flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> Endereço de entrega</p>
-                  {selectedOrder.delivery_address.street && (
-                    <p>{selectedOrder.delivery_address.street}, {selectedOrder.delivery_address.number || "s/n"}</p>
+                  {street ? (
+                    <p>{street}, {number || "s/n"}</p>
+                  ) : (
+                    <p>{addressLine}</p>
                   )}
-                  {selectedOrder.delivery_address.complement && (
-                    <p className="text-muted-foreground">Compl.: {selectedOrder.delivery_address.complement}</p>
+                  {complement && (
+                    <p className="text-muted-foreground">Compl.: {complement}</p>
                   )}
-                  {(selectedOrder.delivery_address.neighborhood || selectedOrder.delivery_address.city) && (
+                  {(neighborhood || city) && (
                     <p className="text-muted-foreground">
-                      {[selectedOrder.delivery_address.neighborhood, selectedOrder.delivery_address.city].filter(Boolean).join(" - ")}
+                      {[neighborhood, city].filter(Boolean).join(" - ")}
                     </p>
                   )}
-                  {selectedOrder.delivery_address.cep && (
-                    <p className="text-muted-foreground">CEP: {selectedOrder.delivery_address.cep}</p>
+                  {cep && (
+                    <p className="text-muted-foreground">CEP: {cep}</p>
                   )}
                   <div className="pt-2 grid grid-cols-2 gap-2">
                     <a
-                      href={buildRouteUrl(selectedOrder.delivery_address)}
+                      href={buildRouteUrl(address)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25 transition-colors"
@@ -424,7 +472,7 @@ const Orders = () => {
                       <MapPin className="w-3.5 h-3.5" /> Ver rota
                     </a>
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formatAddress(selectedOrder.delivery_address))}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressLine)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
@@ -438,11 +486,12 @@ const Orders = () => {
                       className="w-full h-48 rounded-lg border border-border"
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(formatAddress(selectedOrder.delivery_address))}&output=embed`}
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`}
                     />
                   </div>
                 </div>
-              )}
+                );
+              })()}
               {selectedOrder.payment_method && (
                 <p>
                   <strong>Pagamento:</strong> {selectedOrder.payment_method}
