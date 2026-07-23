@@ -121,6 +121,17 @@ export default function OrderNotificationProvider() {
   useEffect(() => {
     if (!restaurantId) return;
 
+    // Marca os pedidos já existentes como "vistos" para não estourar popup antigo ao carregar
+    (async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      (data ?? []).forEach((o: any) => seenOrderIds.current.add(o.id));
+    })();
+
     const channel = supabase
       .channel("global-order-notif")
       .on("postgres_changes", {
@@ -131,8 +142,25 @@ export default function OrderNotificationProvider() {
       }, handleNewOrder)
       .subscribe();
 
+    // Fallback: se um evento realtime for perdido (ex.: pedido PIX pendente),
+    // detectamos novos pedidos por polling e disparamos o popup mesmo assim.
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id, total, status, created_at, table_id, customer_id, notes")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      for (const o of (data ?? []) as NewOrderPayload[]) {
+        if (!seenOrderIds.current.has(o.id)) {
+          await handleNewOrder({ new: o });
+        }
+      }
+    }, 8000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(poll);
       if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current);
     };
   }, [restaurantId, handleNewOrder]);

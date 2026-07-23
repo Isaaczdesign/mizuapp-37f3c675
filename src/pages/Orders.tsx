@@ -119,7 +119,11 @@ const Orders = () => {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Fallback polling — garante que pedidos (incluindo delivery com PIX pendente)
+    // apareçam mesmo se um evento realtime for perdido.
+    const poll = setInterval(loadOrders, 10000);
+
+    return () => { supabase.removeChannel(channel); clearInterval(poll); };
   }, [restaurantId]);
 
   async function loadOrders() {
