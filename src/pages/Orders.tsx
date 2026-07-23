@@ -106,6 +106,19 @@ const Orders = () => {
   const knownOrderIds = useRef<Set<string>>(new Set());
   const { prefs, save } = useNotificationPrefs();
   const [showNewOrder, setShowNewOrder] = useState(false);
+  const [restaurantAddress, setRestaurantAddress] = useState<string>("");
+
+  useEffect(() => {
+    if (!restaurantId) return;
+    supabase.from("restaurants").select("address").eq("id", restaurantId).maybeSingle()
+      .then(({ data }) => setRestaurantAddress(((data as any)?.address ?? "") as string));
+  }, [restaurantId]);
+
+  function buildRouteUrl(destAddr: any): string {
+    const dest = encodeURIComponent(formatAddress(destAddr));
+    const origin = restaurantAddress ? `&origin=${encodeURIComponent(restaurantAddress)}` : "";
+    return `https://www.google.com/maps/dir/?api=1${origin}&destination=${dest}&travelmode=driving`;
+  }
 
   useEffect(() => {
     if (!restaurantId) return;
