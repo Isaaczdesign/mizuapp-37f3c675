@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, MessageSquare, Users, Ticket, Plus, Tag } from "lucide-react";
+import { Eye, MessageSquare, Users, Ticket, Plus, Tag, Trash2, Power, PowerOff } from "lucide-react";
 import { toast } from "sonner";
 
 type Segment = "all" | "new" | "frequent" | "inactive_7d" | "inactive_30d";
@@ -162,6 +162,30 @@ const Customers = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const toggleCoupon = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from("coupons").update({ is_active } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["coupons", rid] });
+      toast.success(v.is_active ? "Cupom ativado" : "Cupom desativado");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteCoupon = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("coupons").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupons", rid] });
+      toast.success("Cupom excluído");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const filtered = (customers ?? []).filter((c) => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.whatsapp.includes(search)) return false;
     if (segment !== "all") {
@@ -211,15 +235,36 @@ const Customers = () => {
         {/* Coupons summary */}
         {coupons.length > 0 && (
           <div className="glass-card p-4 mb-6">
-            <h3 className="font-display font-bold text-sm mb-2 flex items-center gap-2"><Tag className="w-4 h-4 text-primary" /> Cupons Ativos</h3>
+            <h3 className="font-display font-bold text-sm mb-3 flex items-center gap-2"><Tag className="w-4 h-4 text-primary" /> Cupons</h3>
             <div className="flex flex-wrap gap-2">
-              {coupons.filter((c: any) => c.is_active).map((c: any) => (
-                <div key={c.id} className="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2">
+              {coupons.map((c: any) => (
+                <div key={c.id} className={`px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2 border ${c.is_active ? "bg-primary/10 text-primary border-primary/20" : "bg-muted/30 text-muted-foreground border-border/40 opacity-70"}`}>
                   <span className="font-bold">{c.code}</span>
                   <span className="text-muted-foreground">
                     {c.discount_type === "percent" ? `${c.discount_value}%` : fmt(Number(c.discount_value))}
                   </span>
                   <span className="text-muted-foreground">{c.uses_count}{c.max_uses ? `/${c.max_uses}` : ""} usos</span>
+                  {!c.is_active && <span className="text-[10px] uppercase tracking-wide">Inativo</span>}
+                  <div className="flex items-center gap-1 ml-1 pl-2 border-l border-border/40">
+                    <button
+                      onClick={() => toggleCoupon.mutate({ id: c.id, is_active: !c.is_active })}
+                      disabled={toggleCoupon.isPending}
+                      title={c.is_active ? "Desativar" : "Ativar"}
+                      className="p-1 rounded hover:bg-foreground/10 transition-colors">
+                      {c.is_active ? <PowerOff className="w-3.5 h-3.5" /> : <Power className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Excluir o cupom ${c.code}? Esta ação não pode ser desfeita.`)) {
+                          deleteCoupon.mutate(c.id);
+                        }
+                      }}
+                      disabled={deleteCoupon.isPending}
+                      title="Excluir"
+                      className="p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
