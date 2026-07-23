@@ -147,14 +147,19 @@ export default function OrderNotificationProvider() {
         table: "orders",
         filter: `restaurant_id=eq.${restaurantId}`,
       }, handleNewOrder)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "orders",
+        filter: `restaurant_id=eq.${restaurantId}`,
+      }, handleNewOrder)
       .subscribe();
 
-    // Fallback: se um evento realtime for perdido (ex.: pedido PIX pendente),
-    // detectamos novos pedidos por polling e disparamos o popup mesmo assim.
+    // Fallback polling — só considera pedidos já pagos (ou sem exigência de pagamento online).
     const poll = setInterval(async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, total, status, created_at, table_id, customer_id, notes")
+        .select("id, total, status, created_at, table_id, customer_id, notes, payment_status")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(20);
