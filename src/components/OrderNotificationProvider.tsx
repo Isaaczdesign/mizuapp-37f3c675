@@ -15,6 +15,7 @@ interface NewOrderPayload {
   table_id: string | null;
   customer_id: string | null;
   notes: string | null;
+  payment_status?: string | null;
 }
 
 interface OrderPopup extends NewOrderPayload {
@@ -105,6 +106,12 @@ export default function OrderNotificationProvider() {
 
   const handleNewOrder = useCallback(async (payload: any) => {
     const order = payload.new as NewOrderPayload;
+    // Ignora pedidos com pagamento online ainda pendente/recusado — só notifica quando pago
+    // (payment_status null = pagamento offline como dinheiro/maquininha, sempre notifica).
+    const ps = order.payment_status;
+    if (ps != null && ps !== "paid" && ps !== "approved") {
+      return;
+    }
     if (seenOrderIds.current.has(order.id)) return;
     seenOrderIds.current.add(order.id);
     const enriched = await enrichOrder(order);
@@ -140,14 +147,19 @@ export default function OrderNotificationProvider() {
         table: "orders",
         filter: `restaurant_id=eq.${restaurantId}`,
       }, handleNewOrder)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "orders",
+        filter: `restaurant_id=eq.${restaurantId}`,
+      }, handleNewOrder)
       .subscribe();
 
-    // Fallback: se um evento realtime for perdido (ex.: pedido PIX pendente),
-    // detectamos novos pedidos por polling e disparamos o popup mesmo assim.
+    // Fallback polling — só considera pedidos já pagos (ou sem exigência de pagamento online).
     const poll = setInterval(async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, total, status, created_at, table_id, customer_id, notes")
+        .select("id, total, status, created_at, table_id, customer_id, notes, payment_status")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(20);
