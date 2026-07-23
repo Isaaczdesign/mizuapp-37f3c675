@@ -57,6 +57,9 @@ const Settings = () => {
   const [avgPrepMinutes, setAvgPrepMinutes] = useState<string>("25");
   const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
   const [address, setAddress] = useState<string>("");
+  const [mpEnabled, setMpEnabled] = useState<boolean>(false);
+  const [mpAccessToken, setMpAccessToken] = useState<string>("");
+  const [mpPublicKey, setMpPublicKey] = useState<string>("");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -103,6 +106,9 @@ const Settings = () => {
       setDeliveryEnabled(((restaurant as any).delivery_enabled ?? false) as boolean);
       setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
       setAddress(((restaurant as any).address ?? "") as string);
+      setMpEnabled(((restaurant as any).mp_enabled ?? false) as boolean);
+      setMpAccessToken(((restaurant as any).mp_access_token ?? "") as string);
+      setMpPublicKey(((restaurant as any).mp_public_key ?? "") as string);
     }
   }, [restaurant]);
 
@@ -147,6 +153,9 @@ const Settings = () => {
           dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
           delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
           address: address || null,
+          mp_enabled: mpEnabled,
+          mp_access_token: mpAccessToken.trim() || null,
+          mp_public_key: mpPublicKey.trim() || null,
         } as any)
         .eq("id", rid);
       if (restError) throw restError;
