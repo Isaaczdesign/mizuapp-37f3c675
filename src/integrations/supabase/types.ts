@@ -1230,6 +1230,7 @@ export type Database = {
           id: string
           is_active: boolean
           logo_url: string
+          mp_enabled: boolean
           name: string
           operating_hours: Json
           owner_phone: string
