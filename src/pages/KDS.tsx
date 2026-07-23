@@ -139,6 +139,7 @@ const KDS = () => {
         })}
       </div>
     </div>
+    </AdminLayout>
   );
 };
 
