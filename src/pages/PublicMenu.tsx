@@ -30,7 +30,7 @@ interface Restaurant {
   banner_url: string | null; description: string | null; pickup_dine_in_note: string | null;
   owner_phone: string | null; upsell_item_ids: string[] | null;
   pickup_enabled: boolean; dine_in_enabled: boolean; delivery_enabled: boolean;
-  delivery_fee: number | null; payment_methods: any;
+  delivery_fee: number | null; payment_methods: any; mp_enabled?: boolean;
 }
 type OrderType = "dine_in" | "pickup" | "delivery";
 
@@ -348,6 +348,18 @@ const PublicMenu = () => {
 
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
       if (itemsErr) throw itemsErr;
+
+      // If PIX online + restaurante tem Mercado Pago habilitado, dispara criação da cobrança
+      if (paymentMethod === "pix" && (restaurant as any).mp_enabled) {
+        try {
+          await supabase.functions.invoke("create-mp-payment", {
+            body: { tracking_token: order.tracking_token },
+          });
+        } catch (mpErr) {
+          console.error("Falha ao criar cobrança PIX:", mpErr);
+          toast.error("Pedido criado, mas não conseguimos gerar o PIX. Tente novamente na tela seguinte.");
+        }
+      }
 
       // Do NOT clear cart until navigation succeeded — but we redirect now.
       setCart([]); setCheckoutStep(0); setShowCart(false);
