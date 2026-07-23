@@ -125,6 +125,12 @@ const PublicMenu = () => {
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
 
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [couponValidating, setCouponValidating] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_type: string; discount_value: number; description: string | null } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [detailQty, setDetailQty] = useState(1);
