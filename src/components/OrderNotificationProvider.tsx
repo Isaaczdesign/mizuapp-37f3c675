@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowDownLeft, ArrowDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNotificationPrefs, PopupPosition } from "@/hooks/useNotificationPrefs";
+import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
 
 interface NewOrderPayload {
   id: string;
