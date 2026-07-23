@@ -312,48 +312,45 @@ const PublicMenu = () => {
       });
       if (custErr || !customerId) throw custErr ?? new Error("Falha ao registrar cliente");
 
-      const orderPayload: any = {
-        restaurant_id: restaurant.id,
-        customer_id: customerId,
-        total: grandTotal,
-        notes: orderNotes || null,
-        order_type: orderType,
-        payment_method: paymentMethod,
-        payment_change_for: paymentMethod === "cash" && changeFor ? Number(changeFor) : null,
-      };
+      const deliveryAddress = orderType === "delivery" ? {
+        cep: deliveryCep.replace(/\D/g, ""),
+        street: deliveryStreet.trim(),
+        number: deliveryNumber.trim(),
+        neighborhood: deliveryNeighborhood.trim(),
+        city: deliveryCity.trim(),
+        complement: deliveryComplement.trim() || null,
+      } : null;
 
-      if (orderType === "dine_in") {
-        orderPayload.table_id = tableId ?? selectedTableId;
-      } else if (orderType === "delivery") {
-        orderPayload.delivery_fee = deliveryFeeApplied;
-        orderPayload.delivery_address = {
-          cep: deliveryCep.replace(/\D/g, ""),
-          street: deliveryStreet.trim(),
-          number: deliveryNumber.trim(),
-          neighborhood: deliveryNeighborhood.trim(),
-          city: deliveryCity.trim(),
-          complement: deliveryComplement.trim() || null,
-        };
-      }
+      const itemsPayload = cart.map((item) => ({
+        menu_item_id: item.menuItemId,
+        name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        notes: item.itemNotes || null,
+      }));
 
-      const { data: order, error: orderErr } = await supabase.from("orders")
-        .insert(orderPayload)
-        .select("id, tracking_token").single();
+      const { data: rpcData, error: orderErr } = await (supabase as any).rpc("create_public_order", {
+        _restaurant_id: restaurant.id,
+        _customer_id: customerId,
+        _total: grandTotal,
+        _notes: orderNotes || null,
+        _order_type: orderType,
+        _payment_method: paymentMethod,
+        _payment_change_for: paymentMethod === "cash" && changeFor ? Number(changeFor) : null,
+        _table_id: orderType === "dine_in" ? (tableId ?? selectedTableId) : null,
+        _delivery_fee: deliveryFeeApplied,
+        _delivery_address: deliveryAddress,
+        _items: itemsPayload,
+      });
       if (orderErr) throw orderErr;
-
-      const orderItems = cart.map((item) => ({
-        order_id: order.id, menu_item_id: item.menuItemId, name: item.name,
-        quantity: item.quantity, unit_price: item.price, notes: item.itemNotes || null,
-      } as any));
-
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
-      if (itemsErr) throw itemsErr;
+      const created = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+      if (!created?.tracking_token) throw new Error("Falha ao criar pedido");
 
       // If PIX online + restaurante tem Mercado Pago habilitado, dispara criação da cobrança
       if (paymentMethod === "pix" && (restaurant as any).mp_enabled) {
         try {
           await supabase.functions.invoke("create-mp-payment", {
-            body: { tracking_token: order.tracking_token },
+            body: { tracking_token: created.tracking_token },
           });
         } catch (mpErr) {
           console.error("Falha ao criar cobrança PIX:", mpErr);
@@ -361,10 +358,9 @@ const PublicMenu = () => {
         }
       }
 
-      // Do NOT clear cart until navigation succeeded — but we redirect now.
       setCart([]); setCheckoutStep(0); setShowCart(false);
       setCustomerName(""); setCustomerWhatsapp(""); setOrderNotes("");
-      navigate(`/pedido/${order.tracking_token}`);
+      navigate(`/pedido/${created.tracking_token}`);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao enviar pedido. Tente novamente. Seu carrinho está preservado.");

@@ -1184,6 +1184,25 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_public_order: {
+        Args: {
+          _customer_id: string
+          _delivery_address: Json
+          _delivery_fee: number
+          _items: Json
+          _notes: string
+          _order_type: string
+          _payment_change_for: number
+          _payment_method: string
+          _restaurant_id: string
+          _table_id: string
+          _total: number
+        }
+        Returns: {
+          order_id: string
+          tracking_token: string
+        }[]
+      }
       find_or_create_customer: {
         Args: {
           _consent?: boolean
