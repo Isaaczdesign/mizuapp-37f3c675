@@ -162,6 +162,30 @@ const Customers = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const toggleCoupon = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from("coupons").update({ is_active } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["coupons", rid] });
+      toast.success(v.is_active ? "Cupom ativado" : "Cupom desativado");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteCoupon = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("coupons").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupons", rid] });
+      toast.success("Cupom excluído");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const filtered = (customers ?? []).filter((c) => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.whatsapp.includes(search)) return false;
     if (segment !== "all") {
