@@ -137,6 +137,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [typeFilter, setTypeFilter] = useState<OrderType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const restaurantId = profile?.restaurant_id;
   const canCancel = roles.includes("owner") || roles.includes("manager");
   const knownOrderIds = useRef<Set<string>>(new Set());
@@ -245,7 +246,18 @@ const Orders = () => {
     );
   }
 
-  const filtered = typeFilter === "all" ? orders : orders.filter((o) => o.order_type === typeFilter);
+  const byType = typeFilter === "all" ? orders : orders.filter((o) => o.order_type === typeFilter);
+  const q = searchQuery.trim().toLowerCase();
+  const filtered = !q ? byType : byType.filter((o) => {
+    const idMatch = o.id.toLowerCase().includes(q) || o.id.slice(0, 6).toLowerCase().includes(q);
+    const cust = o.customers?.name?.toLowerCase() ?? "";
+    const phone = o.customers?.whatsapp?.toLowerCase() ?? "";
+    const table = o.restaurant_tables?.number ? `mesa ${o.restaurant_tables.number}`.includes(q) || String(o.restaurant_tables.number).includes(q) : false;
+    const items = o.order_items.some((it) => it.name.toLowerCase().includes(q));
+    const notes = o.notes?.toLowerCase().includes(q) ?? false;
+    const addr = formatAddress(o.delivery_address).toLowerCase().includes(q);
+    return idMatch || cust.includes(q) || phone.includes(q) || table || items || notes || addr;
+  });
   const typeCounts = {
     all: orders.length,
     dine_in: orders.filter((o) => o.order_type === "dine_in").length,
@@ -286,8 +298,34 @@ const Orders = () => {
         </div>
       </div>
 
+      {/* Search */}
+      <div className="mb-3 relative max-w-md">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar por cliente, telefone, mesa, item, endereço ou #ID..."
+          className="w-full pl-10 pr-9 py-2 rounded-xl bg-secondary/60 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40"
+          aria-label="Buscar pedidos"
+        />
+        <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary"
+            aria-label="Limpar busca"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       {/* Type filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+
         {([
           { key: "all", label: "Todos", icon: FileText },
           { key: "dine_in", label: "No local", icon: UtensilsCrossed },

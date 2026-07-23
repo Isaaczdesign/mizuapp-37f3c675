@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: oErr } = await supabase
       .from("orders")
-      .select("id, restaurant_id, tracking_token, delivery_eta, customers(name, whatsapp), restaurants(name, slug)")
+      .select("id, restaurant_id, tracking_token, delivery_eta, order_type, customers(name, whatsapp), restaurants(name, slug), restaurant_tables(number)")
       .eq("id", order_id)
       .maybeSingle();
     if (oErr || !order) throw new Error(oErr?.message ?? "order not found");
@@ -52,21 +52,38 @@ Deno.serve(async (req) => {
       : null;
 
     const restName = rest?.name ?? "nosso restaurante";
+
+    // Canonical modality label (must match frontend src/lib/orderTypes.ts)
+    const orderType = (order as any).order_type as string | null;
+    const TYPE_LABEL: Record<string, string> = { dine_in: "No local", pickup: "Retirada", delivery: "Delivery" };
+    const TYPE_EMOJI: Record<string, string> = { dine_in: "🍽️", pickup: "🛍️", delivery: "🛵" };
+    const typeLabel = orderType ? (TYPE_LABEL[orderType] ?? orderType) : "";
+    const typeEmoji = orderType ? (TYPE_EMOJI[orderType] ?? "") : "";
+    const tableNum = (order as any).restaurant_tables?.number;
+    const modalityLine = orderType
+      ? `\n${typeEmoji} Modalidade: *${typeLabel}*${orderType === "dine_in" && tableNum ? ` — Mesa ${tableNum}` : ""}`
+      : "";
+
     let message = "";
     if (event === "out_for_delivery") {
-      message = `🛵 Olá ${cust.name}! Seu pedido em *${restName}* saiu para entrega${etaStr ? ` e chega por volta das ${etaStr}` : ""}.\nAcompanhe: ${trackLink}`;
+      message = `🛵 Olá ${cust.name}! Seu pedido em *${restName}* saiu para entrega${etaStr ? ` e chega por volta das ${etaStr}` : ""}.${modalityLine}\nAcompanhe: ${trackLink}`;
     } else if (event === "delivered") {
-      message = `✅ ${cust.name}, seu pedido foi *entregue*! Obrigado pela preferência em ${restName} 🍣`;
+      message = `✅ ${cust.name}, seu pedido foi *entregue*! Obrigado pela preferência em ${restName} 🍣${modalityLine}`;
     } else if (event === "preparing") {
-      message = `👨‍🍳 ${cust.name}, seu pedido em *${restName}* está sendo preparado!\nAcompanhe: ${trackLink}`;
+      message = `👨‍🍳 ${cust.name}, seu pedido em *${restName}* está sendo preparado!${modalityLine}\nAcompanhe: ${trackLink}`;
     } else if (event === "ready") {
-      message = `🍱 ${cust.name}, seu pedido em *${restName}* está *pronto*!${etaStr ? ` Previsão de entrega: ${etaStr}.` : ""}\nAcompanhe: ${trackLink}`;
+      const readyExtra = orderType === "pickup"
+        ? " Já pode vir retirar 🛍️"
+        : orderType === "dine_in"
+          ? " Será servido na sua mesa 🍽️"
+          : etaStr ? ` Previsão de entrega: ${etaStr}.` : "";
+      message = `🍱 ${cust.name}, seu pedido em *${restName}* está *pronto*!${readyExtra}${modalityLine}\nAcompanhe: ${trackLink}`;
     } else if (event === "completed") {
-      message = `✅ ${cust.name}, seu pedido foi concluído! Obrigado pela preferência em ${restName} 🍣`;
+      message = `✅ ${cust.name}, seu pedido foi concluído! Obrigado pela preferência em ${restName} 🍣${modalityLine}`;
     } else if (event === "canceled") {
-      message = `⚠️ ${cust.name}, seu pedido em *${restName}* foi *cancelado*. Em caso de dúvidas, entre em contato conosco.`;
+      message = `⚠️ ${cust.name}, seu pedido em *${restName}* foi *cancelado*.${modalityLine}\nEm caso de dúvidas, entre em contato conosco.`;
     } else if (event === "edited") {
-      message = `✏️ ${cust.name}, seu pedido em *${restName}* foi *atualizado* pelo restaurante. Confira os novos detalhes: ${trackLink}`;
+      message = `✏️ ${cust.name}, seu pedido em *${restName}* foi *atualizado* pelo restaurante.${modalityLine}\nConfira os novos detalhes: ${trackLink}`;
     } else {
       return new Response(JSON.stringify({ skipped: "unsupported event" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
