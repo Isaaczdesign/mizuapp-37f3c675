@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings, Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings, Bell, PanelLeftClose, PanelLeftOpen, Menu, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 import { Button } from "@/components/ui/button";
@@ -38,81 +38,171 @@ export default function AdminLayout({ children, collapsible = false }: { childre
   const navItems = filterByRole(allNavItems, userRoles);
   const bottomNav = filterByRole(bottomItems, userRoles);
 
+  // Desktop collapsed state (persists)
   const [hidden, setHidden] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("koban:sidebar-hidden") === "1";
   });
 
+  // Mobile drawer open state (session only)
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   useEffect(() => {
     localStorage.setItem("koban:sidebar-hidden", hidden ? "1" : "0");
   }, [hidden]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [mobileOpen]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
-  const showSidebar = !(collapsible && hidden);
+  const desktopVisible = !(collapsible && hidden);
+
+  const renderNav = (onNavigate?: () => void) => (
+    <>
+      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`
+            }
+          >
+            <item.icon className="w-4 h-4 shrink-0" />
+            <span className="truncate">{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+      <div className="p-2 border-t border-border space-y-0.5">
+        {bottomNav.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`
+            }
+          >
+            <item.icon className="w-4 h-4 shrink-0" />
+            <span className="truncate">{item.label}</span>
+          </NavLink>
+        ))}
+        <button onClick={handleSignOut} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive w-full transition-colors">
+          <LogOut className="w-4 h-4 shrink-0" />
+          <span className="truncate">Sair</span>
+        </button>
+      </div>
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar - desktop */}
-      {showSidebar && (
-        <aside className="hidden md:flex w-56 flex-col border-r border-border bg-card/40 backdrop-blur-xl">
-          <div className="p-4 border-b border-border flex items-center justify-between gap-2">
-            <a href="/" className="font-display text-xl font-bold gradient-text">Kōban</a>
-            {collapsible && (
-              <button
-                onClick={() => setHidden(true)}
-                className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary transition-colors"
-                aria-label="Ocultar menu lateral"
-                title="Ocultar menu lateral"
-              >
-                <PanelLeftClose className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          <nav className="flex-1 p-2 space-y-0.5">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
-                    isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`
-                }
-              >
-                <item.icon className="w-4 h-4" />
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="p-2 border-t border-border space-y-0.5">
-            {bottomNav.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
-                    isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`
-                }
-              >
-                <item.icon className="w-4 h-4" />
-                {item.label}
-              </NavLink>
-            ))}
-            <button onClick={handleSignOut} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive w-full transition-colors">
-              <LogOut className="w-4 h-4" />
-              Sair
+      {/* Desktop sidebar — animated width */}
+      <aside
+        aria-hidden={!desktopVisible}
+        className={`hidden md:flex flex-col border-r border-border bg-card/40 backdrop-blur-xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
+          desktopVisible ? "w-56 opacity-100" : "w-0 opacity-0 border-r-0"
+        }`}
+      >
+        <div className="p-4 border-b border-border flex items-center justify-between gap-2 min-w-[14rem]">
+          <a href="/" className="font-display text-xl font-bold gradient-text">Kōban</a>
+          {collapsible && (
+            <button
+              onClick={() => setHidden(true)}
+              className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary transition-colors"
+              aria-label="Ocultar menu lateral"
+              title="Ocultar menu lateral"
+            >
+              <PanelLeftClose className="w-4 h-4" />
             </button>
-          </div>
-        </aside>
+          )}
+        </div>
+        <div className="flex-1 flex flex-col min-w-[14rem]">
+          {renderNav()}
+        </div>
+      </aside>
+
+      {/* Desktop floating "show" button when sidebar is hidden */}
+      {collapsible && hidden && (
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => setHidden(false)}
+          className="hidden md:flex fixed top-3 left-3 z-50 h-9 w-9 rounded-full shadow-lg opacity-80 hover:opacity-100 animate-fade-in"
+          aria-label="Mostrar menu lateral"
+          title="Mostrar menu lateral"
+        >
+          <PanelLeftOpen className="w-4 h-4" />
+        </Button>
       )}
 
-      {/* Mobile bottom nav */}
-      {showSidebar && (
+      {/* Mobile top bar with menu button (only when collapsible) */}
+      {collapsible && (
+        <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-12 flex items-center justify-between px-3 bg-card/80 backdrop-blur-xl border-b border-border">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 rounded-md hover:bg-secondary text-foreground"
+            aria-label="Abrir menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <a href="/" className="font-display text-lg font-bold gradient-text">Kōban</a>
+          <div className="w-9" />
+        </div>
+      )}
+
+      {/* Mobile drawer overlay */}
+      {collapsible && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setMobileOpen(false)}
+            className={`md:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm transition-opacity duration-300 ${
+              mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            aria-hidden="true"
+          />
+          {/* Drawer */}
+          <aside
+            className={`md:hidden fixed top-0 left-0 z-50 h-full w-[82vw] max-w-xs flex flex-col bg-card border-r border-border shadow-2xl transition-transform duration-300 ease-in-out ${
+              mobileOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navegação"
+          >
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <a href="/" className="font-display text-xl font-bold gradient-text" onClick={() => setMobileOpen(false)}>Kōban</a>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
+                aria-label="Fechar menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {renderNav(() => setMobileOpen(false))}
+          </aside>
+        </>
+      )}
+
+      {/* Mobile bottom nav — only when NOT collapsible (default behavior) */}
+      {!collapsible && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-t border-border safe-area-bottom">
           <nav className="flex justify-around py-1">
             {navItems.slice(0, 5).map((item) => (
@@ -133,22 +223,12 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         </div>
       )}
 
-      {/* Floating "show" button — only when sidebar is hidden */}
-      {collapsible && hidden && (
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setHidden(false)}
-          className="fixed top-3 left-3 z-50 h-9 w-9 rounded-full shadow-lg opacity-80 hover:opacity-100"
-          aria-label="Mostrar menu lateral"
-          title="Mostrar menu lateral"
-        >
-          <PanelLeftOpen className="w-4 h-4" />
-        </Button>
-      )}
-
       {/* Main */}
-      <main className={`flex-1 overflow-y-auto ${showSidebar ? "pb-16 md:pb-0" : ""}`}>
+      <main
+        className={`flex-1 min-w-0 overflow-y-auto transition-[padding] duration-300 ${
+          collapsible ? "pt-12 md:pt-0" : "pb-16 md:pb-0"
+        }`}
+      >
         {children}
       </main>
 
