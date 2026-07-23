@@ -137,6 +137,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [typeFilter, setTypeFilter] = useState<OrderType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const restaurantId = profile?.restaurant_id;
   const canCancel = roles.includes("owner") || roles.includes("manager");
   const knownOrderIds = useRef<Set<string>>(new Set());
