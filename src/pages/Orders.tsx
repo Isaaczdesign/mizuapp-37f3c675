@@ -106,6 +106,19 @@ const Orders = () => {
   const knownOrderIds = useRef<Set<string>>(new Set());
   const { prefs, save } = useNotificationPrefs();
   const [showNewOrder, setShowNewOrder] = useState(false);
+  const [restaurantAddress, setRestaurantAddress] = useState<string>("");
+
+  useEffect(() => {
+    if (!restaurantId) return;
+    supabase.from("restaurants").select("address").eq("id", restaurantId).maybeSingle()
+      .then(({ data }) => setRestaurantAddress(((data as any)?.address ?? "") as string));
+  }, [restaurantId]);
+
+  function buildRouteUrl(destAddr: any): string {
+    const dest = encodeURIComponent(formatAddress(destAddr));
+    const origin = restaurantAddress ? `&origin=${encodeURIComponent(restaurantAddress)}` : "";
+    return `https://www.google.com/maps/dir/?api=1${origin}&destination=${dest}&travelmode=driving`;
+  }
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -297,10 +310,21 @@ const Orders = () => {
                         <p className="text-sm font-semibold">🍽️ Mesa {order.restaurant_tables.number}</p>
                       )}
                       {order.order_type === "delivery" && order.delivery_address && (
-                        <p className="text-xs text-muted-foreground flex items-start gap-1">
-                          <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
-                          <span className="line-clamp-2">{formatAddress(order.delivery_address)}</span>
-                        </p>
+                        <>
+                          <p className="text-xs text-muted-foreground flex items-start gap-1">
+                            <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
+                            <span className="line-clamp-2">{formatAddress(order.delivery_address)}</span>
+                          </p>
+                          <a
+                            href={buildRouteUrl(order.delivery_address)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 transition-colors"
+                          >
+                            <MapPin className="w-3 h-3" /> Ver rota
+                          </a>
+                        </>
                       )}
                       {order.customers && (
                         <p className="text-xs text-muted-foreground">{order.customers.name}</p>
@@ -377,6 +401,33 @@ const Orders = () => {
                   {selectedOrder.delivery_address.cep && (
                     <p className="text-muted-foreground">CEP: {selectedOrder.delivery_address.cep}</p>
                   )}
+                  <div className="pt-2 grid grid-cols-2 gap-2">
+                    <a
+                      href={buildRouteUrl(selectedOrder.delivery_address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25 transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Ver rota
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formatAddress(selectedOrder.delivery_address))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Abrir no mapa
+                    </a>
+                  </div>
+                  <div className="pt-2">
+                    <iframe
+                      title="Rota de entrega"
+                      className="w-full h-48 rounded-lg border border-border"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(formatAddress(selectedOrder.delivery_address))}&output=embed`}
+                    />
+                  </div>
                 </div>
               )}
               {selectedOrder.payment_method && (
