@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+
+const RESET_COOLDOWN_SECONDS = 60;
+const RESET_STORAGE_KEY = "koban_reset_last_sent";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +17,66 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
+  const [resetSentTo, setResetSentTo] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
   const navigate = useNavigate();
+
+  // Hydrate cooldown from localStorage so refreshes don't bypass the limit
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(RESET_STORAGE_KEY);
+      if (!raw) return;
+      const { at, to } = JSON.parse(raw) as { at: number; to: string };
+      const elapsed = Math.floor((Date.now() - at) / 1000);
+      const remaining = RESET_COOLDOWN_SECONDS - elapsed;
+      if (remaining > 0) {
+        setCooldown(remaining);
+        setResetSentTo(to);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
+
+  const sendResetEmail = async (isResend: boolean) => {
+    const target = (resetSentTo || email).trim();
+    if (!target) {
+      toast.error("Informe seu e-mail acima para recuperar a senha.");
+      return;
+    }
+    if (cooldown > 0) {
+      toast.error(`Aguarde ${cooldown}s antes de reenviar.`);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(target, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      const now = Date.now();
+      try {
+        localStorage.setItem(RESET_STORAGE_KEY, JSON.stringify({ at: now, to: target }));
+      } catch {}
+      setResetSentTo(target);
+      setCooldown(RESET_COOLDOWN_SECONDS);
+      toast.success(isResend ? "E-mail reenviado. Verifique sua caixa de entrada e o spam." : "Enviamos um e-mail com o link para redefinir sua senha.");
+    } catch (err: any) {
+      const msg = err?.message || "Não foi possível enviar o e-mail.";
+      if (msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("429")) {
+        toast.error("Muitas tentativas. Aguarde um momento e tente novamente.");
+        setCooldown(RESET_COOLDOWN_SECONDS);
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 6) return "A senha deve ter pelo menos 6 caracteres.";
