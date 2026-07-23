@@ -78,6 +78,7 @@ const KDS = () => {
   const columns = ["new", "preparing", "ready"] as const;
 
   return (
+    <AdminLayout collapsible>
     <div className="min-h-screen bg-background p-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl md:text-3xl font-bold">
