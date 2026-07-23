@@ -179,59 +179,65 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         </div>
       )}
 
-      {/* Mobile drawer overlay */}
-      {collapsible && (
-        <>
-          {/* Backdrop */}
-          <div
-            onClick={() => setMobileOpen(false)}
-            className={`md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-              mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-            }`}
-            aria-hidden="true"
-          />
-          {/* Drawer */}
-          <aside
-            className={`md:hidden fixed top-0 left-0 z-50 h-full w-[82vw] max-w-xs flex flex-col bg-card border-r border-border shadow-2xl transition-transform duration-300 ease-in-out ${
-              mobileOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu de navegação"
-          >
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <a href="/" className="font-display text-xl font-bold gradient-text" onClick={() => setMobileOpen(false)}>Kōban</a>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
-                aria-label="Fechar menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            {renderNav(() => setMobileOpen(false))}
-          </aside>
-        </>
-      )}
+      {/* Mobile drawer overlay — available in both modes */}
+      <>
+        {/* Backdrop */}
+        <div
+          onClick={() => setMobileOpen(false)}
+          className={`md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+            mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+          aria-hidden="true"
+        />
+        {/* Drawer */}
+        <aside
+          className={`md:hidden fixed top-0 left-0 z-50 h-full w-[82vw] max-w-xs flex flex-col bg-card border-r border-border shadow-2xl transition-transform duration-300 ease-in-out ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu de navegação"
+        >
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <a href="/" className="font-display text-xl font-bold gradient-text" onClick={() => setMobileOpen(false)}>Kōban</a>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
+              aria-label="Fechar menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          {renderNav(() => setMobileOpen(false))}
+        </aside>
+      </>
 
-      {/* Mobile bottom nav — only when NOT collapsible (default behavior) */}
+      {/* Mobile floating bottom nav — only when NOT collapsible (default behavior) */}
       {!collapsible && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-t border-border safe-area-bottom">
-          <nav className="flex justify-around py-1">
-            {navItems.slice(0, 5).map((item) => (
+        <div className="md:hidden fixed bottom-3 left-3 right-3 z-40 safe-area-bottom pointer-events-none">
+          <nav className="pointer-events-auto flex items-center justify-around gap-1 px-2 py-1.5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border shadow-2xl">
+            {navItems.slice(0, 4).map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex flex-col items-center gap-0.5 py-1.5 px-2 text-[10px] transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground"
+                  `flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[10px] transition-colors flex-1 min-w-0 ${
+                    isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
                   }`
                 }
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className="truncate max-w-full">{item.label}</span>
               </NavLink>
             ))}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[10px] text-muted-foreground hover:text-foreground transition-colors flex-1 min-w-0"
+              aria-label="Abrir menu completo"
+            >
+              <Menu className="w-5 h-5 shrink-0" />
+              <span className="truncate max-w-full">Menu</span>
+            </button>
           </nav>
         </div>
       )}
@@ -239,11 +245,12 @@ export default function AdminLayout({ children, collapsible = false }: { childre
       {/* Main */}
       <main
         className={`flex-1 min-w-0 overflow-y-auto transition-[padding] duration-300 ${
-          collapsible ? "pt-12 md:pt-0" : "pb-16 md:pb-0"
+          collapsible ? "pt-12 md:pt-0" : "pb-24 md:pb-0"
         }`}
       >
         {children}
       </main>
+
 
       {/* Global order notifications */}
       <OrderNotificationProvider />
