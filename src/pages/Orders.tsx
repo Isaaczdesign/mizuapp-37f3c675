@@ -459,6 +459,14 @@ const Orders = () => {
           </div>
         </div>
       )}
+
+      {showNewOrder && restaurantId && (
+        <NewOrderModal
+          restaurantId={restaurantId}
+          onClose={() => setShowNewOrder(false)}
+          onCreated={loadOrders}
+        />
+      )}
     </div>
     </AdminLayout>
   );
