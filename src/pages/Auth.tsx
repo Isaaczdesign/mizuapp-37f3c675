@@ -237,30 +237,32 @@ const Auth = () => {
 
           <div className="mt-4 text-center space-y-2">
             {!isSignup && (
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!email.trim()) {
-                    toast.error("Informe seu e-mail acima para recuperar a senha.");
-                    return;
-                  }
-                  setLoading(true);
-                  try {
-                    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
-                    if (error) throw error;
-                    toast.success("Enviamos um e-mail com o link para redefinir sua senha.");
-                  } catch (err: any) {
-                    toast.error(err?.message || "Não foi possível enviar o e-mail.");
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                className="block w-full text-sm text-primary hover:underline"
-              >
-                Esqueceu a senha?
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => sendResetEmail(false)}
+                  disabled={loading || cooldown > 0}
+                  className="block w-full text-sm text-primary hover:underline disabled:opacity-60 disabled:cursor-not-allowed disabled:no-underline"
+                >
+                  {cooldown > 0 && resetSentTo
+                    ? `E-mail enviado para ${resetSentTo}`
+                    : "Esqueceu a senha?"}
+                </button>
+                {resetSentTo && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => sendResetEmail(true)}
+                    disabled={loading || cooldown > 0}
+                    className="w-full"
+                  >
+                    {cooldown > 0
+                      ? `Reenviar em ${cooldown}s`
+                      : "Reenviar e-mail de recuperação"}
+                  </Button>
+                )}
+              </div>
             )}
             <button
               type="button"
