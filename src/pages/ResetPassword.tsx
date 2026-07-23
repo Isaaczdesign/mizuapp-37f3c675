@@ -14,15 +14,62 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase auto-processes the recovery token in the URL hash and creates a session.
+    let cancelled = false;
+
+    const finish = () => { if (!cancelled) setReady(true); };
+    const fail = (msg: string) => {
+      if (cancelled) return;
+      toast.error(msg);
+      setTimeout(() => navigate("/auth", { replace: true }), 1500);
+    };
+
+    (async () => {
+      const url = new URL(window.location.href);
+      const qs = url.searchParams;
+      const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
+
+      const errDesc = qs.get("error_description") || hash.get("error_description");
+      if (errDesc) return fail(decodeURIComponent(errDesc));
+
+      // 1) PKCE / newer emails: ?code=...
+      const code = qs.get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) return fail("Link inválido ou expirado. Solicite um novo e-mail de recuperação.");
+        window.history.replaceState({}, "", "/reset-password");
+        return finish();
+      }
+
+      // 2) OTP links: ?token_hash=...&type=recovery
+      const tokenHash = qs.get("token_hash") || hash.get("token_hash");
+      const type = (qs.get("type") || hash.get("type")) as any;
+      if (tokenHash && type) {
+        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+        if (error) return fail("Link inválido ou expirado. Solicite um novo e-mail de recuperação.");
+        window.history.replaceState({}, "", "/reset-password");
+        return finish();
+      }
+
+      // 3) Legacy hash tokens (#access_token=...&refresh_token=...)
+      const access_token = hash.get("access_token");
+      const refresh_token = hash.get("refresh_token");
+      if (access_token && refresh_token) {
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (error) return fail("Link inválido ou expirado. Solicite um novo e-mail de recuperação.");
+        window.history.replaceState({}, "", "/reset-password");
+        return finish();
+      }
+
+      // 4) Already has a session (e.g. PASSWORD_RECOVERY handled elsewhere)
+      const { data } = await supabase.auth.getSession();
+      if (data.session) return finish();
+    })();
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") finish();
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    return () => { cancelled = true; sub.subscription.unsubscribe(); };
+  }, [navigate]);
 
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 6) return "A senha deve ter pelo menos 6 caracteres.";
