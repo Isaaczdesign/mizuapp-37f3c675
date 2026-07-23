@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import NotificationSettings from "./pages/NotificationSettings";
 import OrderTracking from "./pages/OrderTracking";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
             <Route path="/r/:slug" element={<PublicMenu />} />
             <Route path="/pedido/:token" element={<OrderTracking />} />
