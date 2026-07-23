@@ -246,7 +246,18 @@ const Orders = () => {
     );
   }
 
-  const filtered = typeFilter === "all" ? orders : orders.filter((o) => o.order_type === typeFilter);
+  const byType = typeFilter === "all" ? orders : orders.filter((o) => o.order_type === typeFilter);
+  const q = searchQuery.trim().toLowerCase();
+  const filtered = !q ? byType : byType.filter((o) => {
+    const idMatch = o.id.toLowerCase().includes(q) || o.id.slice(0, 6).toLowerCase().includes(q);
+    const cust = o.customers?.name?.toLowerCase() ?? "";
+    const phone = o.customers?.whatsapp?.toLowerCase() ?? "";
+    const table = o.restaurant_tables?.number ? `mesa ${o.restaurant_tables.number}`.includes(q) || String(o.restaurant_tables.number).includes(q) : false;
+    const items = o.order_items.some((it) => it.name.toLowerCase().includes(q));
+    const notes = o.notes?.toLowerCase().includes(q) ?? false;
+    const addr = formatAddress(o.delivery_address).toLowerCase().includes(q);
+    return idMatch || cust.includes(q) || phone.includes(q) || table || items || notes || addr;
+  });
   const typeCounts = {
     all: orders.length,
     dine_in: orders.filter((o) => o.order_type === "dine_in").length,
