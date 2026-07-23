@@ -65,7 +65,7 @@ describe("ResetPassword E2E flow", () => {
     await waitFor(() =>
       expect(exchangeCodeForSession).toHaveBeenCalledWith("valid-code-123")
     );
-    expect(await screen.findByLabelText(/Nova senha/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^Nova senha$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Confirmar nova senha/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Redefinir senha/i })
@@ -82,7 +82,7 @@ describe("ResetPassword E2E flow", () => {
         type: "recovery",
       })
     );
-    expect(await screen.findByLabelText(/Nova senha/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^Nova senha$/i)).toBeInTheDocument();
   });
 
   it("shows the form when a session already exists (legacy hash flow)", async () => {
@@ -91,7 +91,7 @@ describe("ResetPassword E2E flow", () => {
     });
     renderAt("/reset-password");
 
-    expect(await screen.findByLabelText(/Nova senha/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^Nova senha$/i)).toBeInTheDocument();
   });
 
   it("redirects to /auth when the recovery code is invalid", async () => {
@@ -101,7 +101,9 @@ describe("ResetPassword E2E flow", () => {
     });
     renderAt("/reset-password?code=bad-code");
 
-    expect(await screen.findByText("Auth Page")).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Nova senha/i)).not.toBeInTheDocument();
+    expect(
+      await screen.findByText("Auth Page", {}, { timeout: 3000 })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Nova senha$/i)).not.toBeInTheDocument();
   });
 });
