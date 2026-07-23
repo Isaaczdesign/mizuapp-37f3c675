@@ -56,6 +56,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password/success" element={<PasswordResetSuccess />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
             <Route path="/r/:slug" element={<PublicMenu />} />
             <Route path="/pedido/:token" element={<OrderTracking />} />
