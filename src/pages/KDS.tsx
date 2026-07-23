@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import AdminLayout from "@/components/AdminLayout";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 
@@ -66,15 +67,18 @@ const KDS = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <AdminLayout collapsible>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AdminLayout>
     );
   }
 
   const columns = ["new", "preparing", "ready"] as const;
 
   return (
+    <AdminLayout collapsible>
     <div className="min-h-screen bg-background p-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl md:text-3xl font-bold">
@@ -135,6 +139,7 @@ const KDS = () => {
         })}
       </div>
     </div>
+    </AdminLayout>
   );
 };
 

@@ -7,6 +7,7 @@ import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin,
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
+import AdminLayout from "@/components/AdminLayout";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
@@ -175,9 +176,11 @@ const Orders = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <AdminLayout collapsible>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AdminLayout>
     );
   }
 
@@ -190,6 +193,7 @@ const Orders = () => {
   };
 
   return (
+    <AdminLayout collapsible>
     <div className="min-h-screen bg-background p-4">
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h1 className="font-display text-2xl font-bold">
@@ -441,6 +445,7 @@ const Orders = () => {
         </div>
       )}
     </div>
+    </AdminLayout>
   );
 };
 
