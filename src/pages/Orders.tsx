@@ -289,22 +289,39 @@ const Orders = () => {
       {/* Type filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {([
-          { key: "all", label: "Todos" },
-          { key: "dine_in", label: "Mesa" },
-          { key: "pickup", label: "Retirada" },
-          { key: "delivery", label: "Delivery" },
-        ] as { key: OrderType; label: string }[]).map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTypeFilter(t.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              typeFilter === t.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-            }`}
-          >
-            {t.label} · {typeCounts[t.key]}
-          </button>
-        ))}
+          { key: "all", label: "Todos", icon: FileText },
+          { key: "dine_in", label: "No local", icon: UtensilsCrossed },
+          { key: "pickup", label: "Retirada", icon: ShoppingBag },
+          { key: "delivery", label: "Delivery", icon: Truck },
+        ] as { key: OrderType; label: string; icon: any }[]).map((t) => {
+          const Icon = t.icon;
+          const active = typeFilter === t.key;
+          const count = typeCounts[t.key];
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTypeFilter(t.key)}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap border transition-all ${
+                active
+                  ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-[1.02]"
+                  : "bg-secondary/60 text-muted-foreground border-border hover:text-foreground hover:bg-secondary"
+              }`}
+              aria-pressed={active}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{t.label}</span>
+              <span
+                className={`inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-bold ${
+                  active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-background/60 text-foreground"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
