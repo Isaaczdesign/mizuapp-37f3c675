@@ -59,7 +59,24 @@ const Customers = () => {
       const { data } = await supabase.from("customers").select("*").eq("restaurant_id", rid!).order("created_at", { ascending: false });
       return data ?? [];
     },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
+
+  // Realtime: refresh CRM stats whenever orders change (trigger updates customer totals).
+  useEffect(() => {
+    if (!rid) return;
+    const ch = supabase
+      .channel(`crm-orders-${rid}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${rid}` }, () => {
+        qc.invalidateQueries({ queryKey: ["customers", rid] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "customers", filter: `restaurant_id=eq.${rid}` }, () => {
+        qc.invalidateQueries({ queryKey: ["customers", rid] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [rid, qc]);
 
   const { data: customerOrders } = useQuery({
     queryKey: ["customer-orders", selectedCustomer?.id],
