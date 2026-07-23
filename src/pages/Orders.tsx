@@ -209,6 +209,10 @@ const Orders = () => {
         <h1 className="font-display text-2xl font-bold">
           📋 <span className="gradient-text">Pedidos</span>
         </h1>
+        <div className="flex items-center gap-2 flex-wrap">
+        <Button variant="hero" size="sm" onClick={() => setShowNewOrder(true)} className="gap-1">
+          <Plus className="w-4 h-4" /> Novo pedido
+        </Button>
         <button
           onClick={() => {
             const next = !prefs.sound_enabled;
