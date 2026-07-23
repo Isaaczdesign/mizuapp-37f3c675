@@ -230,6 +230,7 @@ const Orders = () => {
           {prefs.sound_enabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           <span className="hidden sm:inline">{prefs.sound_enabled ? "Som ativado" : "Som desativado"}</span>
         </button>
+        </div>
       </div>
 
       {/* Type filter tabs */}
