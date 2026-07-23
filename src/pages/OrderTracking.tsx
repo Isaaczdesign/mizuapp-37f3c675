@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2 } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -15,6 +15,7 @@ interface TrackingOrder {
   delivery_eta: string | null;
   delivery_address: any | null;
   restaurant_address: string | null;
+  restaurant_slug: string | null;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
