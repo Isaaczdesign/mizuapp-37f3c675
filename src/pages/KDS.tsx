@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import AdminLayout from "@/components/AdminLayout";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 
