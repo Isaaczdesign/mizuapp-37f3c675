@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PASSWORD_RESET_REDIRECT_URL } from "@/lib/authRecoveryEmail";
 import { toast } from "sonner";
 
 const RESET_COOLDOWN_SECONDS = 60;
 const RESET_STORAGE_KEY = "koban_reset_last_sent";
-const PASSWORD_RESET_REDIRECT_URL = "https://mizuapp.lovable.app/reset-password";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
