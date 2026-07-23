@@ -1000,7 +1000,14 @@ const PublicMenu = () => {
                         (orderType === "dine_in" && !tableId && !selectedTableId) ||
                         (orderType === "delivery" && (deliveryCep.replace(/\D/g,"").length !== 8 || !deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
                       }
-                      onClick={() => setCheckoutStep(3)}
+                      onClick={() => {
+                        if (orderType === "dine_in") {
+                          setPaymentMethod("pay_at_place");
+                          setCheckoutStep(4);
+                        } else {
+                          setCheckoutStep(3);
+                        }
+                      }}
                     >
                       Continuar
                     </Button>
