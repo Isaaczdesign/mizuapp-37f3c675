@@ -135,9 +135,13 @@ const Orders = () => {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    const newOrders = (data as unknown as Order[]) ?? [];
-    newOrders.forEach(o => knownOrderIds.current.add(o.id));
-    setOrders(newOrders);
+    // Só exibe pedidos já pagos ou que não exigem pagamento online (payment_status null = dinheiro/maquininha).
+    // Pedidos com PIX online aguardando pagamento (pending/rejected/refused) ficam ocultos até serem confirmados.
+    const visible = ((data as unknown as Order[]) ?? []).filter(
+      (o) => o.payment_status == null || o.payment_status === "paid" || o.payment_status === "approved"
+    );
+    visible.forEach(o => knownOrderIds.current.add(o.id));
+    setOrders(visible);
     setLoading(false);
   }
 
