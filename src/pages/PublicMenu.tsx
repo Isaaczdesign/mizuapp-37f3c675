@@ -303,7 +303,50 @@ const PublicMenu = () => {
   }, []);
 
   const deliveryFeeApplied = orderType === "delivery" ? Number(restaurant?.delivery_fee ?? 0) : 0;
-  const grandTotal = cartTotal + deliveryFeeApplied;
+  const couponDiscount = useMemo(() => {
+    if (!appliedCoupon) return 0;
+    const d = appliedCoupon.discount_type === "percent"
+      ? Math.round(cartTotal * (Number(appliedCoupon.discount_value) / 100) * 100) / 100
+      : Math.min(Number(appliedCoupon.discount_value), cartTotal);
+    return Math.max(0, d);
+  }, [appliedCoupon, cartTotal]);
+  const grandTotal = Math.max(0, cartTotal - couponDiscount) + deliveryFeeApplied;
+
+  async function applyCouponCode() {
+    if (!restaurant || !couponInput.trim()) return;
+    setCouponValidating(true);
+    setCouponError(null);
+    try {
+      const { data, error } = await (supabase as any).rpc("validate_public_coupon", {
+        _restaurant_id: restaurant.id,
+        _code: couponInput.trim(),
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.is_valid) {
+        setAppliedCoupon(null);
+        setCouponError(row?.reason || "Cupom inválido");
+        toast.error(row?.reason || "Cupom inválido");
+        return;
+      }
+      setAppliedCoupon({
+        id: row.id, code: row.code, discount_type: row.discount_type,
+        discount_value: Number(row.discount_value), description: row.description,
+      });
+      toast.success(`Cupom ${row.code} aplicado!`);
+    } catch (e: any) {
+      setCouponError(e.message || "Erro ao validar cupom");
+      toast.error("Erro ao validar cupom");
+    } finally {
+      setCouponValidating(false);
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault();
