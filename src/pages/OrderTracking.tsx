@@ -126,7 +126,7 @@ export default function OrderTracking() {
       </div>
 
       {/* Payment status / PIX QR */}
-      {payment && (() => {
+      {payment && payment.payment_status && (() => {
         const meta = PAYMENT_META[payment.payment_status] ?? PAYMENT_META.pending;
         const PayIcon = meta.icon;
         const showQR = payment.payment_status !== "approved" && payment.mp_qr_code;
