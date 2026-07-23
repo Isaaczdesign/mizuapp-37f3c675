@@ -4,12 +4,12 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ResetPassword from "../ResetPassword";
 
 // ---- Mocks ----
-const exchangeCodeForSession = vi.fn();
-const verifyOtp = vi.fn();
-const setSession = vi.fn();
-const getSession = vi.fn();
-const updateUser = vi.fn();
-const onAuthStateChange = vi.fn(() => ({
+const exchangeCodeForSession = vi.fn<(code: any) => any>();
+const verifyOtp = vi.fn<(arg: any) => any>();
+const setSession = vi.fn<(arg: any) => any>();
+const getSession = vi.fn<() => any>();
+const updateUser = vi.fn<(arg: any) => any>();
+const onAuthStateChange = vi.fn<(cb: any) => any>(() => ({
   data: { subscription: { unsubscribe: vi.fn() } },
 }));
 
