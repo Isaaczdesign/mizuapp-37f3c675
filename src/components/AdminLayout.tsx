@@ -35,6 +35,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
   const { signOut, roles } = useAuth();
   const navigate = useNavigate();
   const userRoles = roles.length > 0 ? roles : ["owner"];
+  const pendingOrders = usePendingOrdersCount();
 
   const navItems = filterByRole(allNavItems, userRoles);
   const bottomNav = filterByRole(bottomItems, userRoles);
