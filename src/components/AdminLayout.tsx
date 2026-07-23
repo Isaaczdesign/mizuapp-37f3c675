@@ -51,13 +51,26 @@ export default function AdminLayout({ children, collapsible = false }: { childre
     localStorage.setItem("koban:sidebar-hidden", hidden ? "1" : "0");
   }, [hidden]);
 
-  // Lock body scroll when mobile drawer is open
+  // Lock scroll (html + body) when mobile drawer is open — avoids background scroll and layout jumps
   useEffect(() => {
-    if (mobileOpen) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = prev; };
-    }
+    if (!mobileOpen) return;
+    const html = document.documentElement;
+    const body = document.body;
+    // Compensate scrollbar width to prevent horizontal shift on desktops with visible scrollbar
+    const scrollbarW = window.innerWidth - html.clientWidth;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPaddingRight: body.style.paddingRight,
+    };
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    if (scrollbarW > 0) body.style.paddingRight = `${scrollbarW}px`;
+    return () => {
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.paddingRight = prev.bodyPaddingRight;
+    };
   }, [mobileOpen]);
 
   const handleSignOut = async () => {
