@@ -715,7 +715,7 @@ export type Database = {
           order_type: string
           payment_change_for: number | null
           payment_method: string | null
-          payment_status: string
+          payment_status: string | null
           pickup_time: string | null
           restaurant_id: string
           status: Database["public"]["Enums"]["order_status"]
@@ -740,7 +740,7 @@ export type Database = {
           order_type?: string
           payment_change_for?: number | null
           payment_method?: string | null
-          payment_status?: string
+          payment_status?: string | null
           pickup_time?: string | null
           restaurant_id: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -765,7 +765,7 @@ export type Database = {
           order_type?: string
           payment_change_for?: number | null
           payment_method?: string | null
-          payment_status?: string
+          payment_status?: string | null
           pickup_time?: string | null
           restaurant_id?: string
           status?: Database["public"]["Enums"]["order_status"]
