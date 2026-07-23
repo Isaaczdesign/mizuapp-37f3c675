@@ -1098,7 +1098,7 @@ const PublicMenu = () => {
                     <p>👤 {customerName} · 📱 {customerWhatsapp}</p>
                     <p>
                       {orderType === "dine_in" && `🍽️ Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
-                      {orderType === "pickup" && `🛍️ Retirada no balcão`}
+                      {orderType === "pickup" && `🛍️ Retirada`}
                       {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
                     </p>
                     <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
