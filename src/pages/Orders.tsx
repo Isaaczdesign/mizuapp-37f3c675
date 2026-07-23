@@ -259,9 +259,20 @@ const Orders = () => {
                           {new Date(order.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
+                        {(() => {
+                          const isOnlinePix = order.payment_method === "pix";
+                          const key = isOnlinePix ? (order.payment_status ?? "pending") : "not_required";
+                          const pb = PAYMENT_BADGE[key] ?? PAYMENT_BADGE.pending;
+                          return (
+                            <span className={`inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full font-medium ${pb.cls}`}>
+                              {pb.label}
+                            </span>
+                          );
+                        })()}
                       </div>
+
 
                       {order.order_type === "dine_in" && order.restaurant_tables && (
                         <p className="text-sm font-semibold">🍽️ Mesa {order.restaurant_tables.number}</p>
