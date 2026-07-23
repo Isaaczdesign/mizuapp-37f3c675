@@ -215,7 +215,8 @@ const Orders = () => {
     const { error } = await supabase.from("orders").update(patch).eq("id", orderId);
     if (error) { toast.error("Erro ao atualizar status"); return; }
     toast.success(patch.delivery_eta ? "Status atualizado! Previsão calculada automaticamente." : "Status atualizado!");
-    if (newStatus === ("out_for_delivery" as OrderStatus) || newStatus === ("delivered" as OrderStatus)) {
+    const notifiableEvents: OrderStatus[] = ["preparing", "ready", "out_for_delivery" as OrderStatus, "delivered" as OrderStatus, "completed", "canceled"];
+    if (order?.customer_id && notifiableEvents.includes(newStatus)) {
       supabase.functions.invoke("send-order-whatsapp", {
         body: { order_id: orderId, event: newStatus },
       }).then(({ error: fnErr }) => {
