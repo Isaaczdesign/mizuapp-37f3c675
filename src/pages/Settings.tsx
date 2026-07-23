@@ -461,6 +461,56 @@ const Settings = () => {
             </div>
           </div>
 
+          {/* Mercado Pago (PIX online) */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              <h2 className="font-display font-bold">Mercado Pago (PIX online)</h2>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Ative para receber pagamentos PIX direto na sua conta Mercado Pago. Pegue suas credenciais em{" "}
+              <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noreferrer" className="text-primary underline">
+                mercadopago.com.br/developers/panel
+              </a>
+              . Cole o <strong>Access Token</strong> de produção (ou de teste, para experimentar).
+            </p>
+            <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/40">
+              <div>
+                <p className="font-medium text-sm">Aceitar PIX online</p>
+                <p className="text-xs text-muted-foreground">Cliente paga na hora e o pedido chega marcado como pago.</p>
+              </div>
+              <Switch checked={mpEnabled} onCheckedChange={setMpEnabled} />
+            </div>
+            <div>
+              <Label>Access Token</Label>
+              <Input
+                type="password"
+                value={mpAccessToken}
+                onChange={(e) => setMpAccessToken(e.target.value)}
+                className="mt-1 font-mono"
+                placeholder="APP_USR-... ou TEST-..."
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <Label>Public Key (opcional)</Label>
+              <Input
+                value={mpPublicKey}
+                onChange={(e) => setMpPublicKey(e.target.value)}
+                className="mt-1 font-mono"
+                placeholder="APP_USR-... ou TEST-..."
+                autoComplete="off"
+              />
+            </div>
+            <div className="text-[11px] text-muted-foreground p-2 rounded-lg bg-secondary/40">
+              <strong>Webhook do Mercado Pago:</strong> configure no painel MP para{" "}
+              <code className="text-primary">https://rfeljyjaebgoehnlxxxk.supabase.co/functions/v1/mp-webhook</code>{" "}
+              (eventos: <code>payment</code>).
+            </div>
+          </div>
+
+
+
           {/* Menu Shortcut */}
           <div className="glass-card p-6">
             <div className="flex items-center gap-3 mb-3">
