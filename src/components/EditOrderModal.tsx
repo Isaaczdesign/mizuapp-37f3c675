@@ -6,7 +6,7 @@ import { X, Plus, Minus, Search, UtensilsCrossed, ShoppingBag, Truck } from "luc
 
 interface OrderItemRow {
   id?: string;
-  menu_item_id: string | null;
+  menu_item_id?: string | null;
   name: string;
   quantity: number;
   unit_price: number;
