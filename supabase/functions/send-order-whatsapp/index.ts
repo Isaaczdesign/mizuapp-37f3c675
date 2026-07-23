@@ -51,11 +51,22 @@ Deno.serve(async (req) => {
       ? new Date((order as any).delivery_eta).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
       : null;
 
+    const restName = rest?.name ?? "nosso restaurante";
     let message = "";
     if (event === "out_for_delivery") {
-      message = `🛵 Olá ${cust.name}! Seu pedido em *${rest?.name ?? "nosso restaurante"}* saiu para entrega${etaStr ? ` e chega por volta das ${etaStr}` : ""}.\nAcompanhe: ${trackLink}`;
+      message = `🛵 Olá ${cust.name}! Seu pedido em *${restName}* saiu para entrega${etaStr ? ` e chega por volta das ${etaStr}` : ""}.\nAcompanhe: ${trackLink}`;
     } else if (event === "delivered") {
-      message = `✅ ${cust.name}, seu pedido foi *entregue*! Obrigado pela preferência em ${rest?.name ?? "nosso restaurante"} 🍣`;
+      message = `✅ ${cust.name}, seu pedido foi *entregue*! Obrigado pela preferência em ${restName} 🍣`;
+    } else if (event === "preparing") {
+      message = `👨‍🍳 ${cust.name}, seu pedido em *${restName}* está sendo preparado!\nAcompanhe: ${trackLink}`;
+    } else if (event === "ready") {
+      message = `🍱 ${cust.name}, seu pedido em *${restName}* está *pronto*!${etaStr ? ` Previsão de entrega: ${etaStr}.` : ""}\nAcompanhe: ${trackLink}`;
+    } else if (event === "completed") {
+      message = `✅ ${cust.name}, seu pedido foi concluído! Obrigado pela preferência em ${restName} 🍣`;
+    } else if (event === "canceled") {
+      message = `⚠️ ${cust.name}, seu pedido em *${restName}* foi *cancelado*. Em caso de dúvidas, entre em contato conosco.`;
+    } else if (event === "edited") {
+      message = `✏️ ${cust.name}, seu pedido em *${restName}* foi *atualizado* pelo restaurante. Confira os novos detalhes: ${trackLink}`;
     } else {
       return new Response(JSON.stringify({ skipped: "unsupported event" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
