@@ -85,21 +85,36 @@ export default function AdminLayout({ children, collapsible = false }: { childre
   const renderNav = (onNavigate?: () => void) => (
     <>
       <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
-                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`
-            }
-          >
-            <item.icon className="w-4 h-4 shrink-0" />
-            <span className="truncate">{item.label}</span>
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          const showBadge = item.to === "/orders" && pendingOrders > 0;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`
+              }
+            >
+              <span className="relative shrink-0">
+                <item.icon className="w-4 h-4" />
+                {showBadge && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">
+                    {pendingOrders > 99 ? "99+" : pendingOrders}
+                  </span>
+                )}
+              </span>
+              <span className="truncate flex-1">{item.label}</span>
+              {showBadge && (
+                <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
+                  {pendingOrders > 99 ? "99+" : pendingOrders}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
       <div className="p-2 border-t border-border space-y-0.5">
         {bottomNav.map((item) => (
