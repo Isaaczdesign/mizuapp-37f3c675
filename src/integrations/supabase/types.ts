@@ -1186,6 +1186,7 @@ export type Database = {
       }
       create_public_order: {
         Args: {
+          _coupon_code?: string
           _customer_id: string
           _delivery_address: Json
           _delivery_fee: number
@@ -1199,6 +1200,8 @@ export type Database = {
           _total: number
         }
         Returns: {
+          discount_applied: number
+          final_total: number
           order_id: string
           tracking_token: string
         }[]
@@ -1299,6 +1302,18 @@ export type Database = {
       recalc_customer_stats: {
         Args: { _customer_id: string }
         Returns: undefined
+      }
+      validate_public_coupon: {
+        Args: { _code: string; _restaurant_id: string }
+        Returns: {
+          code: string
+          description: string
+          discount_type: string
+          discount_value: number
+          id: string
+          is_valid: boolean
+          reason: string
+        }[]
       }
     }
     Enums: {
