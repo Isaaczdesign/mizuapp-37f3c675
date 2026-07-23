@@ -101,6 +101,7 @@ const PublicMenu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [showCart, setShowCart] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(0); // 0=closed, 1=tipo, 2=infos, 3=pagamento, 4=revisão
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
