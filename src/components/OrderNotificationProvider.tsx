@@ -17,6 +17,7 @@ interface NewOrderPayload {
   customer_id: string | null;
   notes: string | null;
   payment_status?: string | null;
+  order_type?: string | null;
 }
 
 interface OrderPopup extends NewOrderPayload {
