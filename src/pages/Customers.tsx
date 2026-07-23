@@ -234,39 +234,131 @@ const Customers = () => {
 
         {/* Coupons summary */}
         {coupons.length > 0 && (
-          <div className="glass-card p-4 mb-6">
-            <h3 className="font-display font-bold text-sm mb-3 flex items-center gap-2"><Tag className="w-4 h-4 text-primary" /> Cupons</h3>
-            <div className="flex flex-wrap gap-2">
-              {coupons.map((c: any) => (
-                <div key={c.id} className={`px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2 border ${c.is_active ? "bg-primary/10 text-primary border-primary/20" : "bg-muted/30 text-muted-foreground border-border/40 opacity-70"}`}>
-                  <span className="font-bold">{c.code}</span>
-                  <span className="text-muted-foreground">
-                    {c.discount_type === "percent" ? `${c.discount_value}%` : fmt(Number(c.discount_value))}
-                  </span>
-                  <span className="text-muted-foreground">{c.uses_count}{c.max_uses ? `/${c.max_uses}` : ""} usos</span>
-                  {!c.is_active && <span className="text-[10px] uppercase tracking-wide">Inativo</span>}
-                  <div className="flex items-center gap-1 ml-1 pl-2 border-l border-border/40">
-                    <button
-                      onClick={() => toggleCoupon.mutate({ id: c.id, is_active: !c.is_active })}
-                      disabled={toggleCoupon.isPending}
-                      title={c.is_active ? "Desativar" : "Ativar"}
-                      className="p-1 rounded hover:bg-foreground/10 transition-colors">
-                      {c.is_active ? <PowerOff className="w-3.5 h-3.5" /> : <Power className="w-3.5 h-3.5" />}
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm(`Excluir o cupom ${c.code}? Esta ação não pode ser desfeita.`)) {
-                          deleteCoupon.mutate(c.id);
-                        }
-                      }}
-                      disabled={deleteCoupon.isPending}
-                      title="Excluir"
-                      className="p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+          <div className="glass-card p-5 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-sm flex items-center gap-2">
+                <Tag className="w-4 h-4 text-primary" /> Cupons
+                <span className="text-[10px] font-mono text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">
+                  {coupons.filter((c: any) => c.is_active).length}/{coupons.length} ativos
+                </span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {coupons.map((c: any, idx: number) => {
+                const pct = c.max_uses ? Math.min(100, ((c.uses_count ?? 0) / c.max_uses) * 100) : 0;
+                return (
+                  <div
+                    key={c.id}
+                    style={{ animationDelay: `${idx * 40}ms` }}
+                    className={`group relative animate-fade-in transition-all duration-300 hover:-translate-y-0.5 ${
+                      c.is_active ? "" : "opacity-60 hover:opacity-90"
+                    }`}
+                  >
+                    {/* Ticket notches */}
+                    <div className="absolute left-[62%] top-0 -translate-y-1/2 w-3 h-3 rounded-full bg-background z-10" />
+                    <div className="absolute left-[62%] bottom-0 translate-y-1/2 w-3 h-3 rounded-full bg-background z-10" />
+
+                    <div
+                      className={`relative rounded-xl overflow-hidden border transition-colors ${
+                        c.is_active
+                          ? "border-primary/30 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent"
+                          : "border-border/50 bg-muted/20"
+                      }`}
+                    >
+                      {/* Active pulse ring */}
+                      {c.is_active && (
+                        <div className="absolute inset-0 rounded-xl ring-1 ring-primary/20 pointer-events-none animate-pulse" />
+                      )}
+
+                      <div className="flex">
+                        {/* Left stub */}
+                        <div className="flex-1 p-3 pr-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`text-[10px] uppercase tracking-widest font-semibold ${
+                                c.is_active ? "text-primary" : "text-muted-foreground"
+                              }`}
+                            >
+                              {c.is_active ? "Ativo" : "Inativo"}
+                            </span>
+                            {c.is_active && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            )}
+                          </div>
+                          <div className="font-mono font-bold text-base tracking-wide truncate">{c.code}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {c.uses_count ?? 0}{c.max_uses ? ` / ${c.max_uses}` : ""} usos
+                          </div>
+                          {c.max_uses && (
+                            <div className="mt-2 h-1 rounded-full bg-muted/50 overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-700 ease-out ${
+                                  c.is_active ? "bg-primary" : "bg-muted-foreground/50"
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Dashed divider */}
+                        <div className="border-l border-dashed border-border/60" />
+
+                        {/* Right value */}
+                        <div className="w-[38%] p-3 flex flex-col items-center justify-center text-center">
+                          <div
+                            className={`font-display font-black text-xl leading-none ${
+                              c.is_active ? "text-primary" : "text-muted-foreground"
+                            }`}
+                          >
+                            {c.discount_type === "percent"
+                              ? `${c.discount_value}%`
+                              : fmt(Number(c.discount_value))}
+                          </div>
+                          <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1">
+                            desconto
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action bar */}
+                      <div className="flex items-center justify-between px-3 py-2 bg-background/40 border-t border-border/40">
+                        <button
+                          onClick={() => toggleCoupon.mutate({ id: c.id, is_active: !c.is_active })}
+                          disabled={toggleCoupon.isPending}
+                          title={c.is_active ? "Desativar cupom" : "Ativar cupom"}
+                          className="group/toggle flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <span
+                            className={`relative inline-flex w-8 h-4 rounded-full transition-colors duration-300 ${
+                              c.is_active ? "bg-primary" : "bg-muted-foreground/30"
+                            }`}
+                          >
+                            <span
+                              className={`absolute top-0.5 w-3 h-3 rounded-full bg-background shadow transition-all duration-300 ${
+                                c.is_active ? "left-[18px]" : "left-0.5"
+                              }`}
+                            />
+                          </span>
+                          {c.is_active ? "Desativar" : "Ativar"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Excluir o cupom ${c.code}? Esta ação não pode ser desfeita.`)) {
+                              deleteCoupon.mutate(c.id);
+                            }
+                          }}
+                          disabled={deleteCoupon.isPending}
+                          title="Excluir cupom"
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-110 active:scale-95"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
