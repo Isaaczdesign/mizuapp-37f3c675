@@ -105,6 +105,7 @@ const Orders = () => {
   const canCancel = roles.includes("owner") || roles.includes("manager");
   const knownOrderIds = useRef<Set<string>>(new Set());
   const { prefs, save } = useNotificationPrefs();
+  const [showNewOrder, setShowNewOrder] = useState(false);
 
   useEffect(() => {
     if (!restaurantId) return;
