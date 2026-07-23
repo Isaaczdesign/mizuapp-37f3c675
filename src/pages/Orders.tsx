@@ -310,10 +310,21 @@ const Orders = () => {
                         <p className="text-sm font-semibold">🍽️ Mesa {order.restaurant_tables.number}</p>
                       )}
                       {order.order_type === "delivery" && order.delivery_address && (
-                        <p className="text-xs text-muted-foreground flex items-start gap-1">
-                          <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
-                          <span className="line-clamp-2">{formatAddress(order.delivery_address)}</span>
-                        </p>
+                        <>
+                          <p className="text-xs text-muted-foreground flex items-start gap-1">
+                            <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
+                            <span className="line-clamp-2">{formatAddress(order.delivery_address)}</span>
+                          </p>
+                          <a
+                            href={buildRouteUrl(order.delivery_address)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 transition-colors"
+                          >
+                            <MapPin className="w-3 h-3" /> Ver rota
+                          </a>
+                        </>
                       )}
                       {order.customers && (
                         <p className="text-xs text-muted-foreground">{order.customers.name}</p>
