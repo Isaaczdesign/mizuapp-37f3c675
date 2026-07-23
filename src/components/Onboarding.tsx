@@ -357,6 +357,8 @@ export default function Onboarding() {
           customer_id: customerId,
           total: itemPrice,
           status: "new",
+          order_type: "pickup",
+          payment_method: "cash",
           notes: "Pedido de teste do onboarding",
         } as any)
         .select("id").single();
