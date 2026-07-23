@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2 } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -15,6 +15,7 @@ interface TrackingOrder {
   delivery_eta: string | null;
   delivery_address: any | null;
   restaurant_address: string | null;
+  restaurant_slug: string | null;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
 }
 
@@ -107,8 +108,10 @@ export default function OrderTracking() {
   }
 
   const isCanceled = order.status === "canceled";
+  const isTerminal = order.status === "completed" || order.status === "delivered";
   const flow = order.order_type === "delivery" ? DELIVERY_FLOW : DEFAULT_FLOW;
   const activeIdx = flow.findIndex((s) => s.key === order.status);
+  const menuUrl = order.restaurant_slug ? `/r/${order.restaurant_slug}` : null;
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 max-w-lg mx-auto">
@@ -255,7 +258,7 @@ export default function OrderTracking() {
                     <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
                       {step.label}
                     </p>
-                    {active && (
+                    {active && !isTerminal && (
                       <p className="text-xs text-primary animate-pulse">Em andamento…</p>
                     )}
                   </div>
@@ -288,6 +291,25 @@ export default function OrderTracking() {
           <span className="font-display text-xl font-bold gradient-text">{fmt(order.total)}</span>
         </div>
       </div>
+
+      {menuUrl && (
+        <div className="grid grid-cols-2 gap-3 mt-6">
+          <Link
+            to={menuUrl}
+            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao cardápio
+          </Link>
+          <Link
+            to={menuUrl}
+            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Pedir novamente
+          </Link>
+        </div>
+      )}
 
       <p className="text-center text-xs text-muted-foreground mt-6">
         Atualiza automaticamente a cada 8 segundos.

@@ -1234,6 +1234,7 @@ export type Database = {
           notes: string
           order_type: string
           restaurant_address: string
+          restaurant_slug: string
           status: string
           total: number
         }[]
