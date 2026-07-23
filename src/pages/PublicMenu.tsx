@@ -125,6 +125,12 @@ const PublicMenu = () => {
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
 
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [couponValidating, setCouponValidating] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_type: string; discount_value: number; description: string | null } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [detailQty, setDetailQty] = useState(1);
@@ -297,7 +303,50 @@ const PublicMenu = () => {
   }, []);
 
   const deliveryFeeApplied = orderType === "delivery" ? Number(restaurant?.delivery_fee ?? 0) : 0;
-  const grandTotal = cartTotal + deliveryFeeApplied;
+  const couponDiscount = useMemo(() => {
+    if (!appliedCoupon) return 0;
+    const d = appliedCoupon.discount_type === "percent"
+      ? Math.round(cartTotal * (Number(appliedCoupon.discount_value) / 100) * 100) / 100
+      : Math.min(Number(appliedCoupon.discount_value), cartTotal);
+    return Math.max(0, d);
+  }, [appliedCoupon, cartTotal]);
+  const grandTotal = Math.max(0, cartTotal - couponDiscount) + deliveryFeeApplied;
+
+  async function applyCouponCode() {
+    if (!restaurant || !couponInput.trim()) return;
+    setCouponValidating(true);
+    setCouponError(null);
+    try {
+      const { data, error } = await (supabase as any).rpc("validate_public_coupon", {
+        _restaurant_id: restaurant.id,
+        _code: couponInput.trim(),
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.is_valid) {
+        setAppliedCoupon(null);
+        setCouponError(row?.reason || "Cupom inválido");
+        toast.error(row?.reason || "Cupom inválido");
+        return;
+      }
+      setAppliedCoupon({
+        id: row.id, code: row.code, discount_type: row.discount_type,
+        discount_value: Number(row.discount_value), description: row.description,
+      });
+      toast.success(`Cupom ${row.code} aplicado!`);
+    } catch (e: any) {
+      setCouponError(e.message || "Erro ao validar cupom");
+      toast.error("Erro ao validar cupom");
+    } finally {
+      setCouponValidating(false);
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault();
@@ -332,7 +381,7 @@ const PublicMenu = () => {
       const { data: rpcData, error: orderErr } = await (supabase as any).rpc("create_public_order", {
         _restaurant_id: restaurant.id,
         _customer_id: customerId,
-        _total: grandTotal,
+        _total: cartTotal + deliveryFeeApplied,
         _notes: orderNotes || null,
         _order_type: orderType,
         _payment_method: paymentMethod,
@@ -341,6 +390,7 @@ const PublicMenu = () => {
         _delivery_fee: deliveryFeeApplied,
         _delivery_address: deliveryAddress,
         _items: itemsPayload,
+        _coupon_code: appliedCoupon?.code ?? null,
       });
       if (orderErr) throw orderErr;
       const created = Array.isArray(rpcData) ? rpcData[0] : rpcData;
@@ -1080,10 +1130,68 @@ const PublicMenu = () => {
                       </div>
                     ))}
                   </div>
+                  {/* Coupon */}
+                  <div className="border-t border-border pt-3">
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-1.5">🎟️ Cupom de desconto</label>
+                    {appliedCoupon ? (
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                        className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                          <div className="min-w-0">
+                            <div className="font-mono font-bold text-sm truncate">{appliedCoupon.code}</div>
+                            <div className="text-[11px] text-muted-foreground truncate">
+                              {appliedCoupon.discount_type === "percent"
+                                ? `${appliedCoupon.discount_value}% de desconto`
+                                : `${fmt(appliedCoupon.discount_value)} de desconto`}
+                              {appliedCoupon.description ? ` · ${appliedCoupon.description}` : ""}
+                            </div>
+                          </div>
+                        </div>
+                        <button type="button" onClick={removeCoupon} className="text-muted-foreground hover:text-destructive p-1 rounded-md transition-colors">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          value={couponInput}
+                          onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCouponCode(); } }}
+                          placeholder="Digite o código"
+                          className="flex-1 font-mono uppercase tracking-wider"
+                          maxLength={40}
+                        />
+                        <Button type="button" onClick={applyCouponCode}
+                          disabled={couponValidating || !couponInput.trim()}
+                          className="px-4 rounded-xl" style={{ backgroundColor: accentColor }}>
+                          {couponValidating ? "..." : "Aplicar"}
+                        </Button>
+                      </div>
+                    )}
+                    <AnimatePresence>
+                      {couponError && !appliedCoupon && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                          className="text-xs text-destructive mt-1.5 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> {couponError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <div className="border-t border-border pt-3 space-y-1 text-sm">
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span><span>{fmt(cartTotal)}</span>
                     </div>
+                    {couponDiscount > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
+                        className="flex justify-between text-emerald-500 font-medium">
+                        <span>Desconto ({appliedCoupon?.code})</span><span>-{fmt(couponDiscount)}</span>
+                      </motion.div>
+                    )}
                     {deliveryFeeApplied > 0 && (
                       <div className="flex justify-between text-muted-foreground">
                         <span>Taxa de entrega</span><span>{fmt(deliveryFeeApplied)}</span>
