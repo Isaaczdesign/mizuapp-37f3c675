@@ -36,6 +36,12 @@ Deno.serve(async (req) => {
     if (!cred?.enabled || !cred?.access_token) {
       return json({ error: "Mercado Pago não configurado para este restaurante" }, 400);
     }
+    if (cred.access_token.startsWith("TEST-")) {
+      return json({
+        error: "O restaurante está usando credenciais de teste do Mercado Pago (TEST-). PIX de sandbox não é aceito por bancos reais. Configure o Access Token de produção (APP_USR-) em Configurações → Mercado Pago.",
+      }, 400);
+    }
+
 
     const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/mp-webhook`;
     const customerName = (order as any).customers?.name ?? "Cliente";

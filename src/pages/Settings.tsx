@@ -472,8 +472,15 @@ const Settings = () => {
               <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noreferrer" className="text-primary underline">
                 mercadopago.com.br/developers/panel
               </a>
-              . Cole o <strong>Access Token</strong> de produção (ou de teste, para experimentar).
+              . Use o <strong>Access Token de Produção</strong> (começa com <code>APP_USR-</code>) para receber PIX de verdade.
             </p>
+            {mpAccessToken.trim().startsWith("TEST-") && (
+              <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-200 text-xs">
+                ⚠️ <strong>Credencial de teste (sandbox) detectada.</strong> PIX gerado com token <code>TEST-</code> não existe no sistema bancário real —
+                seu banco vai recusar com "PIX não encontrado". Substitua pelo <strong>Access Token de Produção</strong> (começa com <code>APP_USR-</code>)
+                em <em>Mercado Pago → Suas integrações → Credenciais de produção</em>.
+              </div>
+            )}
             <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/40">
               <div>
                 <p className="font-medium text-sm">Aceitar PIX online</p>
@@ -482,13 +489,13 @@ const Settings = () => {
               <Switch checked={mpEnabled} onCheckedChange={setMpEnabled} />
             </div>
             <div>
-              <Label>Access Token</Label>
+              <Label>Access Token (Produção)</Label>
               <Input
                 type="password"
                 value={mpAccessToken}
                 onChange={(e) => setMpAccessToken(e.target.value)}
                 className="mt-1 font-mono"
-                placeholder="APP_USR-... ou TEST-..."
+                placeholder="APP_USR-..."
                 autoComplete="off"
               />
             </div>
@@ -498,10 +505,11 @@ const Settings = () => {
                 value={mpPublicKey}
                 onChange={(e) => setMpPublicKey(e.target.value)}
                 className="mt-1 font-mono"
-                placeholder="APP_USR-... ou TEST-..."
+                placeholder="APP_USR-..."
                 autoComplete="off"
               />
             </div>
+
             <div className="text-[11px] text-muted-foreground p-2 rounded-lg bg-secondary/40">
               <strong>Webhook do Mercado Pago:</strong> configure no painel MP para{" "}
               <code className="text-primary">https://rfeljyjaebgoehnlxxxk.supabase.co/functions/v1/mp-webhook</code>{" "}
