@@ -1130,10 +1130,68 @@ const PublicMenu = () => {
                       </div>
                     ))}
                   </div>
+                  {/* Coupon */}
+                  <div className="border-t border-border pt-3">
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-1.5">🎟️ Cupom de desconto</label>
+                    {appliedCoupon ? (
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                        className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                          <div className="min-w-0">
+                            <div className="font-mono font-bold text-sm truncate">{appliedCoupon.code}</div>
+                            <div className="text-[11px] text-muted-foreground truncate">
+                              {appliedCoupon.discount_type === "percent"
+                                ? `${appliedCoupon.discount_value}% de desconto`
+                                : `${fmt(appliedCoupon.discount_value)} de desconto`}
+                              {appliedCoupon.description ? ` · ${appliedCoupon.description}` : ""}
+                            </div>
+                          </div>
+                        </div>
+                        <button type="button" onClick={removeCoupon} className="text-muted-foreground hover:text-destructive p-1 rounded-md transition-colors">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          value={couponInput}
+                          onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCouponCode(); } }}
+                          placeholder="Digite o código"
+                          className="flex-1 font-mono uppercase tracking-wider"
+                          maxLength={40}
+                        />
+                        <Button type="button" onClick={applyCouponCode}
+                          disabled={couponValidating || !couponInput.trim()}
+                          className="px-4 rounded-xl" style={{ backgroundColor: accentColor }}>
+                          {couponValidating ? "..." : "Aplicar"}
+                        </Button>
+                      </div>
+                    )}
+                    <AnimatePresence>
+                      {couponError && !appliedCoupon && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                          className="text-xs text-destructive mt-1.5 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> {couponError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <div className="border-t border-border pt-3 space-y-1 text-sm">
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span><span>{fmt(cartTotal)}</span>
                     </div>
+                    {couponDiscount > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
+                        className="flex justify-between text-emerald-500 font-medium">
+                        <span>Desconto ({appliedCoupon?.code})</span><span>-{fmt(couponDiscount)}</span>
+                      </motion.div>
+                    )}
                     {deliveryFeeApplied > 0 && (
                       <div className="flex justify-between text-muted-foreground">
                         <span>Taxa de entrega</span><span>{fmt(deliveryFeeApplied)}</span>
