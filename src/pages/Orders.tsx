@@ -193,6 +193,7 @@ const Orders = () => {
   };
 
   return (
+    <AdminLayout collapsible>
     <div className="min-h-screen bg-background p-4">
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h1 className="font-display text-2xl font-bold">
