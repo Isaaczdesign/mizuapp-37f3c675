@@ -1296,6 +1296,10 @@ export type Database = {
         Args: { _restaurant_id: string }
         Returns: boolean
       }
+      recalc_customer_stats: {
+        Args: { _customer_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "owner" | "manager" | "staff" | "kitchen"
