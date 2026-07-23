@@ -68,7 +68,9 @@ export default function OrderNotificationProvider() {
   const showBrowserNotification = useCallback((order: OrderPopup) => {
     if (!prefs.browser_push_enabled) return;
     if ("Notification" in window && Notification.permission === "granted") {
+      const typeLbl = order.order_type ? `${ORDER_TYPE_EMOJI[order.order_type] ?? ""} ${orderTypeLabel(order.order_type)}` : null;
       const body = [
+        typeLbl,
         order.customerName && `Cliente: ${order.customerName}`,
         order.tableNumber && `Mesa ${order.tableNumber}`,
         `Total: R$${Number(order.total).toFixed(2)}`,
