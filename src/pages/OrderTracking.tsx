@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, Truck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface TrackingOrder {
   id: string;
@@ -15,6 +16,13 @@ interface TrackingOrder {
   delivery_address: any | null;
   restaurant_address: string | null;
   items: { name: string; quantity: number; unit_price: number; notes: string | null }[];
+}
+
+interface PaymentStatus {
+  payment_status: string;
+  mp_qr_code: string | null;
+  mp_qr_code_base64: string | null;
+  mp_ticket_url: string | null;
 }
 
 const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
@@ -34,26 +42,51 @@ const DELIVERY_FLOW: { key: string; label: string; icon: any }[] = [
 
 const fmt = (v: number) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+const PAYMENT_META: Record<string, { label: string; color: string; icon: any }> = {
+  pending: { label: "Aguardando pagamento", color: "text-amber-400 bg-amber-500/15 border-amber-500/30", icon: Loader2 },
+  in_process: { label: "Pagamento em análise", color: "text-amber-400 bg-amber-500/15 border-amber-500/30", icon: Loader2 },
+  approved: { label: "Pagamento aprovado", color: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30", icon: CheckCircle2 },
+  rejected: { label: "Pagamento recusado", color: "text-red-400 bg-red-500/15 border-red-500/30", icon: XCircle },
+  cancelled: { label: "Pagamento cancelado", color: "text-red-400 bg-red-500/15 border-red-500/30", icon: XCircle },
+  refunded: { label: "Reembolsado", color: "text-muted-foreground bg-secondary border-border", icon: XCircle },
+  not_required: { label: "Pagamento no local", color: "text-blue-400 bg-blue-500/15 border-blue-500/30", icon: CheckCircle2 },
+};
+
 export default function OrderTracking() {
   const { token } = useParams<{ token: string }>();
   const [order, setOrder] = useState<TrackingOrder | null>(null);
+  const [payment, setPayment] = useState<PaymentStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
-    const { data } = await (supabase as any).rpc("get_public_order", { _token: token });
-    const row = Array.isArray(data) ? data[0] : data;
+    const [orderRes, payRes] = await Promise.all([
+      (supabase as any).rpc("get_public_order", { _token: token }),
+      (supabase as any).rpc("get_order_payment_status", { _token: token }),
+    ]);
+    const row = Array.isArray(orderRes.data) ? orderRes.data[0] : orderRes.data;
     if (!row) { setNotFound(true); setLoading(false); return; }
     setOrder(row as TrackingOrder);
+    const pay = Array.isArray(payRes.data) ? payRes.data[0] : payRes.data;
+    if (pay) setPayment(pay as PaymentStatus);
     setLoading(false);
   }, [token]);
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 8000);
+    // Faster polling while payment pending
+    const interval = setInterval(load, payment?.payment_status === "approved" ? 8000 : 4000);
     return () => clearInterval(interval);
-  }, [load]);
+  }, [load, payment?.payment_status]);
+
+  function copyPix() {
+    if (!payment?.mp_qr_code) return;
+    navigator.clipboard.writeText(payment.mp_qr_code);
+    toast.success("Código PIX copiado!");
+  }
+
+
 
   if (loading) {
     return (
