@@ -233,20 +233,30 @@ export default function AdminLayout({ children, collapsible = false }: { childre
       {!collapsible && (
         <div className="md:hidden fixed bottom-3 left-3 right-3 z-40 safe-area-bottom pointer-events-none">
           <nav className="pointer-events-auto flex items-center justify-around gap-1 px-2 py-1.5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border shadow-2xl">
-            {navItems.slice(0, 4).map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[10px] transition-colors flex-1 min-w-0 ${
-                    isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
-                  }`
-                }
-              >
-                <item.icon className="w-5 h-5 shrink-0" />
-                <span className="truncate max-w-full">{item.label}</span>
-              </NavLink>
-            ))}
+            {navItems.slice(0, 4).map((item) => {
+              const showBadge = item.to === "/orders" && pendingOrders > 0;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[10px] transition-colors flex-1 min-w-0 ${
+                      isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                    }`
+                  }
+                >
+                  <span className="relative shrink-0">
+                    <item.icon className="w-5 h-5" />
+                    {showBadge && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">
+                        {pendingOrders > 99 ? "99+" : pendingOrders}
+                      </span>
+                    )}
+                  </span>
+                  <span className="truncate max-w-full">{item.label}</span>
+                </NavLink>
+              );
+            })}
             <button
               onClick={() => setMobileOpen(true)}
               className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[10px] text-muted-foreground hover:text-foreground transition-colors flex-1 min-w-0"
