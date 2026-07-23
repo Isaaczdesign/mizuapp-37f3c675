@@ -508,22 +508,45 @@ const PublicMenu = () => {
 
       {/* ── Sticky Category Nav ── */}
       <div className="sticky top-0 z-40 mt-4 bg-background/90 backdrop-blur-xl border-b border-border">
-        <div ref={categoryNavRef} className="flex gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => scrollToCategory(cat.id)}
-              className="px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all font-medium"
-              style={
-                activeCategory === cat.id
-                  ? { backgroundColor: accentColor, color: "white" }
-                  : {}
-              }
-            >
-              {cat.name}
-            </button>
-          ))}
+        <div className="px-4 pt-2 pb-1">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar no cardápio..."
+              className="w-full bg-secondary/60 rounded-full pl-9 pr-9 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-background/50"
+                aria-label="Limpar busca"
+              >
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
         </div>
+        {!search && (
+          <div ref={categoryNavRef} className="flex gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => scrollToCategory(cat.id)}
+                className="px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all font-medium"
+                style={
+                  activeCategory === cat.id
+                    ? { backgroundColor: accentColor, color: "white" }
+                    : {}
+                }
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Items by Category ── */}
