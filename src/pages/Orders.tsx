@@ -401,6 +401,33 @@ const Orders = () => {
                   {selectedOrder.delivery_address.cep && (
                     <p className="text-muted-foreground">CEP: {selectedOrder.delivery_address.cep}</p>
                   )}
+                  <div className="pt-2 grid grid-cols-2 gap-2">
+                    <a
+                      href={buildRouteUrl(selectedOrder.delivery_address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25 transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Ver rota
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formatAddress(selectedOrder.delivery_address))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Abrir no mapa
+                    </a>
+                  </div>
+                  <div className="pt-2">
+                    <iframe
+                      title="Rota de entrega"
+                      className="w-full h-48 rounded-lg border border-border"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(formatAddress(selectedOrder.delivery_address))}&output=embed`}
+                    />
+                  </div>
                 </div>
               )}
               {selectedOrder.payment_method && (
