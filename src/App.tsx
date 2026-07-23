@@ -21,6 +21,7 @@ import Settings from "./pages/Settings";
 import NotificationSettings from "./pages/NotificationSettings";
 import OrderTracking from "./pages/OrderTracking";
 import ResetPassword from "./pages/ResetPassword";
+import PasswordResetSuccess from "./pages/PasswordResetSuccess";
 
 const queryClient = new QueryClient();
 
