@@ -142,6 +142,7 @@ const Orders = () => {
   const knownOrderIds = useRef<Set<string>>(new Set());
   const { prefs, save } = useNotificationPrefs();
   const [showNewOrder, setShowNewOrder] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [restaurantAddress, setRestaurantAddress] = useState<string>("");
 
   useEffect(() => {
