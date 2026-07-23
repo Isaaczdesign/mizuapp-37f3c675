@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX } from "lucide-react";
+import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import AdminLayout from "@/components/AdminLayout";
+import NewOrderModal from "@/components/NewOrderModal";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
@@ -104,6 +105,7 @@ const Orders = () => {
   const canCancel = roles.includes("owner") || roles.includes("manager");
   const knownOrderIds = useRef<Set<string>>(new Set());
   const { prefs, save } = useNotificationPrefs();
+  const [showNewOrder, setShowNewOrder] = useState(false);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -207,6 +209,10 @@ const Orders = () => {
         <h1 className="font-display text-2xl font-bold">
           📋 <span className="gradient-text">Pedidos</span>
         </h1>
+        <div className="flex items-center gap-2 flex-wrap">
+        <Button variant="hero" size="sm" onClick={() => setShowNewOrder(true)} className="gap-1">
+          <Plus className="w-4 h-4" /> Novo pedido
+        </Button>
         <button
           onClick={() => {
             const next = !prefs.sound_enabled;
@@ -224,6 +230,7 @@ const Orders = () => {
           {prefs.sound_enabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           <span className="hidden sm:inline">{prefs.sound_enabled ? "Som ativado" : "Som desativado"}</span>
         </button>
+        </div>
       </div>
 
       {/* Type filter tabs */}
@@ -451,6 +458,14 @@ const Orders = () => {
             </Button>
           </div>
         </div>
+      )}
+
+      {showNewOrder && restaurantId && (
+        <NewOrderModal
+          restaurantId={restaurantId}
+          onClose={() => setShowNewOrder(false)}
+          onCreated={loadOrders}
+        />
       )}
     </div>
     </AdminLayout>
