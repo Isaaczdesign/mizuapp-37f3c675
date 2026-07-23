@@ -16,12 +16,12 @@ const onAuthStateChange = vi.fn(() => ({
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
-      exchangeCodeForSession: (...a: any[]) => exchangeCodeForSession(...(a as [any])),
-      verifyOtp: (...a: any[]) => verifyOtp(...(a as [any])),
-      setSession: (...a: any[]) => setSession(...(a as [any])),
-      getSession: (...a: any[]) => getSession(...(a as [any])),
-      updateUser: (...a: any[]) => updateUser(...(a as [any])),
-      onAuthStateChange: (...a: any[]) => onAuthStateChange(...(a as [any])),
+      exchangeCodeForSession: (arg: any) => exchangeCodeForSession(arg),
+      verifyOtp: (arg: any) => verifyOtp(arg),
+      setSession: (arg: any) => setSession(arg),
+      getSession: () => getSession(),
+      updateUser: (arg: any) => updateUser(arg),
+      onAuthStateChange: (cb: any) => onAuthStateChange(cb),
     },
   },
 }));
