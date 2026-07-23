@@ -1000,7 +1000,14 @@ const PublicMenu = () => {
                         (orderType === "dine_in" && !tableId && !selectedTableId) ||
                         (orderType === "delivery" && (deliveryCep.replace(/\D/g,"").length !== 8 || !deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
                       }
-                      onClick={() => setCheckoutStep(3)}
+                      onClick={() => {
+                        if (orderType === "dine_in") {
+                          setPaymentMethod("pay_at_place");
+                          setCheckoutStep(4);
+                        } else {
+                          setCheckoutStep(3);
+                        }
+                      }}
                     >
                       Continuar
                     </Button>
@@ -1094,7 +1101,7 @@ const PublicMenu = () => {
                       {orderType === "pickup" && `🛍️ Retirada no balcão`}
                       {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
                     </p>
-                    <p>💳 {paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
+                    <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
                   </div>
 
                   <div>
@@ -1105,7 +1112,7 @@ const PublicMenu = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(3)}>
+                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
                       Voltar
                     </Button>
                     <Button type="submit" className="flex-1 py-6 rounded-2xl font-bold text-base"
