@@ -1112,7 +1112,7 @@ const PublicMenu = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(3)}>
+                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
                       Voltar
                     </Button>
                     <Button type="submit" className="flex-1 py-6 rounded-2xl font-bold text-base"
