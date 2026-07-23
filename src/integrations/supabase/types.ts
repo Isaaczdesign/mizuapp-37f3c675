@@ -706,10 +706,16 @@ export type Database = {
           delivery_eta: string | null
           delivery_fee: number
           id: string
+          mp_payment_id: string | null
+          mp_preference_id: string | null
+          mp_qr_code: string | null
+          mp_qr_code_base64: string | null
+          mp_ticket_url: string | null
           notes: string | null
           order_type: string
           payment_change_for: number | null
           payment_method: string | null
+          payment_status: string
           pickup_time: string | null
           restaurant_id: string
           status: Database["public"]["Enums"]["order_status"]
@@ -725,10 +731,16 @@ export type Database = {
           delivery_eta?: string | null
           delivery_fee?: number
           id?: string
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          mp_qr_code?: string | null
+          mp_qr_code_base64?: string | null
+          mp_ticket_url?: string | null
           notes?: string | null
           order_type?: string
           payment_change_for?: number | null
           payment_method?: string | null
+          payment_status?: string
           pickup_time?: string | null
           restaurant_id: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -744,10 +756,16 @@ export type Database = {
           delivery_eta?: string | null
           delivery_fee?: number
           id?: string
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          mp_qr_code?: string | null
+          mp_qr_code_base64?: string | null
+          mp_ticket_url?: string | null
           notes?: string | null
           order_type?: string
           payment_change_for?: number | null
           payment_method?: string | null
+          payment_status?: string
           pickup_time?: string | null
           restaurant_id?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -904,6 +922,9 @@ export type Database = {
           id: string
           is_active: boolean
           logo_url: string | null
+          mp_access_token: string | null
+          mp_enabled: boolean
+          mp_public_key: string | null
           name: string
           owner_email: string | null
           owner_name: string | null
@@ -926,6 +947,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          mp_access_token?: string | null
+          mp_enabled?: boolean
+          mp_public_key?: string | null
           name: string
           owner_email?: string | null
           owner_name?: string | null
@@ -948,6 +972,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          mp_access_token?: string | null
+          mp_enabled?: boolean
+          mp_public_key?: string | null
           name?: string
           owner_email?: string | null
           owner_name?: string | null
@@ -1166,6 +1193,17 @@ export type Database = {
         }
         Returns: string
       }
+      get_order_payment_status: {
+        Args: { _token: string }
+        Returns: {
+          id: string
+          mp_qr_code: string
+          mp_qr_code_base64: string
+          mp_ticket_url: string
+          payment_status: string
+          status: string
+        }[]
+      }
       get_public_order: {
         Args: { _token: string }
         Returns: {
@@ -1192,6 +1230,7 @@ export type Database = {
           id: string
           is_active: boolean
           logo_url: string
+          mp_enabled: boolean
           name: string
           operating_hours: Json
           owner_phone: string
@@ -1207,6 +1246,14 @@ export type Database = {
         Returns: {
           id: string
           number: number
+        }[]
+      }
+      get_restaurant_mp_credentials: {
+        Args: { _restaurant_id: string }
+        Returns: {
+          access_token: string
+          enabled: boolean
+          public_key: string
         }[]
       }
       get_table_by_token: {

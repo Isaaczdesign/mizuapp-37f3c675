@@ -23,6 +23,7 @@ interface Order {
   order_type: string;
   payment_method: string | null;
   payment_change_for: number | null;
+  payment_status: string | null;
   delivery_address: any;
   delivery_fee: number;
   delivery_eta: string | null;
@@ -30,6 +31,16 @@ interface Order {
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
 }
+
+const PAYMENT_BADGE: Record<string, { label: string; cls: string }> = {
+  pending: { label: "PIX pendente", cls: "text-amber-400 bg-amber-500/15" },
+  in_process: { label: "PIX em análise", cls: "text-amber-400 bg-amber-500/15" },
+  approved: { label: "Pago", cls: "text-emerald-400 bg-emerald-500/15" },
+  rejected: { label: "Pgto recusado", cls: "text-red-400 bg-red-500/15" },
+  cancelled: { label: "Pgto cancelado", cls: "text-red-400 bg-red-500/15" },
+  refunded: { label: "Reembolsado", cls: "text-muted-foreground bg-secondary" },
+  not_required: { label: "No local", cls: "text-blue-400 bg-blue-500/15" },
+};
 
 const columns: { status: OrderStatus; label: string; color: string; deliveryOnly?: boolean }[] = [
   { status: "new", label: "Novos", color: "bg-primary" },
@@ -114,7 +125,7 @@ const Orders = () => {
     if (!restaurantId) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, delivery_address, delivery_fee, delivery_eta, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -248,9 +259,20 @@ const Orders = () => {
                           {new Date(order.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
+                        {(() => {
+                          const isOnlinePix = order.payment_method === "pix";
+                          const key = isOnlinePix ? (order.payment_status ?? "pending") : "not_required";
+                          const pb = PAYMENT_BADGE[key] ?? PAYMENT_BADGE.pending;
+                          return (
+                            <span className={`inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full font-medium ${pb.cls}`}>
+                              {pb.label}
+                            </span>
+                          );
+                        })()}
                       </div>
+
 
                       {order.order_type === "dine_in" && order.restaurant_tables && (
                         <p className="text-sm font-semibold">🍽️ Mesa {order.restaurant_tables.number}</p>
