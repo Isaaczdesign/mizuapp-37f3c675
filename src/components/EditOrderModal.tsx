@@ -110,8 +110,19 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
 
   async function save() {
     if (cart.length === 0) { toast.error("O pedido precisa ter pelo menos 1 item"); return; }
-    if (orderType === "dine_in" && !tableId) { toast.error("Selecione a mesa"); return; }
-    if (orderType === "delivery" && (!address.street || !address.number)) { toast.error("Preencha o endereço"); return; }
+    if (orderType === "dine_in" && !tableId) { toast.error("Selecione a mesa antes de salvar"); return; }
+    if (orderType === "delivery") {
+      const missing: string[] = [];
+      if (!address.street) missing.push("Rua");
+      if (!address.number) missing.push("Número");
+      if (!address.neighborhood) missing.push("Bairro");
+      if (!address.city) missing.push("Cidade");
+      if (missing.length) { toast.error(`Endereço incompleto: ${missing.join(", ")}`); return; }
+    }
+    if (!payment) { toast.error("Selecione a forma de pagamento"); return; }
+
+    const summary = `Confirmar alterações no pedido?\n\n• ${cart.length} item(ns)\n• Total: R$${total.toFixed(2)}\n• Tipo: ${orderType === "dine_in" ? "Mesa" : orderType === "pickup" ? "Balcão/Retirada" : "Delivery"}\n• Pagamento: ${payment}\n\nO cliente será notificado no WhatsApp.`;
+    if (!window.confirm(summary)) return;
 
     setSubmitting(true);
     try {
@@ -142,6 +153,15 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
       if (iErr) throw iErr;
 
       toast.success("Pedido atualizado!");
+
+      // Notify customer via WhatsApp about the edit (non-blocking)
+      supabase.functions.invoke("send-order-whatsapp", {
+        body: { order_id: order.id, event: "edited" },
+      }).then(({ error: fnErr }) => {
+        if (fnErr) toast.error("Falha ao notificar cliente no WhatsApp");
+        else toast.success("📱 Cliente notificado no WhatsApp");
+      });
+
       onSaved();
       onClose();
     } catch (e: any) {
