@@ -7,6 +7,7 @@ import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin,
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
+import AdminLayout from "@/components/AdminLayout";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
