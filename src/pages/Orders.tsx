@@ -593,6 +593,15 @@ const Orders = () => {
           onCreated={loadOrders}
         />
       )}
+
+      {editingOrder && restaurantId && (
+        <EditOrderModal
+          restaurantId={restaurantId}
+          order={editingOrder}
+          onClose={() => setEditingOrder(null)}
+          onSaved={loadOrders}
+        />
+      )}
     </div>
     </AdminLayout>
   );
