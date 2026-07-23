@@ -258,7 +258,7 @@ export default function OrderTracking() {
                     <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
                       {step.label}
                     </p>
-                    {active && (
+                    {active && !isTerminal && (
                       <p className="text-xs text-primary animate-pulse">Em andamento…</p>
                     )}
                   </div>
