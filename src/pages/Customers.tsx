@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, MessageSquare, Users, Ticket, Plus, Tag } from "lucide-react";
+import { Eye, MessageSquare, Users, Ticket, Plus, Tag, Trash2, Power, PowerOff } from "lucide-react";
 import { toast } from "sonner";
 
 type Segment = "all" | "new" | "frequent" | "inactive_7d" | "inactive_30d";
