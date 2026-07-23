@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowDownLeft, ArrowDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNotificationPrefs, PopupPosition } from "@/hooks/useNotificationPrefs";
+import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
 
 interface NewOrderPayload {
   id: string;
@@ -16,6 +17,7 @@ interface NewOrderPayload {
   customer_id: string | null;
   notes: string | null;
   payment_status?: string | null;
+  order_type?: string | null;
 }
 
 interface OrderPopup extends NewOrderPayload {
@@ -66,7 +68,9 @@ export default function OrderNotificationProvider() {
   const showBrowserNotification = useCallback((order: OrderPopup) => {
     if (!prefs.browser_push_enabled) return;
     if ("Notification" in window && Notification.permission === "granted") {
+      const typeLbl = order.order_type ? `${ORDER_TYPE_EMOJI[order.order_type] ?? ""} ${orderTypeLabel(order.order_type)}` : null;
       const body = [
+        typeLbl,
         order.customerName && `Cliente: ${order.customerName}`,
         order.tableNumber && `Mesa ${order.tableNumber}`,
         `Total: R$${Number(order.total).toFixed(2)}`,
@@ -241,14 +245,18 @@ export default function OrderNotificationProvider() {
 
             {/* Body */}
             <div className="p-4 space-y-3">
-              {(popup.customerName || popup.tableNumber) && (
-                <div className="flex items-center gap-3 text-sm">
-                  {popup.customerName && <span className="font-medium">{popup.customerName}</span>}
-                  {popup.tableNumber && (
-                    <span className="px-2 py-0.5 rounded-full bg-secondary text-xs">Mesa {popup.tableNumber}</span>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center gap-2 flex-wrap text-sm">
+                {popup.order_type && (
+                  <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-medium">
+                    {ORDER_TYPE_EMOJI[popup.order_type] ?? ""} {orderTypeLabel(popup.order_type)}
+                  </span>
+                )}
+                {popup.customerName && <span className="font-medium">{popup.customerName}</span>}
+                {popup.tableNumber && (
+                  <span className="px-2 py-0.5 rounded-full bg-secondary text-xs">Mesa {popup.tableNumber}</span>
+                )}
+              </div>
+
 
               {popup.items && popup.items.length > 0 && (
                 <div className="space-y-1">

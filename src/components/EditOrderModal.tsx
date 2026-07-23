@@ -121,7 +121,7 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
     }
     if (!payment) { toast.error("Selecione a forma de pagamento"); return; }
 
-    const summary = `Confirmar alterações no pedido?\n\n• ${cart.length} item(ns)\n• Total: R$${total.toFixed(2)}\n• Tipo: ${orderType === "dine_in" ? "Mesa" : orderType === "pickup" ? "Balcão/Retirada" : "Delivery"}\n• Pagamento: ${payment}\n\nO cliente será notificado no WhatsApp.`;
+    const summary = `Confirmar alterações no pedido?\n\n• ${cart.length} item(ns)\n• Total: R$${total.toFixed(2)}\n• Tipo: ${orderType === "dine_in" ? "No local" : orderType === "pickup" ? "Retirada" : "Delivery"}\n• Pagamento: ${payment}\n\nO cliente será notificado no WhatsApp.`;
     if (!window.confirm(summary)) return;
 
     setSubmitting(true);
@@ -172,8 +172,8 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
   }
 
   const typeOptions: { key: OrderType; label: string; icon: any }[] = [
-    { key: "dine_in", label: "Mesa", icon: UtensilsCrossed },
-    { key: "pickup", label: "Balcão/Retirada", icon: ShoppingBag },
+    { key: "dine_in", label: "No local", icon: UtensilsCrossed },
+    { key: "pickup", label: "Retirada", icon: ShoppingBag },
     { key: "delivery", label: "Delivery", icon: Truck },
   ];
 

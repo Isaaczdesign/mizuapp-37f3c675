@@ -842,7 +842,7 @@ const PublicMenu = () => {
                     >
                       <UtensilsCrossed className="w-5 h-5" style={{ color: accentColor }} />
                       <div className="text-left">
-                        <p className="font-medium text-sm">Consumir no local</p>
+                        <p className="font-medium text-sm">No local</p>
                         <p className="text-xs text-muted-foreground">Peça direto da mesa</p>
                       </div>
                     </button>
@@ -857,8 +857,8 @@ const PublicMenu = () => {
                     >
                       <ShoppingBag className="w-5 h-5" style={{ color: accentColor }} />
                       <div className="text-left">
-                        <p className="font-medium text-sm">Retirar no balcão</p>
-                        <p className="text-xs text-muted-foreground">Buscar no restaurante</p>
+                        <p className="font-medium text-sm">Retirada</p>
+                        <p className="text-xs text-muted-foreground">Buscar no balcão</p>
                       </div>
                     </button>
                   )}
@@ -1098,7 +1098,7 @@ const PublicMenu = () => {
                     <p>👤 {customerName} · 📱 {customerWhatsapp}</p>
                     <p>
                       {orderType === "dine_in" && `🍽️ Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
-                      {orderType === "pickup" && `🛍️ Retirada no balcão`}
+                      {orderType === "pickup" && `🛍️ Retirada`}
                       {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
                     </p>
                     <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>

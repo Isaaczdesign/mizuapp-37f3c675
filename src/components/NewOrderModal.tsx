@@ -133,8 +133,8 @@ export default function NewOrderModal({ restaurantId, onClose, onCreated }: Prop
   }
 
   const typeOptions: { key: OrderType; label: string; icon: any }[] = [
-    { key: "dine_in", label: "Mesa", icon: UtensilsCrossed },
-    { key: "pickup", label: "Balcão/Retirada", icon: ShoppingBag },
+    { key: "dine_in", label: "No local", icon: UtensilsCrossed },
+    { key: "pickup", label: "Retirada", icon: ShoppingBag },
     { key: "delivery", label: "Delivery", icon: Truck },
   ];
 

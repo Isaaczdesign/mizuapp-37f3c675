@@ -56,7 +56,7 @@ const columns: { status: OrderStatus; label: string; color: string; deliveryOnly
 ];
 
 const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
-  dine_in: { label: "Mesa", icon: UtensilsCrossed, color: "text-blue-400 bg-blue-500/15" },
+  dine_in: { label: "No local", icon: UtensilsCrossed, color: "text-blue-400 bg-blue-500/15" },
   pickup: { label: "Retirada", icon: ShoppingBag, color: "text-amber-400 bg-amber-500/15" },
   delivery: { label: "Delivery", icon: Truck, color: "text-emerald-400 bg-emerald-500/15" },
 };
