@@ -553,9 +553,19 @@ const PublicMenu = () => {
       <div className="px-4 pt-4">
         {categorizedItems.length === 0 && (
           <div className="text-center py-16">
-            <UtensilsCrossed className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="font-display font-bold mb-1">Cardápio em breve</h3>
-            <p className="text-sm text-muted-foreground">Este restaurante ainda está preparando o cardápio.</p>
+            {search ? (
+              <>
+                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <h3 className="font-display font-bold mb-1">Nenhum item encontrado</h3>
+                <p className="text-sm text-muted-foreground">Tente outro termo ou limpe a busca.</p>
+              </>
+            ) : (
+              <>
+                <UtensilsCrossed className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <h3 className="font-display font-bold mb-1">Cardápio em breve</h3>
+                <p className="text-sm text-muted-foreground">Este restaurante ainda está preparando o cardápio.</p>
+              </>
+            )}
           </div>
         )}
 
