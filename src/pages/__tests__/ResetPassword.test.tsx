@@ -30,8 +30,9 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-const renderAt = (path: string) =>
-  render(
+const renderAt = (path: string) => {
+  window.history.pushState({}, "", path);
+  return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -40,6 +41,7 @@ const renderAt = (path: string) =>
       </Routes>
     </MemoryRouter>
   );
+};
 
 describe("ResetPassword E2E flow", () => {
   beforeEach(() => {
