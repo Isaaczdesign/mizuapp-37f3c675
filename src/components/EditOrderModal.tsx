@@ -132,7 +132,7 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
       if (dErr) throw dErr;
       const rows = cart.map((it) => ({
         order_id: order.id,
-        menu_item_id: it.menu_item_id,
+        menu_item_id: it.menu_item_id ?? null,
         name: it.name,
         quantity: it.quantity,
         unit_price: it.unit_price,
