@@ -1101,7 +1101,7 @@ const PublicMenu = () => {
                       {orderType === "pickup" && `🛍️ Retirada no balcão`}
                       {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
                     </p>
-                    <p>💳 {paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
+                    <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
                   </div>
 
                   <div>
