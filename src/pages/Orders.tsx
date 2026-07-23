@@ -409,7 +409,18 @@ const Orders = () => {
           <div className="relative glass-card p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-lg font-bold">Pedido #{selectedOrder.id.slice(0, 8)}</h2>
-              <button onClick={() => setSelectedOrder(null)}><XIcon className="w-5 h-5" /></button>
+              <div className="flex items-center gap-2">
+                {selectedOrder.status !== "canceled" && (selectedOrder.status as string) !== "delivered" && selectedOrder.status !== "completed" && (
+                  <button
+                    onClick={() => { setEditingOrder(selectedOrder); setSelectedOrder(null); }}
+                    className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25 transition-colors"
+                    title="Editar pedido"
+                  >
+                    <Pencil className="w-3.5 h-3.5" /> Editar
+                  </button>
+                )}
+                <button onClick={() => setSelectedOrder(null)}><XIcon className="w-5 h-5" /></button>
+              </div>
             </div>
 
             {selectedHasRoute && selectedAddress && (
