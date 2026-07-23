@@ -292,6 +292,25 @@ export default function OrderTracking() {
         </div>
       </div>
 
+      {menuUrl && (
+        <div className="grid grid-cols-2 gap-3 mt-6">
+          <Link
+            to={menuUrl}
+            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao cardápio
+          </Link>
+          <Link
+            to={menuUrl}
+            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Pedir novamente
+          </Link>
+        </div>
+      )}
+
       <p className="text-center text-xs text-muted-foreground mt-6">
         Atualiza automaticamente a cada 8 segundos.
       </p>
