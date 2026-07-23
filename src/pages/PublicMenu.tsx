@@ -381,7 +381,7 @@ const PublicMenu = () => {
       const { data: rpcData, error: orderErr } = await (supabase as any).rpc("create_public_order", {
         _restaurant_id: restaurant.id,
         _customer_id: customerId,
-        _total: grandTotal,
+        _total: cartTotal + deliveryFeeApplied,
         _notes: orderNotes || null,
         _order_type: orderType,
         _payment_method: paymentMethod,
@@ -390,6 +390,7 @@ const PublicMenu = () => {
         _delivery_fee: deliveryFeeApplied,
         _delivery_address: deliveryAddress,
         _items: itemsPayload,
+        _coupon_code: appliedCoupon?.code ?? null,
       });
       if (orderErr) throw orderErr;
       const created = Array.isArray(rpcData) ? rpcData[0] : rpcData;
