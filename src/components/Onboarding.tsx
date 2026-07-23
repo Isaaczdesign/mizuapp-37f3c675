@@ -58,6 +58,8 @@ export default function Onboarding() {
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
   const [pickupEnabled, setPickupEnabled] = useState(false);
   const [dineInEnabled, setDineInEnabled] = useState(true);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState("0");
 
   // Step 3 — Menu
   const [menuChoice, setMenuChoice] = useState<"import" | "manual" | null>(null);
@@ -85,7 +87,7 @@ export default function Onboarding() {
       if (profile?.restaurant_id) {
         const { data: rest } = await supabase
           .from("restaurants")
-          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled, payment_methods")
+          .select("id, name, slug, primary_color, logo_url, pickup_enabled, dine_in_enabled, delivery_enabled, delivery_fee, payment_methods")
           .eq("id", profile.restaurant_id)
           .single();
         if (rest) {
@@ -96,6 +98,8 @@ export default function Onboarding() {
           if (rest.logo_url) setLogoPreview(rest.logo_url);
           setPickupEnabled(rest.pickup_enabled);
           setDineInEnabled(rest.dine_in_enabled);
+          setDeliveryEnabled(((rest as any).delivery_enabled ?? false) as boolean);
+          setDeliveryFee(String((rest as any).delivery_fee ?? 0));
           if (Array.isArray((rest as any).payment_methods) && (rest as any).payment_methods.length) {
             setPaymentMethods((rest as any).payment_methods);
           }
@@ -191,6 +195,8 @@ export default function Onboarding() {
       await supabase.from("restaurants").update({
         pickup_enabled: pickupEnabled,
         dine_in_enabled: dineInEnabled,
+        delivery_enabled: deliveryEnabled,
+        delivery_fee: Number(deliveryFee.replace(",", ".")) || 0,
       } as any).eq("id", restaurantId);
 
       toast.success("Horários salvos!");
@@ -351,13 +357,17 @@ export default function Onboarding() {
       const itemName = sampleItem?.name ?? "Combo Teste 8 peças";
       const itemPrice = Number(sampleItem?.price ?? 29.9);
 
+      const testOrderType = "pickup";
       const { data: order, error: orderErr } = await supabase.from("orders")
         .insert({
           restaurant_id: restaurantId,
           customer_id: customerId,
           total: itemPrice,
           status: "new",
-          order_type: "pickup",
+          order_type: testOrderType,
+          table_id: null,
+          delivery_address: null,
+          delivery_fee: 0,
           payment_method: "cash",
           notes: "Pedido de teste do onboarding",
         } as any)
@@ -630,6 +640,26 @@ export default function Onboarding() {
                         </div>
                         <Switch checked={dineInEnabled} onCheckedChange={setDineInEnabled} />
                       </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Delivery</p>
+                          <p className="text-xs text-muted-foreground">Sua empresa faz entregas?</p>
+                        </div>
+                        <Switch checked={deliveryEnabled} onCheckedChange={setDeliveryEnabled} />
+                      </div>
+                      {deliveryEnabled && (
+                        <div className="rounded-xl border border-border bg-secondary/30 p-3">
+                          <Label htmlFor="delivery-fee" className="text-xs text-muted-foreground">Taxa de entrega padrão</Label>
+                          <Input
+                            id="delivery-fee"
+                            inputMode="decimal"
+                            value={deliveryFee}
+                            onChange={(e) => setDeliveryFee(e.target.value)}
+                            placeholder="0,00"
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
