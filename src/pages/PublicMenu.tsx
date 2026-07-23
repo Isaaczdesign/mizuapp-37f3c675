@@ -857,8 +857,8 @@ const PublicMenu = () => {
                     >
                       <ShoppingBag className="w-5 h-5" style={{ color: accentColor }} />
                       <div className="text-left">
-                        <p className="font-medium text-sm">Retirar no balcão</p>
-                        <p className="text-xs text-muted-foreground">Buscar no restaurante</p>
+                        <p className="font-medium text-sm">Retirada</p>
+                        <p className="text-xs text-muted-foreground">Buscar no balcão</p>
                       </div>
                     </button>
                   )}
