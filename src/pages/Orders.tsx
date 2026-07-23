@@ -373,6 +373,19 @@ const Orders = () => {
               <button onClick={() => setSelectedOrder(null)}><XIcon className="w-5 h-5" /></button>
             </div>
 
+            {selectedOrder.order_type === "delivery" && selectedOrder.delivery_address && (
+              <a
+                href={buildRouteUrl(selectedOrder.delivery_address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-4 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+              >
+                <MapPin className="w-4 h-4" /> Ver rota no Google Maps
+              </a>
+            )}
+
+
+
             <div className="mb-3 space-y-1 text-sm">
               <p><strong>Tipo:</strong> {TYPE_META[selectedOrder.order_type]?.label ?? selectedOrder.order_type}</p>
               {selectedOrder.customers && (
