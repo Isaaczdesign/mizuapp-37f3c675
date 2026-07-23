@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 const RESET_COOLDOWN_SECONDS = 60;
 const RESET_STORAGE_KEY = "koban_reset_last_sent";
+const PASSWORD_RESET_REDIRECT_URL = "https://mizuapp.lovable.app/reset-password";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -55,7 +56,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(target, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: PASSWORD_RESET_REDIRECT_URL,
       });
       if (error) throw error;
       const now = Date.now();
