@@ -434,9 +434,16 @@ const PublicMenu = () => {
     );
   }
 
+  const q = search.trim().toLowerCase();
+  const matchesSearch = (i: MenuItem) =>
+    !q ||
+    i.name.toLowerCase().includes(q) ||
+    (i.description ?? "").toLowerCase().includes(q) ||
+    (i.ingredients ?? "").toLowerCase().includes(q) ||
+    (i.tags ?? []).some((t) => t.toLowerCase().includes(q));
   const categorizedItems = categories.map((cat) => ({
     ...cat,
-    items: items.filter((i) => i.category_id === cat.id),
+    items: items.filter((i) => i.category_id === cat.id && matchesSearch(i)),
   })).filter((c) => c.items.length > 0);
 
   return (
