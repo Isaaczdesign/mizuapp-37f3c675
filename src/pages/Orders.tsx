@@ -445,6 +445,7 @@ const Orders = () => {
         </div>
       )}
     </div>
+    </AdminLayout>
   );
 };
 
