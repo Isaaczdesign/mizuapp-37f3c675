@@ -59,8 +59,18 @@ export default function AdminLayout({ children, collapsible = false }: { childre
       {/* Sidebar - desktop */}
       {showSidebar && (
         <aside className="hidden md:flex w-56 flex-col border-r border-border bg-card/40 backdrop-blur-xl">
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border flex items-center justify-between gap-2">
             <a href="/" className="font-display text-xl font-bold gradient-text">Kōban</a>
+            {collapsible && (
+              <button
+                onClick={() => setHidden(true)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary transition-colors"
+                aria-label="Ocultar menu lateral"
+                title="Ocultar menu lateral"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            )}
           </div>
           <nav className="flex-1 p-2 space-y-0.5">
             {navItems.map((item) => (
@@ -123,17 +133,17 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         </div>
       )}
 
-      {/* Toggle button */}
-      {collapsible && (
+      {/* Floating "show" button — only when sidebar is hidden */}
+      {collapsible && hidden && (
         <Button
           variant="secondary"
           size="icon"
-          onClick={() => setHidden((h) => !h)}
-          className="fixed bottom-20 left-3 md:bottom-4 md:left-4 z-50 h-9 w-9 rounded-full shadow-lg opacity-70 hover:opacity-100"
-          aria-label={hidden ? "Mostrar menu lateral" : "Ocultar menu lateral"}
-          title={hidden ? "Mostrar menu lateral" : "Ocultar menu lateral"}
+          onClick={() => setHidden(false)}
+          className="fixed top-3 left-3 z-50 h-9 w-9 rounded-full shadow-lg opacity-80 hover:opacity-100"
+          aria-label="Mostrar menu lateral"
+          title="Mostrar menu lateral"
         >
-          {hidden ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          <PanelLeftOpen className="w-4 h-4" />
         </Button>
       )}
 
