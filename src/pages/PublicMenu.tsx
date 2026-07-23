@@ -842,7 +842,7 @@ const PublicMenu = () => {
                     >
                       <UtensilsCrossed className="w-5 h-5" style={{ color: accentColor }} />
                       <div className="text-left">
-                        <p className="font-medium text-sm">Consumir no local</p>
+                        <p className="font-medium text-sm">No local</p>
                         <p className="text-xs text-muted-foreground">Peça direto da mesa</p>
                       </div>
                     </button>
