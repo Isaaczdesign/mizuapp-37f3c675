@@ -4,6 +4,7 @@ import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, 
 import { useEffect, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 import { Button } from "@/components/ui/button";
+import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[] };
 
