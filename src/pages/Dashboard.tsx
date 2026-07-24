@@ -19,6 +19,7 @@ type Period = "today" | "week" | "month" | "custom";
 
 const Dashboard = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const rid = profile?.restaurant_id;
   const [period, setPeriod] = useState<Period>("today");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
