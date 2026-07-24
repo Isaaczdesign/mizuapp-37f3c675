@@ -86,6 +86,12 @@ export default function OrderTracking() {
     return () => clearInterval(interval);
   }, [load, payment?.payment_status]);
 
+  const [nowTs, setNowTs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
   function copyPix() {
     if (!payment?.mp_qr_code) return;
     navigator.clipboard.writeText(payment.mp_qr_code);
