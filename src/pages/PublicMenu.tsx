@@ -36,6 +36,7 @@ type OrderType = "dine_in" | "pickup" | "delivery";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const onlinePaymentMinAmount = 1;
+const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 const TAG_BADGES: Record<string, { emoji: string; label: string }> = {
   best_seller: { emoji: "🔥", label: "Mais Vendido" },
