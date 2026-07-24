@@ -503,7 +503,8 @@ const PublicMenu = () => {
 
       setCart([]); setCheckoutStep(0); setShowCart(false);
       setOrderNotes("");
-      navigate(`/pedido/${created.tracking_token}`);
+      setOrderSuccess({ token: created.tracking_token });
+      setTimeout(() => navigate(`/pedido/${created.tracking_token}`), 2200);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao enviar pedido. Tente novamente. Seu carrinho está preservado.");
