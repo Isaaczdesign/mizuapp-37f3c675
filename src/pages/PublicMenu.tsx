@@ -144,6 +144,26 @@ const PublicMenu = () => {
 
   useEffect(() => { loadMenu(); }, [slug]);
 
+  // ── Load saved customer info from localStorage (per restaurant) ──
+  const storageKey = slug ? `koban:customer:${slug}` : null;
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.customerName) setCustomerName(data.customerName);
+      if (data.customerWhatsapp) setCustomerWhatsapp(data.customerWhatsapp);
+      if (typeof data.consentMarketing === "boolean") setConsentMarketing(data.consentMarketing);
+      if (data.deliveryCep) setDeliveryCep(data.deliveryCep);
+      if (data.deliveryStreet) setDeliveryStreet(data.deliveryStreet);
+      if (data.deliveryNumber) setDeliveryNumber(data.deliveryNumber);
+      if (data.deliveryNeighborhood) setDeliveryNeighborhood(data.deliveryNeighborhood);
+      if (data.deliveryCity) setDeliveryCity(data.deliveryCity);
+      if (data.deliveryComplement) setDeliveryComplement(data.deliveryComplement);
+    } catch {}
+  }, [storageKey]);
+
   // ── Scroll-spy for category nav ──
   useEffect(() => {
     if (!categories.length) return;
@@ -417,8 +437,21 @@ const PublicMenu = () => {
         }
       }
 
+      // Persist customer info for next order (no login needed)
+      if (storageKey) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({
+            customerName: customerName.trim(),
+            customerWhatsapp: customerWhatsapp.trim(),
+            consentMarketing,
+            deliveryCep, deliveryStreet, deliveryNumber,
+            deliveryNeighborhood, deliveryCity, deliveryComplement,
+          }));
+        } catch {}
+      }
+
       setCart([]); setCheckoutStep(0); setShowCart(false);
-      setCustomerName(""); setCustomerWhatsapp(""); setOrderNotes("");
+      setOrderNotes("");
       navigate(`/pedido/${created.tracking_token}`);
     } catch (err: any) {
       console.error(err);
@@ -987,6 +1020,23 @@ const PublicMenu = () => {
               {/* Step 2: Infos (customer + mesa/endereço) */}
               {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                  {(customerName || customerWhatsapp) && (
+                    <div className="flex items-center justify-between rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs">
+                      <span className="text-muted-foreground">✨ Dados preenchidos do seu último pedido</span>
+                      <button
+                        type="button"
+                        className="text-primary hover:underline font-medium"
+                        onClick={() => {
+                          if (storageKey) localStorage.removeItem(storageKey);
+                          setCustomerName(""); setCustomerWhatsapp(""); setConsentMarketing(false);
+                          setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                          setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                        }}
+                      >
+                        Limpar
+                      </button>
+                    </div>
+                  )}
                   <div>
                     <label className="text-sm font-medium">Nome *</label>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
