@@ -1133,6 +1133,77 @@ const PublicMenu = () => {
 
                   {orderType === "delivery" && (
                     <div className="space-y-3">
+                      {savedAddresses.length > 0 && (
+                        <div>
+                          <label className="text-xs font-medium">Endereços salvos</label>
+                          <div className="mt-1 space-y-1.5">
+                            {savedAddresses.map((a) => {
+                              const active = selectedAddressId === a.id;
+                              return (
+                                <div
+                                  key={a.id}
+                                  className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition ${
+                                    active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedAddressId(a.id);
+                                    setDeliveryCep(a.cep); setDeliveryStreet(a.street);
+                                    setDeliveryNumber(a.number); setDeliveryNeighborhood(a.neighborhood);
+                                    setDeliveryCity(a.city); setDeliveryComplement(a.complement);
+                                  }}
+                                >
+                                  <div className="min-w-0">
+                                    <p className="font-medium truncate">{a.label}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {[a.neighborhood, a.city].filter(Boolean).join(" · ")}
+                                      {a.complement ? ` · ${a.complement}` : ""}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="text-xs text-destructive hover:underline shrink-0"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      const { removeAddress, saveCustomerStorage } = await import("@/lib/publicMenuStorage");
+                                      const next = removeAddress(savedAddresses, a.id);
+                                      setSavedAddresses(next);
+                                      if (selectedAddressId === a.id) {
+                                        setSelectedAddressId(null);
+                                        setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                                        setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                                      }
+                                      saveCustomerStorage(slug, {
+                                        v: 2, savedAt: Date.now(),
+                                        autofillEnabled,
+                                        customerName: customerName.trim(),
+                                        customerWhatsapp: customerWhatsapp.trim(),
+                                        consentMarketing,
+                                        addresses: next,
+                                      });
+                                    }}
+                                  >
+                                    Remover
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <button
+                              type="button"
+                              className={`w-full text-left rounded-lg border border-dashed px-3 py-2 text-sm transition ${
+                                selectedAddressId === null ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                              }`}
+                              onClick={() => {
+                                setSelectedAddressId(null);
+                                setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                                setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                              }}
+                            >
+                              + Novo endereço
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <label className="text-xs font-medium">CEP *</label>
                         <Input
