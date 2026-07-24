@@ -144,25 +144,39 @@ const PublicMenu = () => {
 
   useEffect(() => { loadMenu(); }, [slug]);
 
-  // ── Load saved customer info from localStorage (per restaurant) ──
-  const storageKey = slug ? `koban:customer:${slug}` : null;
+  // ── Saved customer data (localStorage, per restaurant, auto-expires) ──
+  const [autofillEnabled, setAutofillEnabled] = useState(true);
+  const [savedAddresses, setSavedAddresses] = useState<import("@/lib/publicMenuStorage").SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [hasSavedData, setHasSavedData] = useState(false);
+
   useEffect(() => {
-    if (!storageKey) return;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (data.customerName) setCustomerName(data.customerName);
-      if (data.customerWhatsapp) setCustomerWhatsapp(data.customerWhatsapp);
-      if (typeof data.consentMarketing === "boolean") setConsentMarketing(data.consentMarketing);
-      if (data.deliveryCep) setDeliveryCep(data.deliveryCep);
-      if (data.deliveryStreet) setDeliveryStreet(data.deliveryStreet);
-      if (data.deliveryNumber) setDeliveryNumber(data.deliveryNumber);
-      if (data.deliveryNeighborhood) setDeliveryNeighborhood(data.deliveryNeighborhood);
-      if (data.deliveryCity) setDeliveryCity(data.deliveryCity);
-      if (data.deliveryComplement) setDeliveryComplement(data.deliveryComplement);
-    } catch {}
-  }, [storageKey]);
+    if (!slug) return;
+    import("@/lib/publicMenuStorage").then(({ loadCustomerStorage }) => {
+      const store = loadCustomerStorage(slug);
+      if (!store) return;
+      setHasSavedData(true);
+      setAutofillEnabled(store.autofillEnabled);
+      setSavedAddresses(store.addresses);
+      if (store.autofillEnabled) {
+        if (store.customerName) setCustomerName(store.customerName);
+        if (store.customerWhatsapp) setCustomerWhatsapp(store.customerWhatsapp);
+        setConsentMarketing(store.consentMarketing);
+        // Pre-select the most recent address (list is stored newest-first)
+        const first = store.addresses[0];
+        if (first) {
+          setSelectedAddressId(first.id);
+          setDeliveryCep(first.cep);
+          setDeliveryStreet(first.street);
+          setDeliveryNumber(first.number);
+          setDeliveryNeighborhood(first.neighborhood);
+          setDeliveryCity(first.city);
+          setDeliveryComplement(first.complement);
+        }
+      }
+    });
+  }, [slug]);
+
 
   // ── Scroll-spy for category nav ──
   useEffect(() => {
@@ -437,16 +451,26 @@ const PublicMenu = () => {
         }
       }
 
-      // Persist customer info for next order (no login needed)
-      if (storageKey) {
+      // Persist customer info for next order (no login needed).
+      // Respect autofill preference; addresses are only saved for delivery.
+      if (slug && autofillEnabled) {
         try {
-          localStorage.setItem(storageKey, JSON.stringify({
+          const { saveCustomerStorage, upsertAddress } = await import("@/lib/publicMenuStorage");
+          let addresses = savedAddresses;
+          if (orderType === "delivery" && deliveryCep && deliveryStreet && deliveryNumber) {
+            addresses = upsertAddress(addresses, {
+              cep: deliveryCep, street: deliveryStreet, number: deliveryNumber,
+              neighborhood: deliveryNeighborhood, city: deliveryCity, complement: deliveryComplement,
+            });
+            setSavedAddresses(addresses);
+          }
+          saveCustomerStorage(slug, {
+            v: 2, savedAt: Date.now(), autofillEnabled: true,
             customerName: customerName.trim(),
             customerWhatsapp: customerWhatsapp.trim(),
             consentMarketing,
-            deliveryCep, deliveryStreet, deliveryNumber,
-            deliveryNeighborhood, deliveryCity, deliveryComplement,
-          }));
+            addresses,
+          });
         } catch {}
       }
 
@@ -1020,21 +1044,52 @@ const PublicMenu = () => {
               {/* Step 2: Infos (customer + mesa/endereço) */}
               {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
-                  {(customerName || customerWhatsapp) && (
-                    <div className="flex items-center justify-between rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs">
-                      <span className="text-muted-foreground">✨ Dados preenchidos do seu último pedido</span>
-                      <button
-                        type="button"
-                        className="text-primary hover:underline font-medium"
-                        onClick={() => {
-                          if (storageKey) localStorage.removeItem(storageKey);
-                          setCustomerName(""); setCustomerWhatsapp(""); setConsentMarketing(false);
-                          setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
-                          setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
-                        }}
-                      >
-                        Limpar
-                      </button>
+                  {hasSavedData && (
+                    <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">
+                          {autofillEnabled ? "✨ Dados salvos neste dispositivo" : "Preenchimento automático desativado"}
+                          <span className="ml-1 opacity-70">· expira em 30 dias</span>
+                        </span>
+                        <button
+                          type="button"
+                          className="text-destructive hover:underline font-medium shrink-0"
+                          onClick={async () => {
+                            const { clearCustomerStorage } = await import("@/lib/publicMenuStorage");
+                            clearCustomerStorage(slug);
+                            setHasSavedData(false);
+                            setSavedAddresses([]);
+                            setSelectedAddressId(null);
+                            setCustomerName(""); setCustomerWhatsapp(""); setConsentMarketing(false);
+                            setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                            setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                          }}
+                        >
+                          Apagar tudo
+                        </button>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={autofillEnabled}
+                          onChange={async (e) => {
+                            const enabled = e.target.checked;
+                            setAutofillEnabled(enabled);
+                            const { saveCustomerStorage } = await import("@/lib/publicMenuStorage");
+                            saveCustomerStorage(slug, {
+                              v: 2, savedAt: Date.now(),
+                              autofillEnabled: enabled,
+                              customerName: enabled ? customerName.trim() : "",
+                              customerWhatsapp: enabled ? customerWhatsapp.trim() : "",
+                              consentMarketing: enabled ? consentMarketing : false,
+                              addresses: enabled ? savedAddresses : [],
+                            });
+                          }}
+                          className="rounded"
+                          style={{ accentColor }}
+                        />
+                        <span className="text-muted-foreground">Preencher automaticamente meus dados neste dispositivo</span>
+                      </label>
                     </div>
                   )}
                   <div>
@@ -1078,6 +1133,77 @@ const PublicMenu = () => {
 
                   {orderType === "delivery" && (
                     <div className="space-y-3">
+                      {savedAddresses.length > 0 && (
+                        <div>
+                          <label className="text-xs font-medium">Endereços salvos</label>
+                          <div className="mt-1 space-y-1.5">
+                            {savedAddresses.map((a) => {
+                              const active = selectedAddressId === a.id;
+                              return (
+                                <div
+                                  key={a.id}
+                                  className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition ${
+                                    active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedAddressId(a.id);
+                                    setDeliveryCep(a.cep); setDeliveryStreet(a.street);
+                                    setDeliveryNumber(a.number); setDeliveryNeighborhood(a.neighborhood);
+                                    setDeliveryCity(a.city); setDeliveryComplement(a.complement);
+                                  }}
+                                >
+                                  <div className="min-w-0">
+                                    <p className="font-medium truncate">{a.label}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {[a.neighborhood, a.city].filter(Boolean).join(" · ")}
+                                      {a.complement ? ` · ${a.complement}` : ""}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="text-xs text-destructive hover:underline shrink-0"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      const { removeAddress, saveCustomerStorage } = await import("@/lib/publicMenuStorage");
+                                      const next = removeAddress(savedAddresses, a.id);
+                                      setSavedAddresses(next);
+                                      if (selectedAddressId === a.id) {
+                                        setSelectedAddressId(null);
+                                        setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                                        setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                                      }
+                                      saveCustomerStorage(slug, {
+                                        v: 2, savedAt: Date.now(),
+                                        autofillEnabled,
+                                        customerName: customerName.trim(),
+                                        customerWhatsapp: customerWhatsapp.trim(),
+                                        consentMarketing,
+                                        addresses: next,
+                                      });
+                                    }}
+                                  >
+                                    Remover
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <button
+                              type="button"
+                              className={`w-full text-left rounded-lg border border-dashed px-3 py-2 text-sm transition ${
+                                selectedAddressId === null ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                              }`}
+                              onClick={() => {
+                                setSelectedAddressId(null);
+                                setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                                setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                              }}
+                            >
+                              + Novo endereço
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <label className="text-xs font-medium">CEP *</label>
                         <Input
