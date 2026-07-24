@@ -451,7 +451,22 @@ export default function OrderTracking() {
             <XCircle className="w-12 h-12 text-destructive mb-2" />
           </motion.div>
           <p className="font-display font-bold">Pedido cancelado</p>
-          <p className="text-xs text-muted-foreground mt-1">Entre em contato com o restaurante para saber mais.</p>
+          {(() => {
+            const m = order.notes?.match(/Cancelado pelo cliente(?:\s*:\s*([^\n]+))?/i);
+            if (!m) return (
+              <p className="text-xs text-muted-foreground mt-1">Entre em contato com o restaurante para saber mais.</p>
+            );
+            const reason = m[1]?.trim();
+            return (
+              <div className="mt-3 w-full max-w-sm rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-left">
+                <p className="text-[11px] uppercase tracking-wider text-destructive/80 font-medium">Motivo informado</p>
+                <p className="text-sm text-foreground mt-0.5 break-words">
+                  {reason || "Não informado"}
+                </p>
+              </div>
+            );
+          })()}
+
         </motion.div>
       ) : (
         <div className="glass-card p-5 mb-6">
