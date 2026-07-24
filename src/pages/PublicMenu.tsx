@@ -709,15 +709,37 @@ const PublicMenu = () => {
                       <div>
                         <h3 className="font-semibold text-sm leading-tight">{item.name}</h3>
                         {tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {tags.map((t) => (
-                              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                                style={{ backgroundColor: accentColor + "15", color: accentColor }}>
-                                {TAG_BADGES[t].emoji} {TAG_BADGES[t].label}
-                              </span>
-                            ))}
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            {tags.map((t) => {
+                              const b = TAG_BADGES[t];
+                              return (
+                                <motion.span
+                                  key={t}
+                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
+                                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                                  transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                                  className="relative inline-flex items-center gap-1 text-[10px] leading-none px-2 py-1 rounded-full font-bold text-white uppercase tracking-wide overflow-hidden"
+                                  style={{
+                                    backgroundImage: b.gradient,
+                                    boxShadow: `${b.glow}, inset 0 1px 0 rgba(255,255,255,0.25)`,
+                                    border: `1px solid ${b.ring}`,
+                                  }}
+                                >
+                                  {b.pulse && (
+                                    <span
+                                      className="absolute inset-0 rounded-full animate-ping opacity-40"
+                                      style={{ backgroundImage: b.gradient }}
+                                      aria-hidden
+                                    />
+                                  )}
+                                  <span className="relative text-sm leading-none drop-shadow">{b.emoji}</span>
+                                  <span className="relative">{b.label}</span>
+                                </motion.span>
+                              );
+                            })}
                           </div>
                         )}
+
                         {item.description && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
                         )}
