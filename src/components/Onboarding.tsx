@@ -67,6 +67,7 @@ export default function Onboarding() {
   const [menuUploading, setMenuUploading] = useState(false);
   const [menuImported, setMenuImported] = useState(false);
   const [menuStage, setMenuStage] = useState<"idle" | "uploading" | "analyzing" | "saving">("idle");
+  const [menuJob, setMenuJob] = useState<any>(null);
   const [dragOver, setDragOver] = useState(false);
 
   // Step 4 — Payment
@@ -213,6 +214,7 @@ export default function Onboarding() {
     if (!menuFile || !restaurantId) return;
     setMenuUploading(true);
     setMenuStage("uploading");
+    setMenuJob(null);
     try {
       // Sanitize filename to avoid storage "Invalid key" errors
       const safeName = menuFile.name
@@ -223,29 +225,35 @@ export default function Onboarding() {
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
 
-      await (supabase as any).from("menu_import_jobs").insert({
+      const { data: job, error: jobErr } = await (supabase as any).from("menu_import_jobs").insert({
         restaurant_id: restaurantId, file_url: urlData.publicUrl, status: "uploaded",
-      });
+      }).select().single();
+      if (jobErr) throw jobErr;
 
       setMenuStage("analyzing");
-      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(menuFile.name);
-      const body = isImage
-        ? { image_url: urlData.publicUrl }
-        : { ocr_text: `[PDF: ${menuFile.name}]. URL: ${urlData.publicUrl}` };
-
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ job_id: job.id }),
       });
+      if (!resp.ok) throw new Error("Erro ao enfileirar a importação do cardápio");
 
-      if (!resp.ok) throw new Error("Erro ao processar cardápio");
+      // Aguarda o job assíncrono terminar (progresso parcial vai aparecendo na tela)
+      let parsed: any = null;
+      const deadline = Date.now() + 20 * 60 * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: cur } = await (supabase as any).from("menu_import_jobs").select("*").eq("id", job.id).maybeSingle();
+        if (!cur) continue;
+        setMenuJob(cur);
+        if (cur.status === "ready_for_review") { parsed = cur.parsed_result; break; }
+        if (cur.status === "error") throw new Error(cur.error_message || "Falha ao processar cardápio");
+      }
+      if (!parsed) throw new Error("Tempo limite ao processar o cardápio. Tente reprocessar em Cardápio.");
 
-      const parsed = await resp.json();
-      if (parsed?.error) throw new Error(parsed.error);
       setMenuStage("saving");
       // Auto-save all parsed items
       let count = 0;
@@ -777,8 +785,28 @@ export default function Onboarding() {
                             );
                           })}
                         </div>
+                        {menuJob && (
+                          <div className="w-full max-w-sm space-y-2">
+                            <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+                              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${menuJob.progress ?? 0}%` }} />
+                            </div>
+                            <p className="text-xs text-muted-foreground text-center">
+                              {menuJob.pages_total ? `Páginas ${menuJob.pages_processed ?? 0}/${menuJob.pages_total} · ` : ""}
+                              {menuJob.items_found ?? 0} itens encontrados
+                            </p>
+                            {Array.isArray(menuJob.logs) && menuJob.logs.length > 0 && (
+                              <div className="max-h-28 overflow-y-auto rounded-lg bg-secondary/50 p-2 space-y-1">
+                                {menuJob.logs.slice(-12).map((l: any, i: number) => (
+                                  <p key={i} className={`text-[10px] font-mono ${l.level === "error" ? "text-destructive" : "text-muted-foreground"}`}>
+                                    {l.message}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <p className="text-xs text-muted-foreground text-center">
-                          Isso pode levar alguns segundos. Não feche esta janela.
+                          Cardápios grandes são processados em lotes; isso pode levar alguns minutos.
                         </p>
                       </div>
                     </div>

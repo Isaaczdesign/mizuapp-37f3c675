@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -210,7 +210,8 @@ function AddonsEditor({ itemId, rid }: { itemId: string; rid: string }) {
 function MenuImportTab({ rid }: { rid: string }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [activeJob, setActiveJob] = useState<any>(null);
   const [parsedResult, setParsedResult] = useState<any>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -222,6 +223,75 @@ function MenuImportTab({ rid }: { rid: string }) {
       return data ?? [];
     },
   });
+
+  const selectAll = (parsed: any) => {
+    const allKeys = new Set<string>();
+    parsed?.categories?.forEach((cat: any, ci: number) => {
+      cat.items?.forEach((_: any, ii: number) => allKeys.add(`${ci}-${ii}`));
+    });
+    setSelectedItems(allKeys);
+  };
+
+  // Acompanha o job em andamento (realtime + polling de segurança)
+  useEffect(() => {
+    if (!activeJobId) return;
+    let stopped = false;
+
+    const apply = (job: any) => {
+      if (stopped || !job) return;
+      setActiveJob(job);
+      if (job.parsed_result) setParsedResult(job.parsed_result);
+      if (job.status === "ready_for_review") {
+        selectAll(job.parsed_result);
+        setActiveJobId(null);
+        qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+        toast.success(`Cardápio processado! ${job.items_found ?? 0} itens encontrados.`);
+      } else if (job.status === "error") {
+        setActiveJobId(null);
+        qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+        toast.error(job.error_message || "Falha ao processar o cardápio.");
+      }
+    };
+
+    const fetchJob = async () => {
+      const { data } = await (supabase as any).from("menu_import_jobs").select("*").eq("id", activeJobId).maybeSingle();
+      apply(data);
+    };
+
+    fetchJob();
+    const interval = setInterval(fetchJob, 3000);
+    const channel = supabase
+      .channel(`import-job-${activeJobId}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "menu_import_jobs", filter: `id=eq.${activeJobId}` },
+        (payload) => apply(payload.new))
+      .subscribe();
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [activeJobId, rid, qc]);
+
+  const startJob = async (jobId: string) => {
+    setParsedResult(null);
+    setSelectedItems(new Set());
+    setActiveJob(null);
+    const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ job_id: jobId }),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
+      throw new Error(errBody.error || `Erro ${resp.status}`);
+    }
+    setActiveJobId(jobId);
+    qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -246,59 +316,22 @@ function MenuImportTab({ rid }: { rid: string }) {
       }).select().single();
       if (jobErr) throw jobErr;
 
-      toast.success("Arquivo enviado! Processando com IA...");
-      setUploading(false);
-      setProcessing(true);
-
-      // For images, send the public URL for vision processing
-      // For PDFs, send filename as hint
-      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.name);
-
-      let requestBody: any;
-      if (isImage) {
-        requestBody = { image_url: urlData.publicUrl };
-      } else {
-        requestBody = { ocr_text: `[PDF file uploaded: ${file.name}]. Please analyze the file at URL: ${urlData.publicUrl}` };
-      }
-
-      // Call import-menu edge function
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!resp.ok) {
-        const errBody = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
-        throw new Error(errBody.error || `Erro ${resp.status}`);
-      }
-
-      const parsed = await resp.json();
-      if (parsed?.error) throw new Error(parsed.error);
-      setParsedResult(parsed);
-
-      // Select all items by default
-      const allKeys = new Set<string>();
-      parsed.categories?.forEach((cat: any, ci: number) => {
-        cat.items?.forEach((_: any, ii: number) => allKeys.add(`${ci}-${ii}`));
-      });
-      setSelectedItems(allKeys);
-
-      // Update job with results
-      await (supabase as any).from("menu_import_jobs").update({
-        status: "ready_for_review", parsed_result: parsed,
-      }).eq("id", job.id);
-
-      qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
-      toast.success("Cardápio processado! Revise os itens abaixo.");
+      toast.success("Arquivo enviado! A importação foi enfileirada.");
+      await startJob(job.id);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setUploading(false);
-      setProcessing(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleReprocess = async (jobId: string) => {
+    try {
+      await startJob(jobId);
+      toast.success("Reprocessamento enfileirado.");
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -378,13 +411,14 @@ function MenuImportTab({ rid }: { rid: string }) {
     c >= 0.9 ? "text-green-400" : c >= 0.6 ? "text-yellow-400" : "text-red-400";
 
   const statusLabels: Record<string, string> = {
-    uploaded: "Enviado", processing: "Processando...", ready_for_review: "Pronto p/ Revisão",
-    imported: "Importado", failed: "Falhou",
+    uploaded: "Enviado", queued: "Na fila", processing: "Processando...", ready_for_review: "Pronto p/ Revisão",
+    imported: "Importado", failed: "Falhou", error: "Erro",
   };
   const statusColors: Record<string, string> = {
-    uploaded: "bg-blue-500/20 text-blue-400", processing: "bg-yellow-500/20 text-yellow-400",
+    uploaded: "bg-blue-500/20 text-blue-400", queued: "bg-blue-500/20 text-blue-400",
+    processing: "bg-yellow-500/20 text-yellow-400",
     ready_for_review: "bg-green-500/20 text-green-400", imported: "bg-muted text-muted-foreground",
-    failed: "bg-destructive/20 text-destructive",
+    failed: "bg-destructive/20 text-destructive", error: "bg-destructive/20 text-destructive",
   };
 
   return (
@@ -399,18 +433,50 @@ function MenuImportTab({ rid }: { rid: string }) {
         <label className="cursor-pointer">
           <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
             <FileText className="w-4 h-4" />
-            {uploading ? "Enviando..." : processing ? "Processando com IA..." : "Selecionar Arquivo"}
+            {uploading ? "Enviando..." : activeJobId ? "Processando com IA..." : "Selecionar Arquivo"}
           </div>
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading || processing} />
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading || !!activeJobId} />
         </label>
         <p className="text-xs text-muted-foreground mt-2">PDF, JPG, PNG (máx 20MB)</p>
       </div>
 
-      {/* Processing indicator */}
-      {processing && (
-        <div className="glass-card p-6 text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Analisando cardápio com IA... Isso pode levar alguns segundos.</p>
+      {/* Progresso + logs da extração */}
+      {(activeJobId || (activeJob && activeJob.status === "processing")) && (
+        <div className="glass-card p-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">
+                {activeJob?.status === "queued" ? "Na fila…" : "Extraindo itens do cardápio…"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {activeJob?.pages_total
+                  ? `Páginas: ${activeJob?.pages_processed ?? 0}/${activeJob.pages_total}`
+                  : "Preparando lotes…"}
+                {" · "}
+                Itens encontrados: <strong>{activeJob?.items_found ?? 0}</strong>
+              </p>
+            </div>
+            <span className="text-sm font-mono text-primary">{activeJob?.progress ?? 0}%</span>
+          </div>
+
+          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${activeJob?.progress ?? 0}%` }} />
+          </div>
+
+          {Array.isArray(activeJob?.logs) && activeJob.logs.length > 0 && (
+            <div className="max-h-40 overflow-y-auto rounded-lg bg-secondary/50 p-3 space-y-1">
+              {activeJob.logs.slice(-30).map((l: any, i: number) => (
+                <p key={i} className={`text-[11px] font-mono ${l.level === "error" ? "text-destructive" : l.level === "success" ? "text-green-400" : "text-muted-foreground"}`}>
+                  {new Date(l.at).toLocaleTimeString("pt-BR")} · {l.message}
+                </p>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            Pode fechar esta aba: a importação continua rodando em segundo plano e os itens são salvos em partes.
+          </p>
         </div>
       )}
 
@@ -529,7 +595,12 @@ function MenuImportTab({ rid }: { rid: string }) {
             <div key={job.id} className="glass-card p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium truncate max-w-[200px]">{job.file_url?.split("/").pop()}</p>
-                <p className="text-xs text-muted-foreground">{new Date(job.created_at).toLocaleDateString("pt-BR")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(job.created_at).toLocaleDateString("pt-BR")}
+                  {job.items_found ? ` · ${job.items_found} itens` : ""}
+                  {job.pages_total ? ` · ${job.pages_processed ?? 0}/${job.pages_total} págs` : ""}
+                </p>
+                {job.error_message && <p className="text-xs text-destructive mt-0.5">{job.error_message}</p>}
               </div>
               <div className="flex items-center gap-2">
                 {job.status === "ready_for_review" && job.parsed_result && (
@@ -544,6 +615,9 @@ function MenuImportTab({ rid }: { rid: string }) {
                     Revisar
                   </Button>
                 )}
+                <Button size="sm" variant="ghost" disabled={!!activeJobId} onClick={() => handleReprocess(job.id)}>
+                  Reprocessar
+                </Button>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[job.status] ?? ""}`}>
                   {statusLabels[job.status] ?? job.status}
                 </span>

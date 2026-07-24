@@ -357,9 +357,16 @@ export type Database = {
           created_at: string
           error_message: string | null
           file_url: string
+          finished_at: string | null
           id: string
+          items_found: number
+          logs: Json
+          pages_processed: number
+          pages_total: number
           parsed_result: Json | null
+          progress: number
           restaurant_id: string
+          started_at: string | null
           status: string
           updated_at: string
         }
@@ -367,9 +374,16 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           file_url: string
+          finished_at?: string | null
           id?: string
+          items_found?: number
+          logs?: Json
+          pages_processed?: number
+          pages_total?: number
           parsed_result?: Json | null
+          progress?: number
           restaurant_id: string
+          started_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -377,9 +391,16 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           file_url?: string
+          finished_at?: string | null
           id?: string
+          items_found?: number
+          logs?: Json
+          pages_processed?: number
+          pages_total?: number
           parsed_result?: Json | null
+          progress?: number
           restaurant_id?: string
+          started_at?: string | null
           status?: string
           updated_at?: string
         }
