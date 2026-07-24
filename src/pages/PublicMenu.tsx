@@ -527,7 +527,7 @@ const PublicMenu = () => {
         _total: orderTotal,
         _notes: orderNotes || null,
         _order_type: orderType,
-        _payment_method: paymentMethod,
+        _payment_method: resolveStoredPaymentMethod(paymentMethod, orderType),
         _payment_change_for: paymentMethod === "cash" && changeFor ? Number(changeFor) : null,
         _table_id: orderType === "dine_in" ? (tableId ?? selectedTableId) : null,
         _delivery_fee: deliveryFeeApplied,
