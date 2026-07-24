@@ -24,6 +24,7 @@ import ResetPassword from "./pages/ResetPassword";
 import PasswordResetSuccess from "./pages/PasswordResetSuccess";
 import Expediente from "./pages/Expediente";
 import ExpedienteHistorico from "./pages/ExpedienteHistorico";
+import ShortLink from "./pages/ShortLink";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/reset-password/success" element={<PasswordResetSuccess />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
             <Route path="/r/:slug" element={<PublicMenu />} />
+            <Route path="/q/:code" element={<ShortLink />} />
             <Route path="/pedido/:token" element={<OrderTracking />} />
             <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Dashboard /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Orders /></ProtectedRoute>} />

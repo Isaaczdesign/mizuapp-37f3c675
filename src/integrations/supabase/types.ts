@@ -948,6 +948,7 @@ export type Database = {
           pickup_dine_in_note: string | null
           pickup_enabled: boolean
           primary_color: string | null
+          short_code: string | null
           slug: string
           updated_at: string
         }
@@ -975,6 +976,7 @@ export type Database = {
           pickup_dine_in_note?: string | null
           pickup_enabled?: boolean
           primary_color?: string | null
+          short_code?: string | null
           slug: string
           updated_at?: string
         }
@@ -1002,6 +1004,7 @@ export type Database = {
           pickup_dine_in_note?: string | null
           pickup_enabled?: boolean
           primary_color?: string | null
+          short_code?: string | null
           slug?: string
           updated_at?: string
         }
@@ -1468,6 +1471,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_slug_available: {
+        Args: { _restaurant_id?: string; _slug: string }
+        Returns: boolean
+      }
       create_public_order: {
         Args: {
           _coupon_code?: string
@@ -1499,6 +1506,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_restaurant_short_code: { Args: never; Returns: string }
       get_current_shift: {
         Args: { _restaurant_id: string }
         Returns: {
@@ -1584,6 +1592,7 @@ export type Database = {
           pickup_dine_in_note: string
           pickup_enabled: boolean
           primary_color: string
+          short_code: string
           slug: string
         }[]
       }
@@ -1629,6 +1638,12 @@ export type Database = {
       recalc_customer_stats: {
         Args: { _customer_id: string }
         Returns: undefined
+      }
+      resolve_short_code: {
+        Args: { _code: string }
+        Returns: {
+          slug: string
+        }[]
       }
       validate_public_coupon: {
         Args: { _code: string; _restaurant_id: string }

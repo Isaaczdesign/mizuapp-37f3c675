@@ -60,6 +60,8 @@ const Settings = () => {
   const [mpEnabled, setMpEnabled] = useState<boolean>(false);
   const [mpAccessToken, setMpAccessToken] = useState<string>("");
   const [mpPublicKey, setMpPublicKey] = useState<string>("");
+  const [slug, setSlug] = useState<string>("");
+  const [slugCheck, setSlugCheck] = useState<{ status: "idle" | "checking" | "available" | "taken" | "invalid" | "same"; msg?: string }>({ status: "idle" });
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -109,8 +111,31 @@ const Settings = () => {
       setMpEnabled(((restaurant as any).mp_enabled ?? false) as boolean);
       setMpAccessToken(((restaurant as any).mp_access_token ?? "") as string);
       setMpPublicKey(((restaurant as any).mp_public_key ?? "") as string);
+      setSlug((restaurant as any).slug ?? "");
     }
   }, [restaurant]);
+
+  // Slug live validation (debounced)
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    const cleaned = slug.trim().toLowerCase();
+    const currentSlug = ((restaurant as any).slug ?? "").toLowerCase();
+    if (!cleaned) { setSlugCheck({ status: "invalid", msg: "Slug obrigatório" }); return; }
+    if (!/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/.test(cleaned)) {
+      setSlugCheck({ status: "invalid", msg: "Use 3–40 caracteres: letras minúsculas, números e hífen" });
+      return;
+    }
+    if (cleaned === currentSlug) { setSlugCheck({ status: "same" }); return; }
+    setSlugCheck({ status: "checking" });
+    const t = setTimeout(async () => {
+      const { data, error } = await (supabase as any).rpc("check_slug_available", {
+        _slug: cleaned, _restaurant_id: restaurant.id,
+      });
+      if (error) { setSlugCheck({ status: "invalid", msg: error.message }); return; }
+      setSlugCheck(data ? { status: "available" } : { status: "taken", msg: "Este slug já está em uso" });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [slug, restaurant]);
 
   useEffect(() => {
     if (settings) {
@@ -144,20 +169,27 @@ const Settings = () => {
       if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
       if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
 
-      const { error: restError } = await supabase
-        .from("restaurants")
-        .update({
-          name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
-          primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
-          payment_methods: paymentMethods,
-          dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
-          delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
-          address: address || null,
-          mp_enabled: mpEnabled,
-          mp_access_token: mpAccessToken.trim() || null,
-          mp_public_key: mpPublicKey.trim() || null,
-        } as any)
-        .eq("id", rid);
+      // Validate slug before saving
+      const cleanedSlug = slug.trim().toLowerCase();
+      if (slugCheck.status === "checking") throw new Error("Aguarde a verificação do slug");
+      if (slugCheck.status === "invalid" || slugCheck.status === "taken") {
+        throw new Error(slugCheck.msg || "Slug inválido");
+      }
+
+      const payload: any = {
+        name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
+        primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
+        payment_methods: paymentMethods,
+        dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
+        delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
+        address: address || null,
+        mp_enabled: mpEnabled,
+        mp_access_token: mpAccessToken.trim() || null,
+        mp_public_key: mpPublicKey.trim() || null,
+      };
+      if (slugCheck.status === "available") payload.slug = cleanedSlug;
+
+      const { error: restError } = await supabase.from("restaurants").update(payload).eq("id", rid);
       if (restError) throw restError;
 
       const settingsPayload: any = {
@@ -275,7 +307,26 @@ const Settings = () => {
             </div>
             <div>
               <Label>Slug (URL pública)</Label>
-              <p className="text-sm text-muted-foreground font-mono mt-1">/r/{restaurant?.slug ?? "..."}</p>
+              <div className="mt-1 flex items-center gap-1 rounded-xl bg-secondary/50 border border-border px-3 py-2">
+                <span className="text-sm text-muted-foreground font-mono shrink-0">/r/</span>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                  className="border-0 bg-transparent px-0 h-auto font-mono text-sm focus-visible:ring-0"
+                  placeholder="meu-restaurante"
+                  maxLength={40}
+                />
+              </div>
+              <div className="mt-1.5 text-xs flex items-center gap-1.5 min-h-[16px]">
+                {slugCheck.status === "checking" && <span className="text-muted-foreground">Verificando…</span>}
+                {slugCheck.status === "available" && <span className="text-green-500">✓ Disponível — não esqueça de salvar</span>}
+                {slugCheck.status === "taken" && <span className="text-destructive">✕ {slugCheck.msg}</span>}
+                {slugCheck.status === "invalid" && <span className="text-destructive">✕ {slugCheck.msg}</span>}
+                {slugCheck.status === "same" && <span className="text-muted-foreground">Slug atual</span>}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Este é o endereço do seu cardápio. Escolha algo curto e memorável (ex: <span className="font-mono">sushi-do-isaac</span>).
+              </p>
             </div>
             <div>
               <Label>Logomarca</Label>
