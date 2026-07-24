@@ -8,15 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link, Lock } from "lucide-react";
+import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link, Lock, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 type Period = "today" | "week" | "month" | "custom";
+type OpenOrder = { id: string; status: string; order_type: string; total: number; created_at: string; table_id: string | null };
 
 const Dashboard = () => {
   const { profile } = useAuth();
@@ -26,19 +29,44 @@ const Dashboard = () => {
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [hasActiveShift, setHasActiveShift] = useState(false);
+  const [currentShiftId, setCurrentShiftId] = useState<string | null>(null);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
+  const [loadingOpenOrders, setLoadingOpenOrders] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
   useEffect(() => {
     if (!rid) return;
     let cancelled = false;
     const check = () => {
       (supabase as any).rpc("get_current_shift", { _restaurant_id: rid }).then(({ data }: any) => {
-        if (!cancelled) setHasActiveShift(!!data?.[0]?.id || !!data?.id);
+        if (cancelled) return;
+        const row = Array.isArray(data) ? data[0] : data;
+        setHasActiveShift(!!row?.id);
+        setCurrentShiftId(row?.id ?? null);
       });
     };
     check();
     const iv = setInterval(check, 60_000);
     return () => { cancelled = true; clearInterval(iv); };
   }, [rid]);
+
+  async function openCloseDialog() {
+    if (!rid) return;
+    setCloseDialogOpen(true);
+    setConfirmText("");
+    setLoadingOpenOrders(true);
+    let q = supabase.from("orders")
+      .select("id, status, order_type, total, created_at, table_id")
+      .eq("restaurant_id", rid)
+      .not("status", "in", "(delivered,completed,canceled)")
+      .order("created_at", { ascending: true });
+    if (currentShiftId) q = q.eq("shift_id", currentShiftId);
+    const { data } = await q;
+    setOpenOrders((data as any) ?? []);
+    setLoadingOpenOrders(false);
+  }
+
 
   // Check setup completeness
   const { data: setupStatus } = useQuery({
@@ -320,7 +348,7 @@ const Dashboard = () => {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => navigate("/expediente")}
+                onClick={openCloseDialog}
                 className="text-muted-foreground hover:text-foreground gap-1"
                 title="Encerrar expediente"
               >
@@ -418,6 +446,81 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-destructive" /> Encerrar expediente
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação encerra o turno atual. Confira os pedidos em aberto antes de continuar.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="text-sm font-medium">
+              Pedidos em aberto {loadingOpenOrders ? "…" : `(${openOrders.length})`}
+            </div>
+
+            {!loadingOpenOrders && openOrders.length === 0 && (
+              <div className="text-sm text-muted-foreground rounded-lg border border-border p-3">
+                Nenhum pedido pendente. Você pode encerrar com segurança.
+              </div>
+            )}
+
+            {openOrders.length > 0 && (
+              <>
+                <div className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    Existem pedidos ainda não finalizados. Encerrar agora exigirá justificativa e pode confundir clientes que ainda aguardam.
+                  </div>
+                </div>
+                <div className="max-h-56 overflow-y-auto space-y-1.5 rounded-lg border border-border p-2">
+                  {openOrders.map((o) => (
+                    <div key={o.id} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded hover:bg-secondary">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-mono truncate">#{o.id.slice(0, 8)}</span>
+                        <span className="text-muted-foreground">
+                          {format(new Date(o.created_at), "HH:mm")} · {o.order_type} · {o.status}
+                        </span>
+                      </div>
+                      <span className="font-semibold shrink-0">
+                        R$ {Number(o.total ?? 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="pt-2">
+              <label className="text-xs text-muted-foreground">
+                Para confirmar, digite <span className="font-mono font-semibold text-foreground">ENCERRAR</span>
+              </label>
+              <Input
+                autoFocus
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+                placeholder="ENCERRAR"
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setCloseDialogOpen(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={confirmText.trim() !== "ENCERRAR" || loadingOpenOrders}
+              onClick={() => { setCloseDialogOpen(false); navigate("/expediente"); }}
+            >
+              <Lock className="w-4 h-4 mr-1" /> Confirmar e continuar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
