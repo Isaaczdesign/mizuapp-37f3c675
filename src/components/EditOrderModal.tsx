@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { X, Plus, Minus, Search, UtensilsCrossed, ShoppingBag, Truck } from "lucide-react";
+import { paymentMethodLabel } from "@/lib/paymentMethods";
 
 interface OrderItemRow {
   id?: string;
