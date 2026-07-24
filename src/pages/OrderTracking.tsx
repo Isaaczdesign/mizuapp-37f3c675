@@ -587,13 +587,42 @@ export default function OrderTracking() {
                 Você pode cancelar enquanto o restaurante ainda não iniciou o preparo. Se o pagamento
                 online já foi aprovado, o estorno é solicitado automaticamente.
               </p>
-              <textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Motivo (opcional)"
-                rows={2}
-                className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-none focus:border-primary"
-              />
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Motivo do cancelamento <span className="text-destructive">*</span>
+                </label>
+                <div className="grid gap-1.5">
+                  {CANCEL_REASONS.map((r) => (
+                    <label
+                      key={r}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
+                        cancelReasonType === r
+                          ? "border-destructive bg-destructive/10"
+                          : "border-border bg-secondary/40 hover:bg-secondary/60"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="cancel-reason"
+                        value={r}
+                        checked={cancelReasonType === r}
+                        onChange={() => setCancelReasonType(r)}
+                        className="accent-destructive"
+                      />
+                      <span>{r}</span>
+                    </label>
+                  ))}
+                </div>
+                <textarea
+                  value={cancelReasonDetail}
+                  onChange={(e) => setCancelReasonDetail(e.target.value)}
+                  placeholder={cancelReasonType === "Outro" ? "Conte para o restaurante o que aconteceu…" : "Detalhes adicionais (opcional)"}
+                  rows={2}
+                  maxLength={280}
+                  className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setCancelOpen(false)}
