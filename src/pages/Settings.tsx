@@ -307,7 +307,26 @@ const Settings = () => {
             </div>
             <div>
               <Label>Slug (URL pública)</Label>
-              <p className="text-sm text-muted-foreground font-mono mt-1">/r/{restaurant?.slug ?? "..."}</p>
+              <div className="mt-1 flex items-center gap-1 rounded-xl bg-secondary/50 border border-border px-3 py-2">
+                <span className="text-sm text-muted-foreground font-mono shrink-0">/r/</span>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                  className="border-0 bg-transparent px-0 h-auto font-mono text-sm focus-visible:ring-0"
+                  placeholder="meu-restaurante"
+                  maxLength={40}
+                />
+              </div>
+              <div className="mt-1.5 text-xs flex items-center gap-1.5 min-h-[16px]">
+                {slugCheck.status === "checking" && <span className="text-muted-foreground">Verificando…</span>}
+                {slugCheck.status === "available" && <span className="text-green-500">✓ Disponível — não esqueça de salvar</span>}
+                {slugCheck.status === "taken" && <span className="text-destructive">✕ {slugCheck.msg}</span>}
+                {slugCheck.status === "invalid" && <span className="text-destructive">✕ {slugCheck.msg}</span>}
+                {slugCheck.status === "same" && <span className="text-muted-foreground">Slug atual</span>}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Este é o endereço do seu cardápio. Escolha algo curto e memorável (ex: <span className="font-mono">sushi-do-isaac</span>).
+              </p>
             </div>
             <div>
               <Label>Logomarca</Label>
