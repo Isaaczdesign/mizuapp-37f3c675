@@ -204,6 +204,34 @@ const PublicMenu = () => {
     });
   }, [slug]);
 
+  // ── Active orders (so the customer can go back to tracking) ──
+  const [activeOrders, setActiveOrders] = useState<{ token: string; status?: string | null }[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { loadActiveOrders, saveRecentOrder, removeRecentOrder, TERMINAL_ORDER_STATUSES } =
+        await import("@/lib/publicMenuStorage");
+      const stored = loadActiveOrders(slug);
+      if (!stored.length) { if (!cancelled) setActiveOrders([]); return; }
+      const refreshed = await Promise.all(
+        stored.map(async (o) => {
+          try {
+            const { data } = await (supabase as any).rpc("get_public_order", { _token: o.token });
+            const row = Array.isArray(data) ? data[0] : data;
+            if (!row) { removeRecentOrder(o.token); return null; }
+            saveRecentOrder({ token: o.token, status: row.status, slug: row.restaurant_slug ?? o.slug });
+            if (TERMINAL_ORDER_STATUSES.includes(String(row.status))) return null;
+            return { token: o.token, status: row.status as string };
+          } catch {
+            return { token: o.token, status: o.status };
+          }
+        })
+      );
+      if (!cancelled) setActiveOrders(refreshed.filter(Boolean) as { token: string; status?: string | null }[]);
+    })();
+    return () => { cancelled = true; };
+  }, [slug]);
+
 
   // ── Scroll-spy for category nav ──
   useEffect(() => {
@@ -668,6 +696,29 @@ const PublicMenu = () => {
 
 
       {/* ── Sticky Category Nav ── */}
+      {/* ── Voltar ao acompanhamento do pedido ── */}
+      {activeOrders.length > 0 && (
+        <div className="px-4 mt-4 space-y-2">
+          {activeOrders.map((o) => (
+            <button
+              key={o.token}
+              onClick={() => navigate(`/pedido/${o.token}`)}
+              className="w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-transform active:scale-[0.98]"
+              style={{ borderColor: `${accentColor}55`, background: `${accentColor}12` }}
+            >
+              <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accentColor}25` }}>
+                <ClipboardList className="w-4 h-4" style={{ color: accentColor }} />
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm font-bold">Você tem um pedido em andamento</span>
+                <span className="block text-xs text-muted-foreground">Toque para voltar ao acompanhamento</span>
+              </span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="sticky top-0 z-40 mt-4 bg-background/90 backdrop-blur-xl border-b border-border">
         <div className="px-4 pt-2 pb-1">
           <div className="relative">
