@@ -50,10 +50,40 @@ const TYPE_FILTERS = [
 ] as const;
 type TypeFilter = typeof TYPE_FILTERS[number]["key"];
 
-const PREFS_KEY = "kds-prefs-v2";
+const PREFS_KEY = "kds-prefs-v3";
 type ViewMode = "columns" | "tables";
-type Prefs = { sound: boolean; autoPrint: boolean; tvMode: boolean; filter: TypeFilter; view: ViewMode };
-const defaultPrefs: Prefs = { sound: true, autoPrint: false, tvMode: false, filter: "all", view: "columns" };
+type PrintTrigger = "new" | "ready" | "both";
+type PaperWidth = "58" | "80";
+type Prefs = {
+  sound: boolean;
+  autoPrint: boolean;
+  tvMode: boolean;
+  filter: TypeFilter;
+  view: ViewMode;
+  printTrigger: PrintTrigger;
+  printCopies: number;
+  paperWidth: PaperWidth;
+  printPrices: boolean;
+  printNotes: boolean;
+  printHeader: string;
+  printAutoClose: boolean;
+  printDelayMs: number;
+};
+const defaultPrefs: Prefs = {
+  sound: true,
+  autoPrint: false,
+  tvMode: false,
+  filter: "all",
+  view: "columns",
+  printTrigger: "new",
+  printCopies: 1,
+  paperWidth: "80",
+  printPrices: false,
+  printNotes: true,
+  printHeader: "🍳 COZINHA",
+  printAutoClose: true,
+  printDelayMs: 300,
+};
 
 const PINS_KEY = "kds-pinned-orders-v1";
 const loadPins = (): Set<string> => {
