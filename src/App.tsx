@@ -22,6 +22,8 @@ import NotificationSettings from "./pages/NotificationSettings";
 import OrderTracking from "./pages/OrderTracking";
 import ResetPassword from "./pages/ResetPassword";
 import PasswordResetSuccess from "./pages/PasswordResetSuccess";
+import Expediente from "./pages/Expediente";
+import ExpedienteHistorico from "./pages/ExpedienteHistorico";
 
 const queryClient = new QueryClient();
 
