@@ -144,25 +144,39 @@ const PublicMenu = () => {
 
   useEffect(() => { loadMenu(); }, [slug]);
 
-  // ── Load saved customer info from localStorage (per restaurant) ──
-  const storageKey = slug ? `koban:customer:${slug}` : null;
+  // ── Saved customer data (localStorage, per restaurant, auto-expires) ──
+  const [autofillEnabled, setAutofillEnabled] = useState(true);
+  const [savedAddresses, setSavedAddresses] = useState<import("@/lib/publicMenuStorage").SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [hasSavedData, setHasSavedData] = useState(false);
+
   useEffect(() => {
-    if (!storageKey) return;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (data.customerName) setCustomerName(data.customerName);
-      if (data.customerWhatsapp) setCustomerWhatsapp(data.customerWhatsapp);
-      if (typeof data.consentMarketing === "boolean") setConsentMarketing(data.consentMarketing);
-      if (data.deliveryCep) setDeliveryCep(data.deliveryCep);
-      if (data.deliveryStreet) setDeliveryStreet(data.deliveryStreet);
-      if (data.deliveryNumber) setDeliveryNumber(data.deliveryNumber);
-      if (data.deliveryNeighborhood) setDeliveryNeighborhood(data.deliveryNeighborhood);
-      if (data.deliveryCity) setDeliveryCity(data.deliveryCity);
-      if (data.deliveryComplement) setDeliveryComplement(data.deliveryComplement);
-    } catch {}
-  }, [storageKey]);
+    if (!slug) return;
+    import("@/lib/publicMenuStorage").then(({ loadCustomerStorage }) => {
+      const store = loadCustomerStorage(slug);
+      if (!store) return;
+      setHasSavedData(true);
+      setAutofillEnabled(store.autofillEnabled);
+      setSavedAddresses(store.addresses);
+      if (store.autofillEnabled) {
+        if (store.customerName) setCustomerName(store.customerName);
+        if (store.customerWhatsapp) setCustomerWhatsapp(store.customerWhatsapp);
+        setConsentMarketing(store.consentMarketing);
+        // Pre-select the most recent address (list is stored newest-first)
+        const first = store.addresses[0];
+        if (first) {
+          setSelectedAddressId(first.id);
+          setDeliveryCep(first.cep);
+          setDeliveryStreet(first.street);
+          setDeliveryNumber(first.number);
+          setDeliveryNeighborhood(first.neighborhood);
+          setDeliveryCity(first.city);
+          setDeliveryComplement(first.complement);
+        }
+      }
+    });
+  }, [slug]);
+
 
   // ── Scroll-spy for category nav ──
   useEffect(() => {
