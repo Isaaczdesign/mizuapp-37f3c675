@@ -95,20 +95,34 @@ Deno.serve(async (req) => {
     let status = "sent";
     let providerMessageId: string | null = null;
 
-    if (settings?.whatsapp_provider === "zapi" && settings?.whatsapp_api_key) {
+    if (settings?.whatsapp_provider === "meta" && settings?.whatsapp_api_key && (settings as any)?.whatsapp_sender_id) {
       try {
-        const res = await fetch(`https://api.z-api.io/instances/${settings.whatsapp_api_key}/send-text`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, message }),
-        });
-        if (!res.ok) status = "failed";
-        else {
+        const res = await fetch(
+          `https://graph.facebook.com/v21.0/${(settings as any).whatsapp_sender_id}/messages`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${settings.whatsapp_api_key}`,
+            },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: phone,
+              type: "text",
+              text: { preview_url: true, body: message },
+            }),
+          },
+        );
+        if (!res.ok) {
+          const errorBody = await res.text();
+          console.error(`Meta WhatsApp send failed [${res.status}]: ${errorBody}`);
+          status = "failed";
+        } else {
           const j = await res.json().catch(() => ({}));
-          providerMessageId = j.messageId ?? null;
+          providerMessageId = j?.messages?.[0]?.id ?? null;
         }
       } catch (e) {
-        console.error("zapi send error", e);
+        console.error("meta whatsapp send error", e);
         status = "failed";
       }
     } else {
@@ -116,6 +130,7 @@ Deno.serve(async (req) => {
       status = "skipped_no_provider";
       console.log(`[whatsapp:${event}] would send to ${phone}: ${message}`);
     }
+
 
     await supabase.from("message_logs").insert({
       customer_id: null,
