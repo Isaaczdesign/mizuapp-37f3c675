@@ -51,14 +51,15 @@ export function computeShiftTotals(orders: OrderRow[]) {
     if (o.customer_id) uniqueCustomers.add(o.customer_id);
     const total = Number(o.total || 0);
     const fee = Number((o as any).delivery_fee || 0);
-    if (o.status === "canceled" || o.status === "refused") {
+    const st = o.status as string;
+    if (st === "canceled" || st === "refused") {
       canceledSum += total;
-      if (o.status === "canceled") canceled++;
+      if (st === "canceled") canceled++;
       else refused++;
     } else {
       gross += total;
       deliveryFees += fee;
-      if (o.status === "delivered" || o.status === "completed") completed++;
+      if (st === "delivered" || st === "completed") completed++;
       else pending++;
     }
   }
