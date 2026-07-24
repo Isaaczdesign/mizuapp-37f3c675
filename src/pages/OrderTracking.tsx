@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, CreditCard } from "lucide-react";
-import { motion } from "framer-motion";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, CreditCard, PartyPopper } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MpCardForm from "@/components/MpCardForm";
 
@@ -86,11 +86,61 @@ export default function OrderTracking() {
     return () => clearInterval(interval);
   }, [load, payment?.payment_status]);
 
+  // Realtime: react instantly when the restaurant changes status
+  useEffect(() => {
+    if (!order?.id) return;
+    const channel = supabase
+      .channel(`order-tracking-${order.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${order.id}` },
+        () => { load(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [order?.id, load]);
+
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Detect status transitions → toast + banner + haptic + confetti on completion
+  const prevStatusRef = useRef<string | null>(null);
+  const [statusBurst, setStatusBurst] = useState<{ key: string; label: string } | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
+
+  const STATUS_MESSAGES: Record<string, { label: string; emoji: string; toast: string }> = {
+    new: { label: "Pedido recebido", emoji: "📥", toast: "Recebemos seu pedido!" },
+    preparing: { label: "Na cozinha!", emoji: "👨‍🍳", toast: "Seu pedido está sendo preparado!" },
+    ready: { label: "Pronto!", emoji: "📦", toast: "Seu pedido está pronto!" },
+    out_for_delivery: { label: "A caminho!", emoji: "🛵", toast: "Seu pedido saiu para entrega!" },
+    delivered: { label: "Entregue!", emoji: "🎉", toast: "Pedido entregue. Bom apetite!" },
+    completed: { label: "Concluído!", emoji: "🎉", toast: "Pedido concluído. Obrigado!" },
+    canceled: { label: "Cancelado", emoji: "⚠️", toast: "Seu pedido foi cancelado." },
+  };
+
+  useEffect(() => {
+    if (!order?.status) return;
+    const prev = prevStatusRef.current;
+    if (prev && prev !== order.status) {
+      const meta = STATUS_MESSAGES[order.status];
+      if (meta) {
+        toast.success(`${meta.emoji} ${meta.toast}`);
+        setStatusBurst({ key: order.status, label: meta.label });
+        try { navigator.vibrate?.([80, 40, 120]); } catch {}
+        if (order.status === "completed" || order.status === "delivered") {
+          setCelebrate(true);
+          setTimeout(() => setCelebrate(false), 3500);
+        }
+        setTimeout(() => setStatusBurst(null), 2600);
+      }
+    }
+    prevStatusRef.current = order.status;
+  }, [order?.status]);
+
+
 
   function copyPix() {
     if (!payment?.mp_qr_code) return;
@@ -285,46 +335,150 @@ export default function OrderTracking() {
       })()}
 
 
+      {/* Status change banner */}
+      <AnimatePresence>
+        {statusBurst && (
+          <motion.div
+            key={statusBurst.key}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 320, damping: 22 }}
+            className="glass-card p-4 mb-4 flex items-center gap-3 border-primary/40 bg-primary/10 relative overflow-hidden"
+          >
+            <motion.div
+              className="absolute inset-0"
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
+              style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary)/0.25), transparent)" }}
+            />
+            <motion.div
+              initial={{ rotate: -20, scale: 0.6 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 380 }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl shrink-0 relative"
+            >
+              <span className="absolute inset-0 rounded-full bg-primary/60 animate-ping" />
+              <span className="relative">{STATUS_MESSAGES[statusBurst.key]?.emoji}</span>
+            </motion.div>
+            <div className="relative min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-primary/80">Novo status</p>
+              <p className="font-display font-bold text-base truncate">{statusBurst.label}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Timeline */}
       {isCanceled ? (
-        <div className="glass-card p-6 flex flex-col items-center text-center mb-6">
-          <XCircle className="w-12 h-12 text-destructive mb-2" />
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="glass-card p-6 flex flex-col items-center text-center mb-6 border-destructive/30"
+        >
+          <motion.div
+            animate={{ rotate: [0, -8, 8, -4, 0] }}
+            transition={{ duration: 0.6 }}
+          >
+            <XCircle className="w-12 h-12 text-destructive mb-2" />
+          </motion.div>
           <p className="font-display font-bold">Pedido cancelado</p>
           <p className="text-xs text-muted-foreground mt-1">Entre em contato com o restaurante para saber mais.</p>
-        </div>
+        </motion.div>
       ) : (
         <div className="glass-card p-5 mb-6">
-          <div className="space-y-4">
-            {flow.map((step, i) => {
-              const done = i <= activeIdx;
-              const active = i === activeIdx;
-              const Icon = step.icon;
-              return (
-                <div key={step.key} className="flex items-center gap-3">
-                  <motion.div
-                    initial={false}
-                    animate={{ scale: active ? 1.1 : 1 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                      done ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </motion.div>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
-                      {step.label}
-                    </p>
-                    {active && !isTerminal && (
-                      <p className="text-xs text-primary animate-pulse">Em andamento…</p>
-                    )}
+          <div className="relative">
+            {/* Vertical connector background */}
+            <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-secondary rounded-full" aria-hidden />
+            {/* Vertical connector progress */}
+            <motion.div
+              className="absolute left-5 top-5 w-0.5 rounded-full bg-primary origin-top"
+              initial={false}
+              animate={{
+                height: `calc(${Math.max(activeIdx, 0) * (100 / Math.max(flow.length - 1, 1))}% - 0px)`,
+              }}
+              transition={{ duration: 0.7, ease: "easeInOut" }}
+              style={{ boxShadow: "0 0 12px hsl(var(--primary)/0.6)" }}
+              aria-hidden
+            />
+            <div className="space-y-5 relative">
+              {flow.map((step, i) => {
+                const done = i <= activeIdx;
+                const active = i === activeIdx && !isTerminal;
+                const justReached = statusBurst?.key === step.key;
+                const Icon = step.icon;
+                return (
+                  <div key={step.key} className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      {active && (
+                        <>
+                          <motion.span
+                            className="absolute inset-0 rounded-full bg-primary/40"
+                            animate={{ scale: [1, 1.6, 1.9], opacity: [0.6, 0.2, 0] }}
+                            transition={{ duration: 1.6, repeat: Infinity }}
+                          />
+                          <motion.span
+                            className="absolute inset-0 rounded-full bg-primary/30"
+                            animate={{ scale: [1, 1.4, 1.7], opacity: [0.5, 0.15, 0] }}
+                            transition={{ duration: 1.6, repeat: Infinity, delay: 0.4 }}
+                          />
+                        </>
+                      )}
+                      <motion.div
+                        initial={false}
+                        animate={justReached ? { scale: [1, 1.35, 1.1], rotate: [0, -8, 0] } : { scale: active ? 1.12 : 1 }}
+                        transition={{ duration: 0.55, ease: "backOut" }}
+                        className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          done
+                            ? "bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.55)]"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {done && !active ? (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -30 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 400 }}
+                          >
+                            <Check className="w-4 h-4" strokeWidth={3} />
+                          </motion.div>
+                        ) : (
+                          <Icon className="w-4 h-4" />
+                        )}
+                      </motion.div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <motion.p
+                        animate={{ color: done ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }}
+                        className="text-sm font-medium"
+                      >
+                        {step.label}
+                      </motion.p>
+                      {active && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="flex gap-1">
+                            {[0, 1, 2].map((d) => (
+                              <motion.span
+                                key={d}
+                                className="w-1 h-1 rounded-full bg-primary"
+                                animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: d * 0.15 }}
+                              />
+                            ))}
+                          </span>
+                          <p className="text-xs text-primary font-medium">Em andamento</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {done && <Check className="w-4 h-4 text-primary" />}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
+
 
       {/* Items */}
       <div className="glass-card p-5 space-y-3">
@@ -368,8 +522,54 @@ export default function OrderTracking() {
       )}
 
       <p className="text-center text-xs text-muted-foreground mt-6">
-        Atualiza automaticamente a cada 8 segundos.
+        Atualiza automaticamente em tempo real.
       </p>
+
+      {/* Celebration overlay on completion / delivery */}
+      <AnimatePresence>
+        {celebrate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] pointer-events-none flex items-center justify-center"
+          >
+            <div className="absolute inset-0 overflow-hidden">
+              {Array.from({ length: 32 }).map((_, i) => {
+                const colors = ["#FF6D00", "#FFD54F", "#7C4DFF", "#00E5FF", "#E91E63", "#4CAF50"];
+                const color = colors[i % colors.length];
+                const left = Math.random() * 100;
+                const delay = Math.random() * 0.4;
+                const duration = 1.8 + Math.random() * 1.4;
+                const rotate = Math.random() * 720 - 360;
+                return (
+                  <motion.span
+                    key={i}
+                    initial={{ y: -40, x: `${left}vw`, opacity: 0, rotate: 0 }}
+                    animate={{ y: "110vh", opacity: [0, 1, 1, 0], rotate }}
+                    transition={{ duration, delay, ease: "easeIn" }}
+                    className="absolute top-0 w-2 h-3 rounded-sm"
+                    style={{ backgroundColor: color }}
+                  />
+                );
+              })}
+            </div>
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 18 }}
+              className="glass-card px-6 py-5 flex items-center gap-3 border-primary/40 bg-primary/10 backdrop-blur-xl"
+            >
+              <PartyPopper className="w-8 h-8 text-primary" />
+              <div>
+                <p className="font-display font-bold text-lg">Bom apetite! 🎉</p>
+                <p className="text-xs text-muted-foreground">Obrigado por pedir com a gente.</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
