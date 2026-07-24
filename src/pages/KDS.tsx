@@ -165,27 +165,39 @@ const KDS = () => {
   };
 
   const printTicket = (order: Order) => {
-    const w = window.open("", "_blank", "width=380,height=600");
-    if (!w) return;
+    const widthPx = prefs.paperWidth === "58" ? 200 : 280;
+    const w = window.open("", "_blank", `width=${widthPx + 60},height=600`);
+    if (!w) { toast.error("Bloqueador de pop-up ativo. Libere para imprimir."); return; }
     const dt = new Date(order.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     const where = order.restaurant_tables ? `Mesa ${order.restaurant_tables.number}` : `#${order.id.slice(0, 6)}`;
     const type = order.order_type ? `${ORDER_TYPE_EMOJI[order.order_type] ?? ""} ${orderTypeLabel(order.order_type)}` : "";
     const eta = estimatePrepMinutes(order);
     const items = order.order_items.map(i =>
-      `<div style="margin:4px 0"><b>${i.quantity}x</b> ${i.name}${i.notes ? `<div style="font-size:11px;color:#555">⚠️ ${i.notes}</div>` : ""}</div>`
+      `<div style="margin:4px 0"><b>${i.quantity}x</b> ${i.name}${prefs.printNotes && i.notes ? `<div style="font-size:11px;color:#555">⚠️ ${i.notes}</div>` : ""}</div>`
     ).join("");
+    const copiesHtml = Array.from({ length: Math.max(1, prefs.printCopies) }).map((_, idx) => `
+      <section style="page-break-after:${idx < prefs.printCopies - 1 ? "always" : "auto"}">
+        <h2 style="margin:0 0 4px;font-size:16px">${prefs.printHeader || "COZINHA"}</h2>
+        <div style="font-size:13px">${where} · ${dt}</div>
+        ${type ? `<div style="font-size:12px">${type}</div>` : ""}
+        <div style="font-size:12px">⏱ Preparo estimado: ${eta} min</div>
+        <hr style="border:0;border-top:1px dashed #333;margin:8px 0"/>
+        ${items}
+        ${prefs.printNotes && order.notes ? `<hr style="border:0;border-top:1px dashed #333;margin:8px 0"/><div style="font-size:11px;font-style:italic">📝 ${order.notes}</div>` : ""}
+        ${prefs.printPrices ? `<hr style="border:0;border-top:1px dashed #333;margin:8px 0"/><div style="font-size:13px;text-align:right"><b>Total: R$ ${Number(order.total || 0).toFixed(2)}</b></div>` : ""}
+        ${prefs.printCopies > 1 ? `<div style="font-size:10px;text-align:center;color:#888;margin-top:6px">via ${idx + 1}/${prefs.printCopies}</div>` : ""}
+      </section>
+    `).join("");
     w.document.write(`<html><head><title>Pedido ${where}</title>
-      <style>body{font-family:monospace;padding:12px;width:280px}h2{margin:0 0 4px;font-size:16px}hr{border:0;border-top:1px dashed #333;margin:8px 0}</style>
-      </head><body>
-      <h2>🍳 COZINHA</h2>
-      <div style="font-size:13px">${where} · ${dt}</div>
-      ${type ? `<div style="font-size:12px">${type}</div>` : ""}
-      <div style="font-size:12px">⏱ Preparo estimado: ${eta} min</div>
-      <hr/>${items}
-      ${order.notes ? `<hr/><div style="font-size:11px;font-style:italic">📝 ${order.notes}</div>` : ""}
-      </body></html>`);
+      <style>body{font-family:monospace;padding:8px;width:${widthPx}px}@media print{body{width:${prefs.paperWidth}mm;padding:0}}</style>
+      </head><body>${copiesHtml}</body></html>`);
     w.document.close();
-    setTimeout(() => { try { w.print(); } catch {} }, 250);
+    setTimeout(() => {
+      try {
+        w.print();
+        if (prefs.printAutoClose) setTimeout(() => { try { w.close(); } catch {} }, 500);
+      } catch {}
+    }, Math.max(0, prefs.printDelayMs));
   };
 
   useEffect(() => {
