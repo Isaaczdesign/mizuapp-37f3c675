@@ -719,6 +719,7 @@ export type Database = {
           payment_status: string | null
           pickup_time: string | null
           restaurant_id: string
+          shift_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           table_id: string | null
           total: number
@@ -745,6 +746,7 @@ export type Database = {
           payment_status?: string | null
           pickup_time?: string | null
           restaurant_id: string
+          shift_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           table_id?: string | null
           total?: number
@@ -771,6 +773,7 @@ export type Database = {
           payment_status?: string | null
           pickup_time?: string | null
           restaurant_id?: string
+          shift_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           table_id?: string | null
           total?: number
@@ -797,6 +800,13 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "work_shifts"
             referencedColumns: ["id"]
           },
           {
