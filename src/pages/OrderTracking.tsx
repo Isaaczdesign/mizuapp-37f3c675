@@ -522,8 +522,54 @@ export default function OrderTracking() {
       )}
 
       <p className="text-center text-xs text-muted-foreground mt-6">
-        Atualiza automaticamente a cada 8 segundos.
+        Atualiza automaticamente em tempo real.
       </p>
+
+      {/* Celebration overlay on completion / delivery */}
+      <AnimatePresence>
+        {celebrate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] pointer-events-none flex items-center justify-center"
+          >
+            <div className="absolute inset-0 overflow-hidden">
+              {Array.from({ length: 32 }).map((_, i) => {
+                const colors = ["#FF6D00", "#FFD54F", "#7C4DFF", "#00E5FF", "#E91E63", "#4CAF50"];
+                const color = colors[i % colors.length];
+                const left = Math.random() * 100;
+                const delay = Math.random() * 0.4;
+                const duration = 1.8 + Math.random() * 1.4;
+                const rotate = Math.random() * 720 - 360;
+                return (
+                  <motion.span
+                    key={i}
+                    initial={{ y: -40, x: `${left}vw`, opacity: 0, rotate: 0 }}
+                    animate={{ y: "110vh", opacity: [0, 1, 1, 0], rotate }}
+                    transition={{ duration, delay, ease: "easeIn" }}
+                    className="absolute top-0 w-2 h-3 rounded-sm"
+                    style={{ backgroundColor: color }}
+                  />
+                );
+              })}
+            </div>
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 18 }}
+              className="glass-card px-6 py-5 flex items-center gap-3 border-primary/40 bg-primary/10 backdrop-blur-xl"
+            >
+              <PartyPopper className="w-8 h-8 text-primary" />
+              <div>
+                <p className="font-display font-bold text-lg">Bom apetite! 🎉</p>
+                <p className="text-xs text-muted-foreground">Obrigado por pedir com a gente.</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
