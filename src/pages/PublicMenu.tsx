@@ -697,7 +697,7 @@ const PublicMenu = () => {
 
 
       {/* Ícone flutuante para recuperar pedido pelo WhatsApp */}
-      <RecoverOrdersByWhatsapp restaurantId={restaurant.id} accentColor={accentColor} />
+      <RecoverOrdersByWhatsapp restaurantId={restaurant.id} restaurantSlug={(restaurant as any).slug ?? null} accentColor={accentColor} />
 
       {activeOrders.length > 0 && (
         <div className="px-4 mt-4 space-y-2">
