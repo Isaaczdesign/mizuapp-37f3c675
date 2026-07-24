@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, Gift, Gem, Flame, Star, ChefHat, GlassWater } from "lucide-react";
+import { Sparkles, Gift, Gem, Flame, Star, ChefHat } from "lucide-react";
 
 type BadgeStyle = {
   label: string;
@@ -53,24 +53,18 @@ const UPSELL_STYLES: Record<string, BadgeStyle> = {
   },
 };
 
-/** Special virtual rule: "temaki → bebida" */
-function detectTemakiRule(name: string): boolean {
-  return /temaki/i.test(name);
-}
-
 export function UpsellBadges({
   tags,
-  itemName,
   size = "sm",
 }: {
   tags: string[] | null | undefined;
+  /** kept for backwards compat, no longer used */
   itemName?: string;
   size?: "sm" | "md";
 }) {
   const activeTags = (tags ?? []).filter((t) => UPSELL_STYLES[t]);
-  const showTemakiRule = itemName ? detectTemakiRule(itemName) : false;
 
-  if (activeTags.length === 0 && !showTemakiRule) return null;
+  if (activeTags.length === 0) return null;
 
   const px = size === "md" ? "px-2.5 py-1" : "px-2 py-0.5";
   const text = size === "md" ? "text-[11px]" : "text-[10px]";
@@ -120,30 +114,6 @@ export function UpsellBadges({
         );
       })}
 
-      {showTemakiRule && (
-        <motion.span
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.08 }}
-          transition={{ delay: activeTags.length * 0.06, type: "spring", stiffness: 380, damping: 18 }}
-          className={`relative inline-flex items-center gap-1 rounded-full font-semibold ${px} ${text}`}
-          style={{
-            background: "linear-gradient(135deg, rgba(0,184,212,0.18), rgba(124,77,255,0.18))",
-            color: "#7DE3FF",
-            boxShadow: "0 0 0 1px rgba(0,184,212,0.35)",
-          }}
-          title="Regra automática: sugerir bebida com temaki"
-        >
-          <motion.span
-            animate={{ y: [0, -2, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            className="inline-flex"
-          >
-            <GlassWater className={iconSz} />
-          </motion.span>
-          <span>+ Bebida</span>
-        </motion.span>
-      )}
     </div>
   );
 }
