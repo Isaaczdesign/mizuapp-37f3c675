@@ -153,7 +153,7 @@ async function callModel(messages: any[], key: string): Promise<string> {
   const res = await fetch(GATEWAY_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: MODEL, messages, max_tokens: 16000, temperature: 0.1 }),
+    body: JSON.stringify({ model: MODEL, messages, max_tokens: 32000, temperature: 0.1 }),
   });
   if (!res.ok) {
     const t = await res.text();
