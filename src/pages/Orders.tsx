@@ -470,6 +470,21 @@ const Orders = () => {
       </div>
 
 
+      {scopeFilter === "current" && !currentShiftId && !historyShiftId && (
+        <div className="mb-6 p-6 rounded-2xl border border-border bg-card/40 text-center">
+          <div className="text-3xl mb-2">🕒</div>
+          <div className="font-bold mb-1">Nenhum expediente aberto</div>
+          <div className="text-sm text-muted-foreground mb-3">
+            Abra um novo expediente para começar a receber pedidos, ou explore os históricos.
+          </div>
+          <div className="flex gap-2 justify-center flex-wrap">
+            <Button size="sm" variant="hero" onClick={() => window.location.href = "/expediente"}>Abrir expediente</Button>
+            <Button size="sm" variant="outline" onClick={() => setScopeFilter("7d")}>Ver últimos 7 dias</Button>
+            <Button size="sm" variant="outline" onClick={() => window.location.href = "/expediente/historico"}>Histórico</Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-4 overflow-x-auto pb-4">
         {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
           const colOrders = filtered.filter((o) => o.status === col.status);
