@@ -942,9 +942,10 @@ const PublicMenu = () => {
                 <Button
                   className="w-full py-6 text-base rounded-2xl font-bold"
                   style={{ backgroundColor: accentColor }}
+                  disabled={(restaurant as any)?.accepting_orders === false}
                   onClick={() => { setShowCart(false); setCheckoutStep(1); }}
                 >
-                  Ver pedido <ChevronRight className="w-4 h-4 ml-1" />
+                  {(restaurant as any)?.accepting_orders === false ? "Estabelecimento fechado" : (<>Ver pedido <ChevronRight className="w-4 h-4 ml-1" /></>)}
                 </Button>
               </div>
             </motion.div>
