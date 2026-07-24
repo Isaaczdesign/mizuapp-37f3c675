@@ -793,21 +793,12 @@ const PublicMenu = () => {
                         <span className="font-display font-bold text-sm" style={{ color: accentColor }}>
                           {fmt(Number(item.price))}
                         </span>
-                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          {inCart > 0 && (
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                              style={{ backgroundColor: accentColor + "20", color: accentColor }}>
-                              {inCart}×
-                            </span>
-                          )}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); addSimpleToCart(item); }}
-                            className="w-8 h-8 rounded-xl text-white flex items-center justify-center transition-transform active:scale-90"
-                            style={{ backgroundColor: accentColor }}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {inCart > 0 && (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: accentColor + "20", color: accentColor }}>
+                            {inCart}× no carrinho
+                          </span>
+                        )}
                       </div>
                     </div>
                     {item.image_url && (
@@ -1022,95 +1013,6 @@ const PublicMenu = () => {
                   </div>
                 ))}
 
-                {/* Upsell — one-tap recommendations */}
-                {upsellItems.length > 0 && (
-                  <div className="pt-3 border-t border-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <motion.span
-                        animate={{ rotate: [0, 12, -8, 0] }}
-                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                        className="text-base"
-                      >
-                        ✨
-                      </motion.span>
-                      <p className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
-                        Sugestões pra turbinar o pedido
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      {upsellItems.map((sug, idx) => (
-                        <motion.button
-                          key={sug.item.id}
-                          initial={{ opacity: 0, x: -12 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.07, type: "spring", stiffness: 320, damping: 22 }}
-                          whileHover={{ scale: 1.015 }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={() => {
-                            if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-                              try { navigator.vibrate?.(18); } catch {}
-                            }
-                            addSimpleToCart(sug.item);
-                          }}
-                          className="group relative w-full flex items-center gap-3 p-2.5 rounded-xl overflow-hidden text-left transition-colors"
-                          style={{
-                            background: `linear-gradient(90deg, ${sug.accent}22 0%, ${sug.accent}0a 100%)`,
-                            border: `1px solid ${sug.accent}55`,
-                          }}
-                        >
-                          {/* Shimmer sweep on hover */}
-                          <span
-                            aria-hidden
-                            className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[900ms] ease-out"
-                            style={{
-                              background: `linear-gradient(100deg, transparent 30%, ${sug.accent}55 50%, transparent 70%)`,
-                            }}
-                          />
-                          {/* Thumb */}
-                          <div
-                            className="relative w-11 h-11 rounded-lg shrink-0 overflow-hidden flex items-center justify-center text-lg"
-                            style={{ background: `${sug.accent}33` }}
-                          >
-                            {sug.item.image_url
-                              ? <img src={sug.item.image_url} alt={sug.item.name} className="w-full h-full object-cover" />
-                              : <span>{sug.emoji}</span>}
-                          </div>
-                          {/* Info */}
-                          <div className="relative flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span
-                                className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                                style={{ background: sug.accent, color: "#fff" }}
-                              >
-                                {sug.emoji} {sug.label}
-                              </span>
-                            </div>
-                            <p className="text-sm font-semibold truncate">{sug.item.name}</p>
-                            <p className="text-xs font-bold" style={{ color: sug.accent }}>
-                              + {fmt(Number(sug.item.price))}
-                            </p>
-                          </div>
-                          {/* Tap-to-add pulsing CTA */}
-                          <div className="relative shrink-0">
-                            <motion.span
-                              aria-hidden
-                              className="absolute inset-0 rounded-full"
-                              style={{ background: sug.accent, opacity: 0.35 }}
-                              animate={{ scale: [1, 1.55, 1], opacity: [0.35, 0, 0.35] }}
-                              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-                            />
-                            <span
-                              className="relative w-9 h-9 rounded-full flex items-center justify-center text-white shadow-lg"
-                              style={{ background: sug.accent }}
-                            >
-                              <Plus className="w-4 h-4" strokeWidth={3} />
-                            </span>
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Order notes */}
                 <div className="pt-3 border-t border-border">
