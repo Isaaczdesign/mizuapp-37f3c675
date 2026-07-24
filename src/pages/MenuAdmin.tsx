@@ -411,13 +411,14 @@ function MenuImportTab({ rid }: { rid: string }) {
     c >= 0.9 ? "text-green-400" : c >= 0.6 ? "text-yellow-400" : "text-red-400";
 
   const statusLabels: Record<string, string> = {
-    uploaded: "Enviado", processing: "Processando...", ready_for_review: "Pronto p/ Revisão",
-    imported: "Importado", failed: "Falhou",
+    uploaded: "Enviado", queued: "Na fila", processing: "Processando...", ready_for_review: "Pronto p/ Revisão",
+    imported: "Importado", failed: "Falhou", error: "Erro",
   };
   const statusColors: Record<string, string> = {
-    uploaded: "bg-blue-500/20 text-blue-400", processing: "bg-yellow-500/20 text-yellow-400",
+    uploaded: "bg-blue-500/20 text-blue-400", queued: "bg-blue-500/20 text-blue-400",
+    processing: "bg-yellow-500/20 text-yellow-400",
     ready_for_review: "bg-green-500/20 text-green-400", imported: "bg-muted text-muted-foreground",
-    failed: "bg-destructive/20 text-destructive",
+    failed: "bg-destructive/20 text-destructive", error: "bg-destructive/20 text-destructive",
   };
 
   return (
