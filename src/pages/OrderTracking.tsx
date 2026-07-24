@@ -28,6 +28,7 @@ interface PaymentStatus {
   payment_method: string | null;
   mp_public_key: string | null;
   total: number | null;
+  payment_expires_at: string | null;
 }
 
 const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
@@ -84,6 +85,12 @@ export default function OrderTracking() {
     const interval = setInterval(load, payment?.payment_status === "approved" ? 8000 : 4000);
     return () => clearInterval(interval);
   }, [load, payment?.payment_status]);
+
+  const [nowTs, setNowTs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   function copyPix() {
     if (!payment?.mp_qr_code) return;
@@ -145,6 +152,27 @@ export default function OrderTracking() {
                 <p className="font-display font-bold text-sm">{meta.label}</p>
               </div>
             </div>
+
+            {payment.payment_expires_at && (payment.payment_status === "pending" || payment.payment_status === "in_process") && (() => {
+              const remainingMs = new Date(payment.payment_expires_at).getTime() - nowTs;
+              if (remainingMs <= 0) {
+                return (
+                  <div className="mb-3 px-3 py-2 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-medium text-center">
+                    Prazo expirado — cancelando pedido…
+                  </div>
+                );
+              }
+              const mm = Math.floor(remainingMs / 60000);
+              const ss = Math.floor((remainingMs % 60000) / 1000);
+              const urgent = remainingMs < 60000;
+              return (
+                <div className={`mb-3 px-3 py-2 rounded-lg border text-xs font-medium text-center ${urgent ? "bg-red-500/15 border-red-500/30 text-red-400 animate-pulse" : "bg-amber-500/10 border-amber-500/30 text-amber-400"}`}>
+                  ⏱ Pague em <span className="font-bold tabular-nums">{mm}:{String(ss).padStart(2, "0")}</span> — depois disso o pedido será cancelado automaticamente.
+                </div>
+              );
+            })()}
+
+
 
             {showQR && payment.mp_qr_code_base64 && (
               <div className="space-y-3">

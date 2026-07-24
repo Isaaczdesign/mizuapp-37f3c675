@@ -714,6 +714,7 @@ export type Database = {
           notes: string | null
           order_type: string
           payment_change_for: number | null
+          payment_expires_at: string | null
           payment_method: string | null
           payment_status: string | null
           pickup_time: string | null
@@ -739,6 +740,7 @@ export type Database = {
           notes?: string | null
           order_type?: string
           payment_change_for?: number | null
+          payment_expires_at?: string | null
           payment_method?: string | null
           payment_status?: string | null
           pickup_time?: string | null
@@ -764,6 +766,7 @@ export type Database = {
           notes?: string | null
           order_type?: string
           payment_change_for?: number | null
+          payment_expires_at?: string | null
           payment_method?: string | null
           payment_status?: string | null
           pickup_time?: string | null
@@ -1175,6 +1178,7 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_expired_pending_payments: { Args: never; Returns: number }
       check_rate_limit: {
         Args: {
           _bucket: string
@@ -1223,6 +1227,7 @@ export type Database = {
           mp_qr_code: string
           mp_qr_code_base64: string
           mp_ticket_url: string
+          payment_expires_at: string
           payment_method: string
           payment_status: string
           status: string
