@@ -35,6 +35,7 @@ interface Restaurant {
 type OrderType = "dine_in" | "pickup" | "delivery";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const onlinePaymentMinAmount = 1;
 
 const TAG_BADGES: Record<string, { emoji: string; label: string }> = {
   best_seller: { emoji: "🔥", label: "Mais Vendido" },
@@ -379,10 +380,16 @@ const PublicMenu = () => {
         notes: item.itemNotes || null,
       }));
 
+      const orderTotal = roundCurrency(grandTotal);
+      if (["pix", "credit_card_online"].includes(paymentMethod) && orderTotal < onlinePaymentMinAmount) {
+        toast.error("Pagamento online exige pedido mínimo de R$ 1,00. Adicione mais itens ou escolha outra forma de pagamento.");
+        return;
+      }
+
       const { data: rpcData, error: orderErr } = await (supabase as any).rpc("create_public_order", {
         _restaurant_id: restaurant.id,
         _customer_id: customerId,
-        _total: cartTotal + deliveryFeeApplied,
+        _total: orderTotal,
         _notes: orderNotes || null,
         _order_type: orderType,
         _payment_method: paymentMethod,
@@ -1113,11 +1120,12 @@ const PublicMenu = () => {
                   {(() => {
                     const pm = restaurant.payment_methods;
                     const mpOn = Boolean((restaurant as any).mp_enabled);
+                    const canUseOnlinePayment = grandTotal >= onlinePaymentMinAmount;
                     const available: { key: string; label: string; hint?: string }[] = [];
                     const enabled = (k: string) =>
                       Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
-                    if (enabled("pix")) available.push({ key: "pix", label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? "QR Code na próxima tela" : undefined });
-                    if (mpOn) available.push({ key: "credit_card_online", label: "Cartão de Crédito (online)", hint: "até 3x sem juros" });
+                    if (enabled("pix")) available.push({ key: "pix", label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
+                    if (mpOn) available.push({ key: "credit_card_online", label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
                     if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: "Cartão de Crédito (no local)" });
                     if (enabled("debit_card")) available.push({ key: "debit_card", label: "Cartão de Débito (no local)" });
                     if (enabled("cash")) available.push({ key: "cash", label: "Dinheiro" });
