@@ -516,6 +516,132 @@ const KDS = () => {
           )}
         </div>
       )}
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🖨️ Configurar impressão</DialogTitle>
+            <DialogDescription>
+              Ajuste como os tickets são impressos automaticamente ao chegar/ficar prontos.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">Impressão automática</Label>
+                <p className="text-xs text-muted-foreground">Imprime tickets sem clicar em cada pedido</p>
+              </div>
+              <Switch
+                checked={prefs.autoPrint}
+                onCheckedChange={(v) => setPrefsPatch({ autoPrint: v })}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Quando imprimir</Label>
+              <Select
+                value={prefs.printTrigger}
+                onValueChange={(v: PrintTrigger) => setPrefsPatch({ printTrigger: v })}
+                disabled={!prefs.autoPrint}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">Ao chegar novo pedido</SelectItem>
+                  <SelectItem value="ready">Quando marcar como Pronto</SelectItem>
+                  <SelectItem value="both">Ambos (novo + pronto)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm">Largura do papel</Label>
+                <Select
+                  value={prefs.paperWidth}
+                  onValueChange={(v: PaperWidth) => setPrefsPatch({ paperWidth: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="58">58mm</SelectItem>
+                    <SelectItem value="80">80mm</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm">Cópias (vias)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={prefs.printCopies}
+                  onChange={(e) => setPrefsPatch({ printCopies: Math.max(1, Math.min(5, Number(e.target.value) || 1)) })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Cabeçalho do ticket</Label>
+              <Input
+                value={prefs.printHeader}
+                onChange={(e) => setPrefsPatch({ printHeader: e.target.value })}
+                placeholder="🍳 COZINHA"
+                maxLength={40}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Atraso antes de imprimir (ms)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={5000}
+                step={100}
+                value={prefs.printDelayMs}
+                onChange={(e) => setPrefsPatch({ printDelayMs: Math.max(0, Math.min(5000, Number(e.target.value) || 0)) })}
+              />
+              <p className="text-xs text-muted-foreground">Dê tempo para a impressora térmica responder.</p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Incluir observações do cliente</Label>
+              <Switch checked={prefs.printNotes} onCheckedChange={(v) => setPrefsPatch({ printNotes: v })} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Incluir total (R$)</Label>
+              <Switch checked={prefs.printPrices} onCheckedChange={(v) => setPrefsPatch({ printPrices: v })} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm">Fechar janela após imprimir</Label>
+                <p className="text-xs text-muted-foreground">Evita janelas acumuladas no navegador</p>
+              </div>
+              <Switch checked={prefs.printAutoClose} onCheckedChange={(v) => setPrefsPatch({ printAutoClose: v })} />
+            </div>
+
+            <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground space-y-1">
+              <p>💡 <b>Dica:</b> no diálogo de impressão do navegador, desmarque cabeçalho/rodapé e ative "Imprimir sempre nesta impressora" para tickets automáticos.</p>
+              <p>🚫 Se nada aparecer, libere <b>pop-ups</b> para este site.</p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const sample = orders[0];
+                if (!sample) { toast.info("Faça um pedido para testar."); return; }
+                printTicket(sample);
+              }}
+            >
+              Imprimir teste
+            </Button>
+            <Button onClick={() => setSettingsOpen(false)}>Concluído</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
