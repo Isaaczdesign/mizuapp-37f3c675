@@ -587,6 +587,15 @@ const Orders = () => {
                           <button onClick={() => setSelectedOrder(order)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+                          {isOfflinePayment(order) && !isPaid(order) && order.status !== "canceled" && (
+                            <button
+                              onClick={() => confirmPayment(order.id)}
+                              title="Confirmar pagamento recebido"
+                              className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+                            >
+                              <BadgeDollarSign className="w-3.5 h-3.5" /> Pago
+                            </button>
+                          )}
                           {next && (
                             <Button variant="hero" size="sm" className="text-xs h-7" onClick={() => updateStatus(order.id, next)}>
                               {getNextLabel(order.status, order.order_type)}
