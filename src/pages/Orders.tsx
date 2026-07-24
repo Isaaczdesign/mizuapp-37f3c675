@@ -729,6 +729,24 @@ const Orders = () => {
                   )}
                 </p>
               )}
+              {isOfflinePayment(selectedOrder) && (
+                <div className="pt-2 border-t border-border">
+                  {isPaid(selectedOrder) ? (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400">
+                      <BadgeDollarSign className="w-4 h-4" /> Pagamento confirmado
+                    </span>
+                  ) : (
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      className="w-full gap-1"
+                      onClick={() => confirmPayment(selectedOrder.id)}
+                    >
+                      <BadgeDollarSign className="w-4 h-4" /> Confirmar pagamento (R${Number(selectedOrder.total).toFixed(2)})
+                    </Button>
+                  )}
+                </div>
+              )}
               {selectedOrder.delivery_fee > 0 && (
                 <p><strong>Taxa de entrega:</strong> R${Number(selectedOrder.delivery_fee).toFixed(2)}</p>
               )}
