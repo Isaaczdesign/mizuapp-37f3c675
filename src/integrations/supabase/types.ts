@@ -489,6 +489,7 @@ export type Database = {
           is_active: boolean
           margin_percent: number | null
           name: string
+          prep_time_minutes: number
           price: number
           restaurant_id: string
           sort_order: number
@@ -507,6 +508,7 @@ export type Database = {
           is_active?: boolean
           margin_percent?: number | null
           name: string
+          prep_time_minutes?: number
           price?: number
           restaurant_id: string
           sort_order?: number
@@ -525,6 +527,7 @@ export type Database = {
           is_active?: boolean
           margin_percent?: number | null
           name?: string
+          prep_time_minutes?: number
           price?: number
           restaurant_id?: string
           sort_order?: number
@@ -718,6 +721,8 @@ export type Database = {
           payment_method: string | null
           payment_status: string | null
           pickup_time: string | null
+          preparing_started_at: string | null
+          ready_at: string | null
           restaurant_id: string
           shift_id: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -745,6 +750,8 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           pickup_time?: string | null
+          preparing_started_at?: string | null
+          ready_at?: string | null
           restaurant_id: string
           shift_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -772,6 +779,8 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           pickup_time?: string | null
+          preparing_started_at?: string | null
+          ready_at?: string | null
           restaurant_id?: string
           shift_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
