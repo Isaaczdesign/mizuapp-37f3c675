@@ -546,6 +546,10 @@ const PublicMenu = () => {
 
       setCart([]); setCheckoutStep(0); setShowCart(false);
       setOrderNotes("");
+      try {
+        const { saveRecentOrder } = await import("@/lib/publicMenuStorage");
+        saveRecentOrder({ token: created.tracking_token, status: "new", slug: slug ?? null });
+      } catch {}
       setOrderSuccess({ token: created.tracking_token });
       setTimeout(() => navigate(`/pedido/${created.tracking_token}`), 2200);
     } catch (err: any) {

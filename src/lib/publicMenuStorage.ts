@@ -139,7 +139,7 @@ const RECENT_ORDERS_KEY = "koban:recent-orders";
 const RECENT_ORDERS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const MAX_RECENT_ORDERS = 5;
 
-export const TERMINAL_ORDER_STATUSES = ["completed", "delivered", "cancelled"];
+export const TERMINAL_ORDER_STATUSES = ["completed", "delivered", "cancelled", "canceled"];
 
 export function loadRecentOrders(slug?: string | null): RecentOrder[] {
   if (typeof window === "undefined") return [];
