@@ -164,7 +164,7 @@ export default function RecoverOrdersByWhatsapp({
           role="dialog"
           aria-modal="true"
           aria-labelledby="recover-order-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           onClick={close}
         >
           <div
