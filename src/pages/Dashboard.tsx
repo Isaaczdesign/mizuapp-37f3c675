@@ -55,6 +55,24 @@ const Dashboard = () => {
 
   const publicMenuUrl = setupStatus?.slug ? `${window.location.origin}/r/${setupStatus.slug}` : null;
 
+  // Fetch operating hours + refresh clock every minute for closed-hours banner
+  const { data: hoursData } = useQuery({
+    queryKey: ["operating-hours", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const [sRes, rRes] = await Promise.all([
+        supabase.from("settings").select("operating_hours").eq("restaurant_id", rid!).maybeSingle(),
+        supabase.from("restaurants").select("accepting_orders").eq("id", rid!).maybeSingle(),
+      ]);
+      return { hours: sRes.data?.operating_hours as any, accepting: (rRes.data as any)?.accepting_orders !== false };
+    },
+  });
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTick((n) => n + 1), 60_000); return () => clearInterval(t); }, []);
+  const outsideHours = !!hoursData?.hours && !isOpenNow(hoursData.hours);
+  const shopClosed = outsideHours || (hoursData && !hoursData.accepting);
+
+
   const copyMenuLink = () => {
     if (publicMenuUrl) {
       navigator.clipboard.writeText(publicMenuUrl);
