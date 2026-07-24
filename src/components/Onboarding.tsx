@@ -213,6 +213,7 @@ export default function Onboarding() {
     if (!menuFile || !restaurantId) return;
     setMenuUploading(true);
     setMenuStage("uploading");
+    setMenuJob(null);
     try {
       // Sanitize filename to avoid storage "Invalid key" errors
       const safeName = menuFile.name
@@ -223,29 +224,35 @@ export default function Onboarding() {
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("menu-images").getPublicUrl(path);
 
-      await (supabase as any).from("menu_import_jobs").insert({
+      const { data: job, error: jobErr } = await (supabase as any).from("menu_import_jobs").insert({
         restaurant_id: restaurantId, file_url: urlData.publicUrl, status: "uploaded",
-      });
+      }).select().single();
+      if (jobErr) throw jobErr;
 
       setMenuStage("analyzing");
-      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(menuFile.name);
-      const body = isImage
-        ? { image_url: urlData.publicUrl }
-        : { ocr_text: `[PDF: ${menuFile.name}]. URL: ${urlData.publicUrl}` };
-
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ job_id: job.id }),
       });
+      if (!resp.ok) throw new Error("Erro ao enfileirar a importação do cardápio");
 
-      if (!resp.ok) throw new Error("Erro ao processar cardápio");
+      // Aguarda o job assíncrono terminar (progresso parcial vai aparecendo na tela)
+      let parsed: any = null;
+      const deadline = Date.now() + 20 * 60 * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: cur } = await (supabase as any).from("menu_import_jobs").select("*").eq("id", job.id).maybeSingle();
+        if (!cur) continue;
+        setMenuJob(cur);
+        if (cur.status === "ready_for_review") { parsed = cur.parsed_result; break; }
+        if (cur.status === "error") throw new Error(cur.error_message || "Falha ao processar cardápio");
+      }
+      if (!parsed) throw new Error("Tempo limite ao processar o cardápio. Tente reprocessar em Cardápio.");
 
-      const parsed = await resp.json();
-      if (parsed?.error) throw new Error(parsed.error);
       setMenuStage("saving");
       // Auto-save all parsed items
       let count = 0;
