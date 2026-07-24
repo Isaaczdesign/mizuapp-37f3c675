@@ -534,14 +534,14 @@ const Orders = () => {
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
                         {(() => {
-                          const isOnlinePix = order.payment_method === "pix";
-                          const key = isOnlinePix ? (order.payment_status ?? "pending") : "not_required";
+                          const offline = isOfflinePayment(order);
+                          const key = offline ? (isPaid(order) ? "approved" : "not_required") : (order.payment_status ?? "pending");
                           const pb = PAYMENT_BADGE[key] ?? PAYMENT_BADGE.pending;
                           let label = pb.label;
                           if (key === "not_required") {
-                            if (order.order_type === "delivery") label = "Na entrega";
-                            else if (order.order_type === "pickup") label = "Na retirada";
-                            else label = "No local";
+                            if (order.order_type === "delivery") label = "Receber na entrega";
+                            else if (order.order_type === "pickup") label = "Receber na retirada";
+                            else label = "Receber no local";
                           }
                           return (
                             <span className={`inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full font-medium ${pb.cls}`}>
