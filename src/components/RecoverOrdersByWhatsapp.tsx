@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Loader2, ChevronRight } from "lucide-react";
+import { Search, X, Loader2, ChevronRight, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 /**
- * Recupera pedidos em andamento (últimas 24h) direto do backend usando o
- * WhatsApp informado no pedido — funciona mesmo após limpar o cache ou
- * trocar de navegador/aparelho.
+ * Ícone flutuante (canto superior direito) para recuperar pedidos em andamento
+ * das últimas 24h pelo WhatsApp — funciona mesmo após limpar cache ou trocar de
+ * navegador/aparelho.
  */
 export default function RecoverOrdersByWhatsapp({
   restaurantId,
@@ -61,59 +61,81 @@ export default function RecoverOrdersByWhatsapp({
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="text-xs text-muted-foreground underline underline-offset-2"
-      >
-        Já fez um pedido? Recuperar acompanhamento
-      </button>
-    );
+  function close() {
+    setOpen(false);
+    setResults(null);
   }
 
   return (
-    <div className="p-3 rounded-2xl border border-border bg-card space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-bold">Recuperar meu pedido</span>
-        <button aria-label="Fechar" onClick={() => { setOpen(false); setResults(null); }}>
-          <X className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Informe o WhatsApp usado no pedido. Buscamos pedidos em andamento das últimas 24 horas.
-      </p>
-      <div className="flex gap-2">
-        <Input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="(11) 99999-9999"
-          inputMode="tel"
-          onKeyDown={(e) => e.key === "Enter" && search()}
-        />
-        <Button onClick={search} disabled={loading} style={{ background: accentColor }}>
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-        </Button>
-      </div>
-      {results && results.length > 0 && (
-        <div className="rounded-xl border border-border overflow-hidden">
-          {results.map((r) => (
-            <button
-              key={r.tracking_token}
-              onClick={() => navigate(`/pedido/${r.tracking_token}`)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 border-b border-border last:border-0"
-            >
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium">{STATUS_LABELS[r.status] ?? "Em andamento"}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {new Date(r.created_at).toLocaleString("pt-BR")}
-                </span>
-              </span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-            </button>
-          ))}
+    <>
+      {/* Ícone flutuante */}
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Recuperar meu pedido"
+        title="Recuperar meu pedido"
+        className="fixed top-20 right-4 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform"
+        style={{
+          background: accentColor,
+          boxShadow: `0 8px 24px ${accentColor}66, 0 0 0 4px ${accentColor}22`,
+        }}
+      >
+        <History className="w-5 h-5" />
+      </button>
+
+      {/* Modal */}
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={close}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-border bg-card p-4 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold">Recuperar meu pedido</span>
+              <button aria-label="Fechar" onClick={close}>
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Informe o WhatsApp usado no pedido. Buscamos pedidos em andamento das últimas 24 horas.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(11) 99999-9999"
+                inputMode="tel"
+                autoFocus
+                onKeyDown={(e) => e.key === "Enter" && search()}
+              />
+              <Button onClick={search} disabled={loading} style={{ background: accentColor }}>
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              </Button>
+            </div>
+            {results && results.length > 0 && (
+              <div className="rounded-xl border border-border overflow-hidden">
+                {results.map((r) => (
+                  <button
+                    key={r.tracking_token}
+                    onClick={() => navigate(`/pedido/${r.tracking_token}`)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 border-b border-border last:border-0"
+                  >
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium">{STATUS_LABELS[r.status] ?? "Em andamento"}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {new Date(r.created_at).toLocaleString("pt-BR")}
+                      </span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
