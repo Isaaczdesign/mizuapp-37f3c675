@@ -348,7 +348,7 @@ const Dashboard = () => {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => navigate("/expediente")}
+                onClick={openCloseDialog}
                 className="text-muted-foreground hover:text-foreground gap-1"
                 title="Encerrar expediente"
               >
