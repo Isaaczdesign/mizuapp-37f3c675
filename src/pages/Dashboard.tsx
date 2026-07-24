@@ -238,7 +238,12 @@ const Dashboard = () => {
         )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
+            <Button size="sm" variant="destructive" onClick={() => navigate("/expediente")} className="gap-1">
+              <Lock className="w-4 h-4" /> Encerrar expediente
+            </Button>
+          </div>
           <div className="flex gap-2 flex-wrap">
             {(["today", "week", "month"] as Period[]).map((p) => (
               <Button key={p} size="sm" variant={period === p ? "default" : "outline"} onClick={() => setPeriod(p)}>
