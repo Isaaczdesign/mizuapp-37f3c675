@@ -25,6 +25,20 @@ const Dashboard = () => {
   const [period, setPeriod] = useState<Period>("today");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [hasActiveShift, setHasActiveShift] = useState(false);
+
+  useEffect(() => {
+    if (!rid) return;
+    let cancelled = false;
+    const check = () => {
+      (supabase as any).rpc("get_current_shift", { _restaurant_id: rid }).then(({ data }: any) => {
+        if (!cancelled) setHasActiveShift(!!data?.[0]?.id || !!data?.id);
+      });
+    };
+    check();
+    const iv = setInterval(check, 60_000);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [rid]);
 
   // Check setup completeness
   const { data: setupStatus } = useQuery({
