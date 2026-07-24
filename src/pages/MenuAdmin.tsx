@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link } from "lucide-react";
+import UpsellBadges from "@/components/UpsellBadges";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +72,7 @@ function SortableMenuItem({ item, fmt, openEditItem, deleteItem, toggleItem }: a
   const profit = cost ? price - cost : margin ? price * margin : null;
 
   return (
-    <div ref={setNodeRef} style={style} className={`glass-card overflow-hidden ${!item.is_active ? "opacity-50" : ""}`}>
+    <div ref={setNodeRef} style={style} className={`glass-card overflow-hidden relative ${!item.is_active ? "opacity-50" : ""} ${(item.tags ?? []).some((t: string) => ["combo","high_margin"].includes(t)) ? "ring-1 ring-primary/30" : ""}`}>
       {item.image_url && <img src={item.image_url} alt={item.name} className="w-full h-32 object-cover" />}
       <div className="p-4">
         <div className="flex justify-between items-start mb-1">
@@ -84,11 +85,8 @@ function SortableMenuItem({ item, fmt, openEditItem, deleteItem, toggleItem }: a
           <span className="font-mono text-sm font-bold text-primary">{fmt(price)}</span>
         </div>
         {item.description && <p className="text-xs text-muted-foreground mb-1 line-clamp-2">{item.description}</p>}
-        <div className="flex flex-wrap gap-1 mb-2">
-          {(item.tags ?? []).map((tag: string) => {
-            const t = TAG_OPTIONS.find((o) => o.value === tag);
-            return t ? <span key={tag} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{t.label}</span> : null;
-          })}
+        <div className="mb-2">
+          <UpsellBadges tags={item.tags} itemName={item.name} />
         </div>
         {profit !== null && (
           <p className="text-[10px] text-green-400 mb-2">Lucro est.: {fmt(profit)}</p>
