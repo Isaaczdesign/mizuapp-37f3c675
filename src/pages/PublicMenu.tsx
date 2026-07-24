@@ -696,11 +696,9 @@ const PublicMenu = () => {
       })()}
 
 
-      {/* ── Sticky Category Nav ── */}
-      {/* ── Voltar ao acompanhamento do pedido ── */}
-      <div className="px-4 mt-4">
-        <RecoverOrdersByWhatsapp restaurantId={restaurant.id} accentColor={accentColor} />
-      </div>
+      {/* Ícone flutuante para recuperar pedido pelo WhatsApp */}
+      <RecoverOrdersByWhatsapp restaurantId={restaurant.id} accentColor={accentColor} />
+
       {activeOrders.length > 0 && (
         <div className="px-4 mt-4 space-y-2">
           {activeOrders.map((o) => (
