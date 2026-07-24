@@ -280,9 +280,6 @@ const Dashboard = () => {
 
           <div className="flex items-center gap-3">
             <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
-            <Button size="sm" variant="destructive" onClick={() => navigate("/expediente")} className="gap-1">
-              <Lock className="w-4 h-4" /> Encerrar expediente
-            </Button>
           </div>
           <div className="flex gap-2 flex-wrap">
             {(["today", "week", "month"] as Period[]).map((p) => (
@@ -305,6 +302,16 @@ const Dashboard = () => {
                   numberOfMonths={1} locale={ptBR} className={cn("p-3 pointer-events-auto")} />
               </PopoverContent>
             </Popover>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => navigate("/expediente")}
+              className="text-muted-foreground hover:text-foreground gap-1"
+              title="Encerrar expediente"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline text-xs">Encerrar expediente</span>
+            </Button>
           </div>
         </div>
 
