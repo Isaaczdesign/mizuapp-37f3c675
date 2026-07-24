@@ -245,6 +245,7 @@ export default function Onboarding() {
       if (!resp.ok) throw new Error("Erro ao processar cardápio");
 
       const parsed = await resp.json();
+      if (parsed?.error) throw new Error(parsed.error);
       setMenuStage("saving");
       // Auto-save all parsed items
       let count = 0;
