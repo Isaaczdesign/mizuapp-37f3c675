@@ -121,3 +121,71 @@ export function upsertAddress(list: SavedAddress[], addr: Omit<SavedAddress, "id
 export function removeAddress(list: SavedAddress[], id: string): SavedAddress[] {
   return list.filter((a) => a.id !== id);
 }
+
+/* ────────────────────────────────────────────────────────────
+   Recent orders — lets the customer come back to the tracking
+   page after leaving it (browser back, closing the tab, etc.).
+   ──────────────────────────────────────────────────────────── */
+
+export type RecentOrder = {
+  token: string;
+  orderNumber?: string | number | null;
+  status?: string | null;
+  slug?: string | null;
+  savedAt: number;
+};
+
+const RECENT_ORDERS_KEY = "koban:recent-orders";
+const RECENT_ORDERS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+const MAX_RECENT_ORDERS = 5;
+
+export const TERMINAL_ORDER_STATUSES = ["completed", "delivered", "cancelled", "canceled"];
+
+export function loadRecentOrders(slug?: string | null): RecentOrder[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(RECENT_ORDERS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const now = Date.now();
+    const valid = parsed.filter(
+      (o: any) => o && typeof o.token === "string" && now - (o.savedAt || 0) < RECENT_ORDERS_TTL_MS,
+    ) as RecentOrder[];
+    if (valid.length !== parsed.length) {
+      localStorage.setItem(RECENT_ORDERS_KEY, JSON.stringify(valid));
+    }
+    return slug ? valid.filter((o) => !o.slug || o.slug === slug) : valid;
+  } catch {
+    return [];
+  }
+}
+
+export function saveRecentOrder(order: Omit<RecentOrder, "savedAt"> & { savedAt?: number }): void {
+  if (typeof window === "undefined" || !order?.token) return;
+  try {
+    const all = loadRecentOrders();
+    const prev = all.find((o) => o.token === order.token);
+    const next: RecentOrder = {
+      ...prev,
+      ...order,
+      slug: order.slug ?? prev?.slug ?? null,
+      savedAt: prev?.savedAt ?? Date.now(),
+    };
+    const list = [next, ...all.filter((o) => o.token !== order.token)].slice(0, MAX_RECENT_ORDERS);
+    localStorage.setItem(RECENT_ORDERS_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+export function removeRecentOrder(token: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const list = loadRecentOrders().filter((o) => o.token !== token);
+    localStorage.setItem(RECENT_ORDERS_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+/** Orders still worth showing a "back to tracking" shortcut for. */
+export function loadActiveOrders(slug?: string | null): RecentOrder[] {
+  return loadRecentOrders(slug).filter((o) => !TERMINAL_ORDER_STATUSES.includes(String(o.status || "")));
+}

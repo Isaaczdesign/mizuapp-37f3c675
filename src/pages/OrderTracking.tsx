@@ -5,6 +5,7 @@ import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Ho
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MpCardForm from "@/components/MpCardForm";
+import { saveRecentOrder } from "@/lib/publicMenuStorage";
 
 interface TrackingOrder {
   id: string;
@@ -99,6 +100,12 @@ export default function OrderTracking() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [order?.id, load]);
+
+  // Remember this order locally so the customer can come back to it later
+  useEffect(() => {
+    if (!token || !order) return;
+    saveRecentOrder({ token, status: order.status, slug: order.restaurant_slug });
+  }, [token, order?.status, order?.restaurant_slug]);
 
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
