@@ -441,6 +441,9 @@ const KDS = () => {
           <Button variant="outline" size="sm" onClick={() => setPrefsPatch({ autoPrint: !prefs.autoPrint })} title={prefs.autoPrint ? "Desativar impressão automática" : "Ativar impressão automática"}>
             {prefs.autoPrint ? <Printer className="w-4 h-4 text-primary" /> : <PrinterIcon className="w-4 h-4" />}
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} title="Configurar impressão">
+            <Settings2 className="w-4 h-4" />
+          </Button>
           <Button variant="outline" size="sm" onClick={toggleFullscreen} title="Modo TV">
             {prefs.tvMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </Button>
