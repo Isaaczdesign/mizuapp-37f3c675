@@ -108,17 +108,38 @@ export default function OrderTracking() {
   }, [token, order?.status, order?.restaurant_slug]);
 
   // ── Cancelamento pelo cliente (permitido só enquanto o status for "new") ──
+  const CANCEL_REASONS = [
+    "Mudei de ideia",
+    "Escolhi errado / quero refazer o pedido",
+    "Demora para confirmar",
+    "Endereço ou forma de pagamento incorretos",
+    "Outro",
+  ];
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
+  const [cancelReasonType, setCancelReasonType] = useState<string>("");
+  const [cancelReasonDetail, setCancelReasonDetail] = useState("");
   const [canceling, setCanceling] = useState(false);
 
   async function handleCancel() {
     if (!token) return;
+    if (!cancelReasonType) {
+      toast.error("Selecione um motivo para o cancelamento.");
+      return;
+    }
+    if (cancelReasonType === "Outro" && cancelReasonDetail.trim().length < 3) {
+      toast.error("Descreva o motivo do cancelamento.");
+      return;
+    }
+    const fullReason = cancelReasonType === "Outro"
+      ? cancelReasonDetail.trim()
+      : cancelReasonDetail.trim()
+        ? `${cancelReasonType} — ${cancelReasonDetail.trim()}`
+        : cancelReasonType;
     setCanceling(true);
     try {
       const { data, error } = await (supabase as any).rpc("cancel_public_order", {
         _token: token,
-        _reason: cancelReason.trim() || null,
+        _reason: fullReason,
       });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
@@ -131,7 +152,8 @@ export default function OrderTracking() {
       }
       toast.success("Pedido cancelado.");
       setCancelOpen(false);
-      setCancelReason("");
+      setCancelReasonType("");
+      setCancelReasonDetail("");
       await load();
     } catch (e: any) {
       console.error(e);
@@ -143,6 +165,7 @@ export default function OrderTracking() {
       setCanceling(false);
     }
   }
+
 
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
