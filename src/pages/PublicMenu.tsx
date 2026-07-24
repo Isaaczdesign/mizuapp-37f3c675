@@ -451,16 +451,26 @@ const PublicMenu = () => {
         }
       }
 
-      // Persist customer info for next order (no login needed)
-      if (storageKey) {
+      // Persist customer info for next order (no login needed).
+      // Respect autofill preference; addresses are only saved for delivery.
+      if (slug && autofillEnabled) {
         try {
-          localStorage.setItem(storageKey, JSON.stringify({
+          const { saveCustomerStorage, upsertAddress } = await import("@/lib/publicMenuStorage");
+          let addresses = savedAddresses;
+          if (orderType === "delivery" && deliveryCep && deliveryStreet && deliveryNumber) {
+            addresses = upsertAddress(addresses, {
+              cep: deliveryCep, street: deliveryStreet, number: deliveryNumber,
+              neighborhood: deliveryNeighborhood, city: deliveryCity, complement: deliveryComplement,
+            });
+            setSavedAddresses(addresses);
+          }
+          saveCustomerStorage(slug, {
+            v: 2, savedAt: Date.now(), autofillEnabled: true,
             customerName: customerName.trim(),
             customerWhatsapp: customerWhatsapp.trim(),
             consentMarketing,
-            deliveryCep, deliveryStreet, deliveryNumber,
-            deliveryNeighborhood, deliveryCity, deliveryComplement,
-          }));
+            addresses,
+          });
         } catch {}
       }
 
