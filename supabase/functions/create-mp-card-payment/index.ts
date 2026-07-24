@@ -57,9 +57,12 @@ Deno.serve(async (req) => {
     const idempotencyKey = crypto.randomUUID();
     const finalInstallments = Math.min(Math.max(Number(installments) || 1, 1), 3); // enforce max 3x
 
-    const amount = Math.round(Number(order.total) * 100) / 100;
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return json({ error: "Valor do pedido inválido" }, 400);
+    const amount = toMercadoPagoAmount(order.total);
+    if (amount === null) {
+      return businessError("Valor do pedido inválido para pagamento online");
+    }
+    if (amount < 1) {
+      return businessError("O Mercado Pago exige valor mínimo de R$ 1,00 para cartão online. Adicione mais itens ou escolha outra forma de pagamento.");
     }
     const payload: Record<string, unknown> = {
       transaction_amount: amount,
@@ -93,11 +96,15 @@ Deno.serve(async (req) => {
     const mpData = await mpResp.json();
     if (!mpResp.ok) {
       console.error("MP card payment failed", mpResp.status, mpData);
-      return json({
-        error: mpData?.message || "Falha ao processar pagamento",
-        status_detail: mpData?.status_detail,
-        details: mpData,
-      }, mpResp.status);
+      return businessError(
+        mpData?.message === "Invalid transaction_amount"
+          ? "Valor inválido para o Mercado Pago. Confira o total do pedido e tente novamente."
+          : mpData?.message || "Falha ao processar pagamento",
+        {
+          status_detail: mpData?.status_detail,
+          details: mpData,
+        },
+      );
     }
 
     await admin.from("orders").update({
@@ -121,4 +128,16 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function businessError(message: string, extra: Record<string, unknown> = {}) {
+  return json({ ok: false, error: message, ...extra });
+}
+
+function toMercadoPagoAmount(value: unknown): number | null {
+  const raw = typeof value === "string" ? value.replace(",", ".") : value;
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric) || numeric <= 0) return null;
+  const cents = Math.round((numeric + Number.EPSILON) * 100);
+  return Number((cents / 100).toFixed(2));
 }
