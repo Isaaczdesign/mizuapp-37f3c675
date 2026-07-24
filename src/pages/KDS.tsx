@@ -123,7 +123,9 @@ const KDS = () => {
     catch { return defaultPrefs; }
   });
   const [pinned, setPinned] = useState<Set<string>>(() => loadPins());
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const seenIds = useRef<Set<string>>(new Set());
+  const prevStatus = useRef<Map<string, OrderStatus>>(new Map());
   const firstLoad = useRef(true);
 
   const restaurantId = profile?.restaurant_id;
