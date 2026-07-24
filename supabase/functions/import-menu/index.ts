@@ -105,14 +105,48 @@ async function fetchAsDataUrl(url: string): Promise<{ dataUrl: string; mime: str
 
 function extractJson(raw: string): any {
   let s = raw.trim();
-  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  // Aceita fences ```json ... ``` e '''json ... '''
+  const fence = s.match(/(?:```|''')(?:json)?\s*([\s\S]*?)(?:```|''')/);
   if (fence) s = fence[1].trim();
-  // Corte lixo antes do primeiro { ou depois do último }
+  else {
+    // Remove fence de abertura mesmo sem fechamento (resposta truncada)
+    s = s.replace(/^(?:```|''')(?:json)?\s*/i, "");
+  }
   const first = s.indexOf("{");
   const last = s.lastIndexOf("}");
   if (first > 0) s = s.slice(first);
-  if (last > -1 && last < s.length - 1) s = s.slice(0, last + 1);
-  return JSON.parse(s);
+  if (last > first && last < s.length - 1) s = s.slice(0, last + 1);
+  try {
+    return JSON.parse(s);
+  } catch {
+    return JSON.parse(repairTruncatedJson(s));
+  }
+}
+
+function repairTruncatedJson(s: string): string {
+  let out = s;
+  let inStr = false, esc = false;
+  const stack: string[] = [];
+  for (let i = 0; i < out.length; i++) {
+    const c = out[i];
+    if (esc) { esc = false; continue; }
+    if (c === "\\") { esc = true; continue; }
+    if (c === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (c === "{" || c === "[") stack.push(c);
+    else if (c === "}" && stack[stack.length - 1] === "{") stack.pop();
+    else if (c === "]" && stack[stack.length - 1] === "[") stack.pop();
+  }
+  if (inStr) out += '"';
+  // remove trailing incomplete tokens (e.g. `, "name": "SONO`)
+  out = out.replace(/,\s*"[^"]*"\s*:\s*[^,{\[\]}]*$/, "");
+  out = out.replace(/,\s*"[^"]*$/, "");
+  out = out.replace(/[,\s]+$/, "");
+  while (stack.length) {
+    const c = stack.pop();
+    out += c === "{" ? "}" : "]";
+  }
+  return out;
 }
 
 async function callModel(messages: any[], key: string): Promise<string> {
