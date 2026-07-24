@@ -260,32 +260,27 @@ serve(async (req) => {
     }
     if (!Array.isArray(parsed.categories)) parsed.categories = [];
 
-    // ---- Passo 2: verificação/auditoria para pegar itens faltantes ----
-    // Só faz sentido quando temos o arquivo original em mãos
-    if (fileUrl) {
-      try {
-        const summary = parsed.categories
-          .map((c: any) => `# ${c.name}\n` + (c.items ?? []).map((i: any) => `- ${i.name}`).join("\n"))
-          .join("\n\n")
-          .slice(0, 12000);
-
-        const verifyMessages: any[] = [
-          { role: "system", content: VERIFY_PROMPT },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: `Extração anterior:\n\n${summary}\n\nAgora releia o arquivo original inteiro e devolva SOMENTE os itens que faltaram, em JSON.` },
-              (userContent as any[])[1], // reenvia o arquivo
-            ],
-          },
-        ];
-        const raw2 = await callModel(verifyMessages, LOVABLE_API_KEY);
-        const extras = extractJson(raw2);
-        parsed = mergeResults(parsed, extras);
-      } catch (e) {
-        console.warn("verify pass failed:", e);
-        // segue sem verificação
-      }
+    // ---- Passo 2 (verificação) desativado: dobrava o tempo e estourava o
+    // timeout de 150s do edge runtime. O prompt principal já força extração
+    // exaustiva. Executa auditoria em background (não bloqueia a resposta).
+    if (fileUrl && (globalThis as any).EdgeRuntime?.waitUntil) {
+      const summary = parsed.categories
+        .map((c: any) => `# ${c.name}\n` + (c.items ?? []).map((i: any) => `- ${i.name}`).join("\n"))
+        .join("\n\n")
+        .slice(0, 12000);
+      const verifyMessages: any[] = [
+        { role: "system", content: VERIFY_PROMPT },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: `Extração anterior:\n\n${summary}\n\nDevolva SOMENTE os itens faltantes, em JSON.` },
+            (userContent as any[])[1],
+          ],
+        },
+      ];
+      (globalThis as any).EdgeRuntime.waitUntil(
+        callModel(verifyMessages, LOVABLE_API_KEY).catch((e) => console.warn("verify bg failed:", e)),
+      );
     }
 
     parsed.total_items_extracted = countItems(parsed);
