@@ -153,17 +153,39 @@ async function callModel(messages: any[], key: string): Promise<string> {
   const res = await fetch(GATEWAY_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: MODEL, messages, max_tokens: 32000, temperature: 0.1 }),
+    body: JSON.stringify({ model: MODEL, messages, max_tokens: 32000, temperature: 0.1, stream: true }),
   });
-  if (!res.ok) {
-    const t = await res.text();
+  if (!res.ok || !res.body) {
+    const t = res.body ? await res.text() : "";
     const err: any = new Error(`AI gateway ${res.status}: ${t.slice(0, 500)}`);
     err.status = res.status;
     throw err;
   }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  // Streaming evita o idle timeout de 150s: os chunks chegam continuamente.
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let content = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const l = line.trim();
+      if (!l.startsWith("data:")) continue;
+      const payload = l.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const j = JSON.parse(payload);
+        content += j.choices?.[0]?.delta?.content ?? "";
+      } catch { /* chunk parcial, ignora */ }
+    }
+  }
+  return content;
 }
+
 
 function countItems(parsed: any): number {
   let n = 0;
