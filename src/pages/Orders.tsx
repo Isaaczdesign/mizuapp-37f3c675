@@ -202,6 +202,19 @@ const Orders = () => {
     const order = orders.find((o) => o.id === orderId);
     const patch: any = { status: newStatus };
 
+    // Cancelamento: se for pagamento online já aprovado, reembolsar automaticamente
+    const isOnlinePaid =
+      order &&
+      (order.payment_method === "pix" || order.payment_method === "credit_card_online") &&
+      (order.payment_status === "approved" || order.payment_status === "paid");
+
+    if (newStatus === "canceled") {
+      const msg = isOnlinePaid
+        ? `Cancelar este pedido? O valor de R$${Number(order!.total).toFixed(2)} será REEMBOLSADO automaticamente ao cliente via Mercado Pago.`
+        : "Cancelar este pedido?";
+      if (!window.confirm(msg)) return;
+    }
+
     // Auto-fill ETA when a delivery order transitions to "ready" (Pronto p/ envio)
     if (order?.order_type === "delivery" && newStatus === "ready" && !order.delivery_eta) {
       const { data: s } = await supabase
@@ -216,6 +229,25 @@ const Orders = () => {
     const { error } = await supabase.from("orders").update(patch).eq("id", orderId);
     if (error) { toast.error("Erro ao atualizar status"); return; }
     toast.success(patch.delivery_eta ? "Status atualizado! Previsão calculada automaticamente." : "Status atualizado!");
+
+    // Dispara reembolso via edge function (não bloqueia a UI)
+    if (newStatus === "canceled" && isOnlinePaid) {
+      const t = toast.loading("Processando reembolso no Mercado Pago...");
+      supabase.functions.invoke("refund-mp-payment", { body: { order_id: orderId } })
+        .then(({ data, error: fnErr }) => {
+          toast.dismiss(t);
+          if (fnErr || (data as any)?.error) {
+            toast.error(`Falha no reembolso: ${(data as any)?.error || fnErr?.message || "erro desconhecido"}`);
+          } else if ((data as any)?.already_refunded) {
+            toast.success("Pedido já havia sido reembolsado.");
+          } else if ((data as any)?.skipped) {
+            toast.message((data as any).reason || "Reembolso não aplicável");
+          } else {
+            toast.success("💸 Reembolso enviado ao cliente via Mercado Pago");
+          }
+        });
+    }
+
     const notifiableEvents: OrderStatus[] = ["preparing", "ready", "out_for_delivery" as OrderStatus, "delivered" as OrderStatus, "completed", "canceled"];
     if (order?.customer_id && notifiableEvents.includes(newStatus)) {
       supabase.functions.invoke("send-order-whatsapp", {
