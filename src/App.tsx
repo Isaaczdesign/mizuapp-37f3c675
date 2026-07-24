@@ -22,6 +22,8 @@ import NotificationSettings from "./pages/NotificationSettings";
 import OrderTracking from "./pages/OrderTracking";
 import ResetPassword from "./pages/ResetPassword";
 import PasswordResetSuccess from "./pages/PasswordResetSuccess";
+import Expediente from "./pages/Expediente";
+import ExpedienteHistorico from "./pages/ExpedienteHistorico";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,8 @@ const App = () => (
             <Route path="/agenda" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Agenda /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Settings /></ProtectedRoute>} />
             <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+            <Route path="/expediente" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Expediente /></ProtectedRoute>} />
+            <Route path="/expediente/historico" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><ExpedienteHistorico /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

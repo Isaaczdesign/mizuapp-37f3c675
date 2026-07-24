@@ -915,8 +915,10 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          accepting_orders: boolean
           address: string | null
           banner_url: string | null
+          closed_message: string | null
           created_at: string
           delivery_enabled: boolean
           delivery_fee: number
@@ -940,8 +942,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepting_orders?: boolean
           address?: string | null
           banner_url?: string | null
+          closed_message?: string | null
           created_at?: string
           delivery_enabled?: boolean
           delivery_fee?: number
@@ -965,8 +969,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepting_orders?: boolean
           address?: string | null
           banner_url?: string | null
+          closed_message?: string | null
           created_at?: string
           delivery_enabled?: boolean
           delivery_fee?: number
@@ -1045,6 +1051,180 @@ export type Database = {
           },
         ]
       }
+      shift_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip: string | null
+          metadata: Json
+          restaurant_id: string
+          shift_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          restaurant_id: string
+          shift_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          restaurant_id?: string
+          shift_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_audit_logs_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_audit_logs_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_audit_logs_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "work_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_cash_counts: {
+        Row: {
+          created_at: string
+          diff: number
+          expected: number
+          id: string
+          informed: number
+          justification: string | null
+          orders_count: number
+          payment_method: string
+          restaurant_id: string
+          shift_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diff?: number
+          expected?: number
+          id?: string
+          informed?: number
+          justification?: string | null
+          orders_count?: number
+          payment_method: string
+          restaurant_id: string
+          shift_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diff?: number
+          expected?: number
+          id?: string
+          informed?: number
+          justification?: string | null
+          orders_count?: number
+          payment_method?: string
+          restaurant_id?: string
+          shift_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_cash_counts_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_cash_counts_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_cash_counts_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "work_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_cash_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          movement_type: string
+          restaurant_id: string
+          shift_id: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          movement_type: string
+          restaurant_id: string
+          shift_id: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          movement_type?: string
+          restaurant_id?: string
+          shift_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_cash_movements_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_cash_movements_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_cash_movements_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "work_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -1119,6 +1299,96 @@ export type Database = {
           },
           {
             foreignKeyName: "user_roles_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_shifts: {
+        Row: {
+          cash_diff: number
+          created_at: string
+          divergence_justification: string | null
+          expected_cash: number
+          financial_closed_at: string | null
+          financial_closed_by: string | null
+          id: string
+          informed_cash: number
+          notes: string | null
+          opened_at: string
+          opened_by: string | null
+          pending_orders_justification: string | null
+          reopen_reason: string | null
+          reopened_at: string | null
+          reopened_by: string | null
+          responsible_name: string | null
+          restaurant_id: string
+          service_closed_at: string | null
+          service_closed_by: string | null
+          status: string
+          totals: Json
+          updated_at: string
+        }
+        Insert: {
+          cash_diff?: number
+          created_at?: string
+          divergence_justification?: string | null
+          expected_cash?: number
+          financial_closed_at?: string | null
+          financial_closed_by?: string | null
+          id?: string
+          informed_cash?: number
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          pending_orders_justification?: string | null
+          reopen_reason?: string | null
+          reopened_at?: string | null
+          reopened_by?: string | null
+          responsible_name?: string | null
+          restaurant_id: string
+          service_closed_at?: string | null
+          service_closed_by?: string | null
+          status?: string
+          totals?: Json
+          updated_at?: string
+        }
+        Update: {
+          cash_diff?: number
+          created_at?: string
+          divergence_justification?: string | null
+          expected_cash?: number
+          financial_closed_at?: string | null
+          financial_closed_by?: string | null
+          id?: string
+          informed_cash?: number
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          pending_orders_justification?: string | null
+          reopen_reason?: string | null
+          reopened_at?: string | null
+          reopened_by?: string | null
+          responsible_name?: string | null
+          restaurant_id?: string
+          service_closed_at?: string | null
+          service_closed_by?: string | null
+          status?: string
+          totals?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_shifts_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_shifts_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants_public"
@@ -1219,6 +1489,39 @@ export type Database = {
         }
         Returns: string
       }
+      get_current_shift: {
+        Args: { _restaurant_id: string }
+        Returns: {
+          cash_diff: number
+          created_at: string
+          divergence_justification: string | null
+          expected_cash: number
+          financial_closed_at: string | null
+          financial_closed_by: string | null
+          id: string
+          informed_cash: number
+          notes: string | null
+          opened_at: string
+          opened_by: string | null
+          pending_orders_justification: string | null
+          reopen_reason: string | null
+          reopened_at: string | null
+          reopened_by: string | null
+          responsible_name: string | null
+          restaurant_id: string
+          service_closed_at: string | null
+          service_closed_by: string | null
+          status: string
+          totals: Json
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "work_shifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_order_payment_status: {
         Args: { _token: string }
         Returns: {
@@ -1253,7 +1556,9 @@ export type Database = {
       get_public_restaurant_by_slug: {
         Args: { _slug: string }
         Returns: {
+          accepting_orders: boolean
           banner_url: string
+          closed_message: string
           delivery_enabled: boolean
           delivery_fee: number
           description: string

@@ -10,7 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Progress } from "@/components/ui/progress";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link } from "lucide-react";
+import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ type Period = "today" | "week" | "month" | "custom";
 
 const Dashboard = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const rid = profile?.restaurant_id;
   const [period, setPeriod] = useState<Period>("today");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
@@ -236,7 +238,12 @@ const Dashboard = () => {
         )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
+            <Button size="sm" variant="destructive" onClick={() => navigate("/expediente")} className="gap-1">
+              <Lock className="w-4 h-4" /> Encerrar expediente
+            </Button>
+          </div>
           <div className="flex gap-2 flex-wrap">
             {(["today", "week", "month"] as Period[]).map((p) => (
               <Button key={p} size="sm" variant={period === p ? "default" : "outline"} onClick={() => setPeriod(p)}>

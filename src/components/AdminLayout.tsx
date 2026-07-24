@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings, Bell, PanelLeftClose, PanelLeftOpen, Menu, X } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Zap, Calendar, LogOut, Settings, Bell, PanelLeftClose, PanelLeftOpen, Menu, X, Lock } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ const allNavItems: NavItem[] = [
   { to: "/tables", icon: QrCode, label: "Mesas", roles: ["owner", "manager"] },
   { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
   { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"] },
+  { to: "/expediente", icon: Lock, label: "Expediente", roles: ["owner", "manager"] },
 ];
 
 const bottomItems: NavItem[] = [
