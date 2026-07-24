@@ -1537,6 +1537,17 @@ export type Database = {
         Returns: string
       }
       generate_restaurant_short_code: { Args: never; Returns: string }
+      get_active_orders_by_whatsapp: {
+        Args: { _restaurant_id: string; _whatsapp: string }
+        Returns: {
+          created_at: string
+          order_type: string
+          restaurant_slug: string
+          status: string
+          total: number
+          tracking_token: string
+        }[]
+      }
       get_current_shift: {
         Args: { _restaurant_id: string }
         Returns: {
