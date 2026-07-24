@@ -446,6 +446,81 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-destructive" /> Encerrar expediente
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação encerra o turno atual. Confira os pedidos em aberto antes de continuar.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="text-sm font-medium">
+              Pedidos em aberto {loadingOpenOrders ? "…" : `(${openOrders.length})`}
+            </div>
+
+            {!loadingOpenOrders && openOrders.length === 0 && (
+              <div className="text-sm text-muted-foreground rounded-lg border border-border p-3">
+                Nenhum pedido pendente. Você pode encerrar com segurança.
+              </div>
+            )}
+
+            {openOrders.length > 0 && (
+              <>
+                <div className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    Existem pedidos ainda não finalizados. Encerrar agora exigirá justificativa e pode confundir clientes que ainda aguardam.
+                  </div>
+                </div>
+                <div className="max-h-56 overflow-y-auto space-y-1.5 rounded-lg border border-border p-2">
+                  {openOrders.map((o) => (
+                    <div key={o.id} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded hover:bg-secondary">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-mono truncate">#{o.id.slice(0, 8)}</span>
+                        <span className="text-muted-foreground">
+                          {format(new Date(o.created_at), "HH:mm")} · {o.order_type} · {o.status}
+                        </span>
+                      </div>
+                      <span className="font-semibold shrink-0">
+                        R$ {Number(o.total ?? 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="pt-2">
+              <label className="text-xs text-muted-foreground">
+                Para confirmar, digite <span className="font-mono font-semibold text-foreground">ENCERRAR</span>
+              </label>
+              <Input
+                autoFocus
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+                placeholder="ENCERRAR"
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setCloseDialogOpen(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={confirmText.trim() !== "ENCERRAR" || loadingOpenOrders}
+              onClick={() => { setCloseDialogOpen(false); navigate("/expediente"); }}
+            >
+              <Lock className="w-4 h-4 mr-1" /> Confirmar e continuar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
