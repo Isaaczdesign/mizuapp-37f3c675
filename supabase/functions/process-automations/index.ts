@@ -44,13 +44,14 @@ Deno.serve(async (req) => {
       // Get settings for this restaurant
       const { data: settings } = await supabase
         .from("settings")
-        .select("whatsapp_provider, whatsapp_api_key")
+        .select("whatsapp_provider, whatsapp_api_key, whatsapp_sender_id")
         .eq("restaurant_id", rule.restaurant_id)
         .maybeSingle();
 
-      if (!settings?.whatsapp_provider || !settings?.whatsapp_api_key) {
-        continue; // No WhatsApp provider configured
+      if (settings?.whatsapp_provider !== "meta" || !settings?.whatsapp_api_key || !(settings as any)?.whatsapp_sender_id) {
+        continue; // No Meta WhatsApp Cloud API configured
       }
+
 
       // Find eligible customers based on trigger
       let customers: any[] = [];
@@ -125,27 +126,34 @@ Deno.serve(async (req) => {
 
         try {
           const phone = customer.whatsapp.replace(/\D/g, "");
-          
-          if (settings.whatsapp_provider === "zapi") {
-            // Z-API integration
-            const res = await fetch(`https://api.z-api.io/instances/${settings.whatsapp_api_key}/send-text`, {
+
+          // Meta WhatsApp Cloud API
+          const res = await fetch(
+            `https://graph.facebook.com/v21.0/${(settings as any).whatsapp_sender_id}/messages`,
+            {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ phone, message }),
-            });
-            if (!res.ok) status = "failed";
-            else {
-              const json = await res.json();
-              providerMessageId = json.messageId ?? null;
-            }
-          } else if (settings.whatsapp_provider === "twilio") {
-            // Twilio - placeholder, would need account SID + auth token
-            console.log(`[Twilio] Would send to ${phone}: ${message}`);
-            // For MVP, log as sent
-          } else if (settings.whatsapp_provider === "360dialog") {
-            console.log(`[360dialog] Would send to ${phone}: ${message}`);
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${settings.whatsapp_api_key}`,
+              },
+              body: JSON.stringify({
+                messaging_product: "whatsapp",
+                to: phone,
+                type: "text",
+                text: { preview_url: true, body: message },
+              }),
+            },
+          );
+          if (!res.ok) {
+            const errorBody = await res.text();
+            console.error(`Meta WhatsApp send failed [${res.status}]: ${errorBody}`);
+            status = "failed";
+          } else {
+            const json = await res.json().catch(() => ({}));
+            providerMessageId = json?.messages?.[0]?.id ?? null;
           }
         } catch (err) {
+
           console.error("Send error:", err);
           status = "failed";
         }
