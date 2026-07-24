@@ -10,7 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Progress } from "@/components/ui/progress";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link } from "lucide-react";
+import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
