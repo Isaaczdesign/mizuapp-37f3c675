@@ -571,6 +571,16 @@ const PublicMenu = () => {
         </div>
       </div>
 
+      {(restaurant as any)?.accepting_orders === false && (
+        <div className="mx-4 mt-4 p-4 rounded-2xl border border-red-500/30 bg-red-500/10 text-sm">
+          <div className="font-bold text-red-400 mb-1">Estabelecimento fechado</div>
+          <div className="text-muted-foreground">
+            {(restaurant as any)?.closed_message || "O estabelecimento encerrou o atendimento e não está aceitando novos pedidos no momento."}
+          </div>
+        </div>
+      )}
+
+
       {/* ── Sticky Category Nav ── */}
       <div className="sticky top-0 z-40 mt-4 bg-background/90 backdrop-blur-xl border-b border-border">
         <div className="px-4 pt-2 pb-1">
