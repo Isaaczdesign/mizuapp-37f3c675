@@ -20,6 +20,7 @@ import {
   arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import MenuLinkQR from "@/components/MenuLinkQR";
 
 const TAG_OPTIONS = [
   { value: "best_seller", label: "🔥 Mais Vendido" },
@@ -575,7 +576,7 @@ const MenuAdmin = () => {
     queryKey: ["restaurant", rid],
     enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("slug").eq("id", rid!).single();
+      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code").eq("id", rid!).single();
       return data;
     },
   });
@@ -748,9 +749,17 @@ const MenuAdmin = () => {
       <div className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h1 className="font-display text-2xl md:text-3xl font-bold">🍣 <span className="gradient-text">Gestão de Cardápio</span></h1>
-          <div className="flex gap-2">
-            {publicMenuUrl && (
+          <div className="flex flex-wrap gap-2">
+            {publicMenuUrl && restaurant && (
               <>
+                <MenuLinkQR
+                  slug={restaurant.slug}
+                  restaurantName={(restaurant as any).name ?? ""}
+                  logoUrl={(restaurant as any).logo_url}
+                  primaryColor={(restaurant as any).primary_color}
+                  shortCode={(restaurant as any).short_code}
+                  onShortCodeGenerated={() => qc.invalidateQueries({ queryKey: ["restaurant", rid] })}
+                />
                 <Button variant="outline" size="sm" onClick={copyLink}>
                   <Copy className="w-4 h-4 mr-1" /> Copiar Link
                 </Button>
