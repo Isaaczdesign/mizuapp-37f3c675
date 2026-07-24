@@ -10,6 +10,7 @@ import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
   AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search, ClipboardList,
 } from "lucide-react";
+import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 
 // ── Types ──
@@ -697,6 +698,9 @@ const PublicMenu = () => {
 
       {/* ── Sticky Category Nav ── */}
       {/* ── Voltar ao acompanhamento do pedido ── */}
+      <div className="px-4 mt-4">
+        <RecoverOrdersByWhatsapp restaurantId={restaurant.id} accentColor={accentColor} />
+      </div>
       {activeOrders.length > 0 && (
         <div className="px-4 mt-4 space-y-2">
           {activeOrders.map((o) => (
