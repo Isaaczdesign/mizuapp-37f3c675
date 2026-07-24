@@ -144,6 +144,26 @@ const PublicMenu = () => {
 
   useEffect(() => { loadMenu(); }, [slug]);
 
+  // ── Load saved customer info from localStorage (per restaurant) ──
+  const storageKey = slug ? `koban:customer:${slug}` : null;
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.customerName) setCustomerName(data.customerName);
+      if (data.customerWhatsapp) setCustomerWhatsapp(data.customerWhatsapp);
+      if (typeof data.consentMarketing === "boolean") setConsentMarketing(data.consentMarketing);
+      if (data.deliveryCep) setDeliveryCep(data.deliveryCep);
+      if (data.deliveryStreet) setDeliveryStreet(data.deliveryStreet);
+      if (data.deliveryNumber) setDeliveryNumber(data.deliveryNumber);
+      if (data.deliveryNeighborhood) setDeliveryNeighborhood(data.deliveryNeighborhood);
+      if (data.deliveryCity) setDeliveryCity(data.deliveryCity);
+      if (data.deliveryComplement) setDeliveryComplement(data.deliveryComplement);
+    } catch {}
+  }, [storageKey]);
+
   // ── Scroll-spy for category nav ──
   useEffect(() => {
     if (!categories.length) return;
