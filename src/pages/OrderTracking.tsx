@@ -171,6 +171,30 @@ export default function OrderTracking() {
               </div>
             )}
 
+            {payment.payment_method === "credit_card_online"
+              && payment.payment_status !== "approved"
+              && payment.payment_status !== "in_process"
+              && payment.mp_public_key && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CreditCard className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold">Pague com cartão</p>
+                  </div>
+                  <MpCardForm
+                    trackingToken={token!}
+                    publicKey={payment.mp_public_key}
+                    amount={Number(payment.total ?? order.total)}
+                    onApproved={load}
+                  />
+                </div>
+            )}
+
+            {payment.payment_method === "credit_card_online" && !payment.mp_public_key && (
+              <p className="text-xs text-amber-400">
+                O restaurante ainda não configurou a chave pública do Mercado Pago. Escolha outra forma de pagamento.
+              </p>
+            )}
+
             {payment.payment_status === "approved" && (
               <p className="text-xs text-emerald-400">
                 ✓ Pagamento confirmado. Seu pedido já foi enviado para a cozinha.
