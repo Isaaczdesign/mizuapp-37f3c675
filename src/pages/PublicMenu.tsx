@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
-  AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search,
+  AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search, ClipboardList,
 } from "lucide-react";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 
