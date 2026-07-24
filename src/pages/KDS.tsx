@@ -112,7 +112,17 @@ const KDS = () => {
         <span className="text-muted-foreground text-sm">{orders.length} pedidos ativos</span>
       </div>
 
+      {!currentShiftId ? (
+        <div className="glass-card p-8 text-center">
+          <p className="text-4xl mb-3">🌙</p>
+          <p className="font-display font-bold text-lg mb-1">Expediente encerrado</p>
+          <p className="text-sm text-muted-foreground">
+            A cozinha só recebe pedidos com o expediente aberto. Abra um novo expediente no painel para retomar o serviço.
+          </p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-100px)]">
+
         {columns.map((status) => {
           const config = statusConfig[status];
           const col = orders.filter((o) => o.status === status);
