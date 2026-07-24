@@ -29,19 +29,44 @@ const Dashboard = () => {
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [hasActiveShift, setHasActiveShift] = useState(false);
+  const [currentShiftId, setCurrentShiftId] = useState<string | null>(null);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
+  const [loadingOpenOrders, setLoadingOpenOrders] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
   useEffect(() => {
     if (!rid) return;
     let cancelled = false;
     const check = () => {
       (supabase as any).rpc("get_current_shift", { _restaurant_id: rid }).then(({ data }: any) => {
-        if (!cancelled) setHasActiveShift(!!data?.[0]?.id || !!data?.id);
+        if (cancelled) return;
+        const row = Array.isArray(data) ? data[0] : data;
+        setHasActiveShift(!!row?.id);
+        setCurrentShiftId(row?.id ?? null);
       });
     };
     check();
     const iv = setInterval(check, 60_000);
     return () => { cancelled = true; clearInterval(iv); };
   }, [rid]);
+
+  async function openCloseDialog() {
+    if (!rid) return;
+    setCloseDialogOpen(true);
+    setConfirmText("");
+    setLoadingOpenOrders(true);
+    let q = supabase.from("orders")
+      .select("id, status, order_type, total, created_at, table_id")
+      .eq("restaurant_id", rid)
+      .not("status", "in", "(delivered,completed,canceled)")
+      .order("created_at", { ascending: true });
+    if (currentShiftId) q = q.eq("shift_id", currentShiftId);
+    const { data } = await q;
+    setOpenOrders((data as any) ?? []);
+    setLoadingOpenOrders(false);
+  }
+
 
   // Check setup completeness
   const { data: setupStatus } = useQuery({
