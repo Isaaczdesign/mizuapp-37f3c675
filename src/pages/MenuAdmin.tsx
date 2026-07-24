@@ -912,6 +912,9 @@ const MenuAdmin = () => {
               <div>
                 <Label>Imagem</Label>
                 <input type="file" accept="image/*" onChange={(e) => setItemForm({ ...itemForm, image: e.target.files?.[0] ?? null })} className="text-sm mt-1" />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tamanho recomendado: <strong>800×800 px</strong> (quadrado 1:1), JPG ou PNG, até 2 MB.
+                </p>
               </div>
 
               {/* Variations & Addons - only for edit mode */}
