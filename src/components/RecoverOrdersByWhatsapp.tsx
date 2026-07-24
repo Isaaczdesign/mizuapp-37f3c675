@@ -132,7 +132,7 @@ export default function RecoverOrdersByWhatsapp({
               aria-label={label}
               aria-haspopup="dialog"
               aria-expanded={open}
-              className="fixed top-20 right-4 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="fixed bottom-24 right-4 z-[100] w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               style={{
                 background: accentColor,
                 boxShadow: `0 8px 24px ${accentColor}66, 0 0 0 4px ${accentColor}22`,
@@ -164,7 +164,7 @@ export default function RecoverOrdersByWhatsapp({
           role="dialog"
           aria-modal="true"
           aria-labelledby="recover-order-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           onClick={close}
         >
           <div
