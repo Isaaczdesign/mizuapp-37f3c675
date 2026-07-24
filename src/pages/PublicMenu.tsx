@@ -957,14 +957,19 @@ const PublicMenu = () => {
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
                 </div>
-                <Button
-                  className="w-full py-6 text-base rounded-2xl font-bold"
-                  style={{ backgroundColor: accentColor }}
-                  disabled={(restaurant as any)?.accepting_orders === false}
-                  onClick={() => { setShowCart(false); setCheckoutStep(1); }}
-                >
-                  {(restaurant as any)?.accepting_orders === false ? "Estabelecimento fechado" : (<>Ver pedido <ChevronRight className="w-4 h-4 ml-1" /></>)}
-                </Button>
+                {(() => {
+                  const closed = (restaurant as any)?.accepting_orders === false || (!!operatingHours && !isOpenNow(operatingHours));
+                  return (
+                    <Button
+                      className="w-full py-6 text-base rounded-2xl font-bold"
+                      style={{ backgroundColor: accentColor }}
+                      disabled={closed}
+                      onClick={() => { setShowCart(false); setCheckoutStep(1); }}
+                    >
+                      {closed ? "Estabelecimento fechado" : (<>Ver pedido <ChevronRight className="w-4 h-4 ml-1" /></>)}
+                    </Button>
+                  );
+                })()}
               </div>
             </motion.div>
           </motion.div>
