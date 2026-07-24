@@ -335,46 +335,150 @@ export default function OrderTracking() {
       })()}
 
 
+      {/* Status change banner */}
+      <AnimatePresence>
+        {statusBurst && (
+          <motion.div
+            key={statusBurst.key}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 320, damping: 22 }}
+            className="glass-card p-4 mb-4 flex items-center gap-3 border-primary/40 bg-primary/10 relative overflow-hidden"
+          >
+            <motion.div
+              className="absolute inset-0"
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
+              style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary)/0.25), transparent)" }}
+            />
+            <motion.div
+              initial={{ rotate: -20, scale: 0.6 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 380 }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl shrink-0 relative"
+            >
+              <span className="absolute inset-0 rounded-full bg-primary/60 animate-ping" />
+              <span className="relative">{STATUS_MESSAGES[statusBurst.key]?.emoji}</span>
+            </motion.div>
+            <div className="relative min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-primary/80">Novo status</p>
+              <p className="font-display font-bold text-base truncate">{statusBurst.label}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Timeline */}
       {isCanceled ? (
-        <div className="glass-card p-6 flex flex-col items-center text-center mb-6">
-          <XCircle className="w-12 h-12 text-destructive mb-2" />
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="glass-card p-6 flex flex-col items-center text-center mb-6 border-destructive/30"
+        >
+          <motion.div
+            animate={{ rotate: [0, -8, 8, -4, 0] }}
+            transition={{ duration: 0.6 }}
+          >
+            <XCircle className="w-12 h-12 text-destructive mb-2" />
+          </motion.div>
           <p className="font-display font-bold">Pedido cancelado</p>
           <p className="text-xs text-muted-foreground mt-1">Entre em contato com o restaurante para saber mais.</p>
-        </div>
+        </motion.div>
       ) : (
         <div className="glass-card p-5 mb-6">
-          <div className="space-y-4">
-            {flow.map((step, i) => {
-              const done = i <= activeIdx;
-              const active = i === activeIdx;
-              const Icon = step.icon;
-              return (
-                <div key={step.key} className="flex items-center gap-3">
-                  <motion.div
-                    initial={false}
-                    animate={{ scale: active ? 1.1 : 1 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                      done ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </motion.div>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
-                      {step.label}
-                    </p>
-                    {active && !isTerminal && (
-                      <p className="text-xs text-primary animate-pulse">Em andamento…</p>
-                    )}
+          <div className="relative">
+            {/* Vertical connector background */}
+            <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-secondary rounded-full" aria-hidden />
+            {/* Vertical connector progress */}
+            <motion.div
+              className="absolute left-5 top-5 w-0.5 rounded-full bg-primary origin-top"
+              initial={false}
+              animate={{
+                height: `calc(${Math.max(activeIdx, 0) * (100 / Math.max(flow.length - 1, 1))}% - 0px)`,
+              }}
+              transition={{ duration: 0.7, ease: "easeInOut" }}
+              style={{ boxShadow: "0 0 12px hsl(var(--primary)/0.6)" }}
+              aria-hidden
+            />
+            <div className="space-y-5 relative">
+              {flow.map((step, i) => {
+                const done = i <= activeIdx;
+                const active = i === activeIdx && !isTerminal;
+                const justReached = statusBurst?.key === step.key;
+                const Icon = step.icon;
+                return (
+                  <div key={step.key} className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      {active && (
+                        <>
+                          <motion.span
+                            className="absolute inset-0 rounded-full bg-primary/40"
+                            animate={{ scale: [1, 1.6, 1.9], opacity: [0.6, 0.2, 0] }}
+                            transition={{ duration: 1.6, repeat: Infinity }}
+                          />
+                          <motion.span
+                            className="absolute inset-0 rounded-full bg-primary/30"
+                            animate={{ scale: [1, 1.4, 1.7], opacity: [0.5, 0.15, 0] }}
+                            transition={{ duration: 1.6, repeat: Infinity, delay: 0.4 }}
+                          />
+                        </>
+                      )}
+                      <motion.div
+                        initial={false}
+                        animate={justReached ? { scale: [1, 1.35, 1.1], rotate: [0, -8, 0] } : { scale: active ? 1.12 : 1 }}
+                        transition={{ duration: 0.55, ease: "backOut" }}
+                        className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          done
+                            ? "bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.55)]"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {done && !active ? (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -30 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 400 }}
+                          >
+                            <Check className="w-4 h-4" strokeWidth={3} />
+                          </motion.div>
+                        ) : (
+                          <Icon className="w-4 h-4" />
+                        )}
+                      </motion.div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <motion.p
+                        animate={{ color: done ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }}
+                        className="text-sm font-medium"
+                      >
+                        {step.label}
+                      </motion.p>
+                      {active && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="flex gap-1">
+                            {[0, 1, 2].map((d) => (
+                              <motion.span
+                                key={d}
+                                className="w-1 h-1 rounded-full bg-primary"
+                                animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: d * 0.15 }}
+                              />
+                            ))}
+                          </span>
+                          <p className="text-xs text-primary font-medium">Em andamento</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {done && <Check className="w-4 h-4 text-primary" />}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
+
 
       {/* Items */}
       <div className="glass-card p-5 space-y-3">
