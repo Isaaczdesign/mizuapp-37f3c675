@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil } from "lucide-react";
+import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
@@ -13,6 +14,7 @@ import EditOrderModal from "@/components/EditOrderModal";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
+type ScopeFilter = "current" | "7d" | "all";
 
 interface Order {
   id: string;
@@ -33,6 +35,7 @@ interface Order {
   order_items: { id: string; name: string; quantity: number; unit_price: number; notes: string | null }[];
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
+  shift_id: string | null;
 }
 
 const PAYMENT_BADGE: Record<string, { label: string; cls: string }> = {
@@ -133,10 +136,14 @@ function hasDeliveryRoute(order: Order | null): boolean {
 
 const Orders = () => {
   const { profile, roles } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [typeFilter, setTypeFilter] = useState<OrderType>("all");
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("current");
+  const [currentShiftId, setCurrentShiftId] = useState<string | null>(null);
+  const [viewingShift, setViewingShift] = useState<{ id: string; opened_at: string; status: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const restaurantId = profile?.restaurant_id;
   const canCancel = roles.includes("owner") || roles.includes("manager");
@@ -145,6 +152,9 @@ const Orders = () => {
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [restaurantAddress, setRestaurantAddress] = useState<string>("");
+
+  const historyShiftId = searchParams.get("shift");
+
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -157,6 +167,22 @@ const Orders = () => {
     const origin = restaurantAddress ? `&origin=${encodeURIComponent(restaurantAddress)}` : "";
     return `https://www.google.com/maps/dir/?api=1${origin}&destination=${dest}&travelmode=driving`;
   }
+
+  // Load current open shift for the restaurant
+  useEffect(() => {
+    if (!restaurantId) { setCurrentShiftId(null); return; }
+    supabase.rpc("get_current_shift", { _restaurant_id: restaurantId }).then(({ data }) => {
+      const arr = data as any[] | null;
+      setCurrentShiftId(arr && arr[0]?.id ? arr[0].id : null);
+    });
+  }, [restaurantId]);
+
+  // If ?shift=<id>, load that shift's info (for the header banner)
+  useEffect(() => {
+    if (!historyShiftId) { setViewingShift(null); return; }
+    supabase.from("work_shifts").select("id, opened_at, status").eq("id", historyShiftId).maybeSingle()
+      .then(({ data }) => setViewingShift((data as any) ?? null));
+  }, [historyShiftId]);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -172,24 +198,34 @@ const Orders = () => {
       })
       .subscribe();
 
-    // Fallback polling — garante que pedidos (incluindo delivery com PIX pendente)
-    // apareçam mesmo se um evento realtime for perdido.
     const poll = setInterval(loadOrders, 10000);
-
     return () => { supabase.removeChannel(channel); clearInterval(poll); };
-  }, [restaurantId]);
+  }, [restaurantId, scopeFilter, currentShiftId, historyShiftId]);
 
   async function loadOrders() {
     if (!restaurantId) return;
-    const { data } = await supabase
+    let q = supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, shift_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
 
-    // Só exibe pedidos já pagos ou que não exigem pagamento online (payment_status null = dinheiro/maquininha).
-    // Pedidos com PIX online aguardando pagamento (pending/rejected/refused) ficam ocultos até serem confirmados.
+    if (historyShiftId) {
+      q = q.eq("shift_id", historyShiftId);
+    } else if (scopeFilter === "current") {
+      if (currentShiftId) {
+        q = q.eq("shift_id", currentShiftId);
+      } else {
+        // no open shift → show nothing under "current"
+        setOrders([]); setLoading(false); return;
+      }
+    } else if (scopeFilter === "7d") {
+      const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      q = q.gte("created_at", from);
+    }
+
+    const { data } = await q;
     const visible = ((data as unknown as Order[]) ?? []).filter(
       (o) => o.payment_status == null || o.payment_status === "paid" || o.payment_status === "approved"
     );
@@ -197,6 +233,7 @@ const Orders = () => {
     setOrders(visible);
     setLoading(false);
   }
+
 
   async function updateStatus(orderId: string, newStatus: OrderStatus) {
     const order = orders.find((o) => o.id === orderId);
@@ -330,6 +367,46 @@ const Orders = () => {
         </div>
       </div>
 
+      {/* Shift scope banner / filter */}
+      {historyShiftId ? (
+        <div className="mb-4 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between gap-3 flex-wrap">
+          <div className="text-sm flex items-center gap-2 text-amber-300">
+            <Clock className="w-4 h-4" />
+            <span>
+              Vendo pedidos do expediente
+              {viewingShift ? ` aberto em ${new Date(viewingShift.opened_at).toLocaleString("pt-BR")}` : ""}
+            </span>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => { setSearchParams({}); }}>
+            Voltar ao expediente atual
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="text-xs text-muted-foreground">Escopo:</span>
+          {([
+            { key: "current", label: "Expediente atual" },
+            { key: "7d", label: "Últimos 7 dias" },
+            { key: "all", label: "Todos" },
+          ] as { key: ScopeFilter; label: string }[]).map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setScopeFilter(s.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                scopeFilter === s.key
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/60 text-muted-foreground border-border hover:text-foreground"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+          {scopeFilter === "current" && !currentShiftId && (
+            <span className="text-xs text-amber-400 ml-1">Nenhum expediente aberto</span>
+          )}
+        </div>
+      )}
+
       {/* Search */}
       <div className="mb-3 relative max-w-md">
         <input
@@ -392,6 +469,21 @@ const Orders = () => {
         })}
       </div>
 
+
+      {scopeFilter === "current" && !currentShiftId && !historyShiftId && (
+        <div className="mb-6 p-6 rounded-2xl border border-border bg-card/40 text-center">
+          <div className="text-3xl mb-2">🕒</div>
+          <div className="font-bold mb-1">Nenhum expediente aberto</div>
+          <div className="text-sm text-muted-foreground mb-3">
+            Abra um novo expediente para começar a receber pedidos, ou explore os históricos.
+          </div>
+          <div className="flex gap-2 justify-center flex-wrap">
+            <Button size="sm" variant="hero" onClick={() => window.location.href = "/expediente"}>Abrir expediente</Button>
+            <Button size="sm" variant="outline" onClick={() => setScopeFilter("7d")}>Ver últimos 7 dias</Button>
+            <Button size="sm" variant="outline" onClick={() => window.location.href = "/expediente/historico"}>Histórico</Button>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {

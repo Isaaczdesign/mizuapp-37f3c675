@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Download, FileText, RefreshCw } from "lucide-react";
+import { Download, FileText, RefreshCw, ListOrdered } from "lucide-react";
 import { fmtBRL, PAYMENT_LABEL, type ShiftRow } from "@/lib/shiftUtils";
 import { generateShiftReportPDF } from "@/lib/shiftReport";
 import { toast } from "sonner";
@@ -111,6 +112,9 @@ export default function ExpedienteHistorico() {
                       </span>
                     </td>
                     <td className="p-3 text-right space-x-1 whitespace-nowrap">
+                      <Button size="sm" variant="ghost" asChild title="Ver pedidos deste expediente">
+                        <Link to={`/orders?shift=${s.id}`}><ListOrdered className="w-4 h-4" /></Link>
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => openDetail(s)}><FileText className="w-4 h-4" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => exportCSV(s)}><Download className="w-4 h-4" /></Button>
                       {isOwner && s.status === "financial_closed" && (
