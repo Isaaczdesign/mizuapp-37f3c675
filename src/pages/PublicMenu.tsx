@@ -10,6 +10,7 @@ import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
   AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search,
 } from "lucide-react";
+import { isOpenNow } from "@/lib/operatingHours";
 
 // ── Types ──
 interface Variation { id: string; name: string; price_delta: number; absolute_price: number | null; }
