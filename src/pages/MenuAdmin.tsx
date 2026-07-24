@@ -432,18 +432,50 @@ function MenuImportTab({ rid }: { rid: string }) {
         <label className="cursor-pointer">
           <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
             <FileText className="w-4 h-4" />
-            {uploading ? "Enviando..." : processing ? "Processando com IA..." : "Selecionar Arquivo"}
+            {uploading ? "Enviando..." : activeJobId ? "Processando com IA..." : "Selecionar Arquivo"}
           </div>
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading || processing} />
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading || !!activeJobId} />
         </label>
         <p className="text-xs text-muted-foreground mt-2">PDF, JPG, PNG (máx 20MB)</p>
       </div>
 
-      {/* Processing indicator */}
-      {processing && (
-        <div className="glass-card p-6 text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Analisando cardápio com IA... Isso pode levar alguns segundos.</p>
+      {/* Progresso + logs da extração */}
+      {(activeJobId || (activeJob && activeJob.status === "processing")) && (
+        <div className="glass-card p-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">
+                {activeJob?.status === "queued" ? "Na fila…" : "Extraindo itens do cardápio…"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {activeJob?.pages_total
+                  ? `Páginas: ${activeJob?.pages_processed ?? 0}/${activeJob.pages_total}`
+                  : "Preparando lotes…"}
+                {" · "}
+                Itens encontrados: <strong>{activeJob?.items_found ?? 0}</strong>
+              </p>
+            </div>
+            <span className="text-sm font-mono text-primary">{activeJob?.progress ?? 0}%</span>
+          </div>
+
+          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${activeJob?.progress ?? 0}%` }} />
+          </div>
+
+          {Array.isArray(activeJob?.logs) && activeJob.logs.length > 0 && (
+            <div className="max-h-40 overflow-y-auto rounded-lg bg-secondary/50 p-3 space-y-1">
+              {activeJob.logs.slice(-30).map((l: any, i: number) => (
+                <p key={i} className={`text-[11px] font-mono ${l.level === "error" ? "text-destructive" : l.level === "success" ? "text-green-400" : "text-muted-foreground"}`}>
+                  {new Date(l.at).toLocaleTimeString("pt-BR")} · {l.message}
+                </p>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            Pode fechar esta aba: a importação continua rodando em segundo plano e os itens são salvos em partes.
+          </p>
         </div>
       )}
 
