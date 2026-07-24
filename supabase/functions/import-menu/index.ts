@@ -2,93 +2,47 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are "MenuImportAI" for Japanese restaurant menus in Brazil.
+const SYSTEM_PROMPT = `Você é "MenuImportAI", especialista em extrair cardápios de restaurantes japoneses no Brasil a partir de PDFs, imagens (fotos, prints, digitalizações), textos OCR ou capturas de tela — em QUALQUER fonte, layout, coluna, orientação ou qualidade.
 
-Input: ONE menu file (PDF or image) already OCR-extracted into plain text + optional layout hints.
+MISSÃO CRÍTICA — EXAUSTIVIDADE:
+Você DEVE extrair TODOS os itens visíveis no cardápio, sem exceção. Não resuma, não pule, não agrupe silenciosamente. Se o cardápio tem 120 itens, retorne os 120.
 
-Output: STRICT JSON only. No commentary.
+REGRAS DE COBERTURA (obrigatórias):
+1. VARRA a página inteira, canto a canto, incluindo bordas, rodapés, laterais, boxes destacados, seções de "novidades", "promoções", "sugestão do chef", combos.
+2. Se houver MÚLTIPLAS COLUNAS, processe cada coluna de cima para baixo, uma por vez.
+3. Se houver MÚLTIPLAS PÁGINAS (PDF), processe TODAS. Nunca pare na primeira página.
+4. Itens em FONTES DECORATIVAS, cursivas, japonesas, inclinadas, sobre fundos coloridos ou imagens: extraia igual.
+5. Itens listados apenas por NOME sem preço: inclua com base_price=null e confidence baixa — nunca descarte.
+6. Itens que aparecem em GRADES/TABELAS: leia célula por célula.
+7. Se houver LISTA DE INGREDIENTES longa por item, capture como description mesmo que ocupe várias linhas.
+8. Ignore APENAS: telefones, endereços, redes sociais, horário, CNPJ, textos institucionais.
 
-GOAL:
-Convert messy OCR text into a structured draft menu:
-- categories
-- items
-- prices
-- ingredients (if detectable)
-- variations (if detectable: 8/16/32 peças, combo sizes)
-- add-ons (if detectable: extra shoyu, gengibre, wasabi)
-- flags and confidence per item
-- errors and unknown lines for human review
+PREÇOS BRL:
+- "R$ 29,90" -> 29.90
+- "29,90" -> 29.90
+- "R$2g,90" (OCR ruim) -> 29.90 com confidence ~0.5
+- Preço faltando -> base_price: null
 
-IMPORTANT:
-- Preserve BRL prices: "R$ 29,90" -> 29.90
-- Handle OCR mistakes (e.g., "R$ 2g,90" -> guess 29.90 with low confidence)
-- Detect categories by keywords and headings.
-- Output must be valid JSON.
+CATEGORIAS (mapeie sinônimos):
+Entradas, Temaki, Hot Roll / Hot Filadélfia, Combinados, Sashimi, Sushi/Nigiri, Uramaki, Hossomaki, Yakisoba/Pratos Quentes, Bebidas, Sobremesas, Rodízio, Promoções, Kids, Especiais do Chef.
+Se não houver cabeçalho claro, infira pela palavra-chave do item.
 
-========================
-CATEGORY DETECTION RULES
-========================
-Primary categories (map synonyms):
-- Entradas (gyoza, sunomono, edamame)
-- Temaki
-- Hot Roll
-- Combinados / Combos
-- Sashimi
-- Sushi / Nigiri
-- Uramaki / Hossomaki
-- Yakisoba / Pratos Quentes
-- Bebidas
-- Sobremesas
-- Rodízio (if present)
+VARIAÇÕES:
+Se o MESMO item aparece com tamanhos (8/16/32 peças, P/M/G), agrupe em UM item com variations[].
 
-If heading lines like:
-"COMBINADOS", "TEMAKI", "BEBIDAS" => category header.
-If no headers exist:
-infer by item keywords.
+ADD-ONS:
+"Adicional shoyu +R$2,00", "Extra gengibre 1,50" -> add_ons_global[].
 
-========================
-ITEM PARSING RULES
-========================
-Item line typical patterns:
-1) "Temaki Camarão — R$ 24,90"
-2) "Hot Filadélfia 8 un 29,90"
-3) "Combo 30 peças 89,90"
-4) "Sashimi salmão (10 un) R$ 39,90"
-5) "Rodízio: R$ 119,90"
-
-Extract:
-- name (string)
-- base_price (number)
-- description/ingredients (string or array)
-- quantity/variation (if present: "8 un", "10 un", "30 peças")
-- confidence (0-1)
-
-Ingredients detection:
-If text includes "arroz, salmão, cream cheese, nori" after item name, capture as ingredients array.
-If unclear, put into description.
-
-Variations:
-If same item appears with multiple sizes:
-- group under one item with variations:
-  variations: [{name:"8 peças", price: X}, {name:"16 peças", price: Y}]
-Use heuristic:
-- same base name + different piece counts.
-
-Add-ons:
-Detect lines like:
-"Adicional shoyu +2,00"
-"Extra gengibre 1,50"
-Return as add_ons list.
-
-========================
-OUTPUT JSON SCHEMA
-========================
+FORMATO DE SAÍDA — JSON ESTRITO, sem markdown, sem comentários:
 {
   "restaurant_name_guess": string|null,
   "currency": "BRL",
+  "total_items_extracted": number,
+  "pages_processed": number,
   "categories": [
     {
       "name": string,
@@ -96,168 +50,219 @@ OUTPUT JSON SCHEMA
         {
           "name": string,
           "base_price": number|null,
-          "variations": [{"name": string, "price": number}] | [],
-          "ingredients": [string] | [],
-          "allergens": [string] | [],
+          "variations": [{"name": string, "price": number}],
+          "ingredients": [string],
+          "allergens": [string],
           "description": string|null,
-          "tags": ["combo"|"best_seller"|"high_margin"|"rodizio"] | [],
+          "tags": [string],
           "confidence": number,
           "source_lines": [string]
         }
       ]
     }
   ],
-  "add_ons_global": [{"name": string, "price": number, "confidence": number}] | [],
+  "add_ons_global": [{"name": string, "price": number, "confidence": number}],
   "unknown_lines": [string],
   "errors": [{"type": string, "line": string, "reason": string}]
 }
 
-========================
-CONFIDENCE SCORING
-========================
-- 0.90+ if price and name clearly extracted
-- 0.60–0.89 if minor OCR noise
-- <0.60 if price guessed or category inferred
+Antes de finalizar, CONTE os itens que você listou e preencha total_items_extracted. Se parecer baixo para o tamanho do cardápio, RELE o material e adicione o que faltou.
 
-========================
-ALLERGENS HEURISTICS (OPTIONAL)
-========================
-If ingredients include:
-- "camarão" => crustaceans
-- "salmão/peixe" => fish
-- "cream cheese" => dairy
-- "shoyu" => soy, gluten (maybe)
-Populate allergens accordingly with medium confidence.
+Retorne APENAS JSON.`;
 
-========================
-FAIL-SAFE
-========================
-If cannot parse at least 5 items:
-Return empty categories + unknown_lines + errors explaining why.
+const VERIFY_PROMPT = `Você já extraiu um cardápio deste arquivo. Agora sua tarefa é AUDITAR: releia o arquivo original inteiro e liste TODOS os itens que ficaram FALTANDO na extração anterior.
 
-Return JSON only.`;
+Retorne JSON estrito no mesmo schema (categories[].items[]) contendo APENAS os itens que estavam ausentes. Se nada faltou, retorne {"categories": []}.
+
+Considere faltando: itens visíveis no cardápio original que não aparecem por nome na lista anterior, incluindo variações, promoções, itens de rodapé, kids, bebidas, sobremesas, adicionais.
+
+Retorne APENAS JSON.`;
+
+const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const MODEL = "google/gemini-2.5-pro"; // mais preciso para extração exaustiva
+
+async function fetchAsDataUrl(url: string): Promise<{ dataUrl: string; mime: string }> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Falha ao baixar arquivo: ${res.status}`);
+  const ct = res.headers.get("content-type") || "";
+  let mime = ct.split(";")[0].trim();
+  if (!mime) {
+    if (/\.pdf(\?|$)/i.test(url)) mime = "application/pdf";
+    else if (/\.png(\?|$)/i.test(url)) mime = "image/png";
+    else if (/\.webp(\?|$)/i.test(url)) mime = "image/webp";
+    else mime = "image/jpeg";
+  }
+  const buf = new Uint8Array(await res.arrayBuffer());
+  // base64 encode in chunks para evitar stack overflow
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < buf.length; i += chunk) {
+    bin += String.fromCharCode(...buf.subarray(i, i + chunk));
+  }
+  const b64 = btoa(bin);
+  return { dataUrl: `data:${mime};base64,${b64}`, mime };
+}
+
+function extractJson(raw: string): any {
+  let s = raw.trim();
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) s = fence[1].trim();
+  // Corte lixo antes do primeiro { ou depois do último }
+  const first = s.indexOf("{");
+  const last = s.lastIndexOf("}");
+  if (first > 0) s = s.slice(first);
+  if (last > -1 && last < s.length - 1) s = s.slice(0, last + 1);
+  return JSON.parse(s);
+}
+
+async function callModel(messages: any[], key: string): Promise<string> {
+  const res = await fetch(GATEWAY_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: MODEL, messages, max_tokens: 16000, temperature: 0.1 }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    const err: any = new Error(`AI gateway ${res.status}: ${t.slice(0, 500)}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+function countItems(parsed: any): number {
+  let n = 0;
+  for (const c of parsed?.categories ?? []) n += (c?.items?.length ?? 0);
+  return n;
+}
+
+function mergeResults(base: any, extra: any): any {
+  if (!extra?.categories?.length) return base;
+  const byName = new Map<string, any>();
+  for (const c of base.categories ?? []) byName.set(c.name.toLowerCase(), c);
+  const existingItemNames = new Set<string>();
+  for (const c of base.categories ?? []) for (const it of c.items ?? []) existingItemNames.add((it.name || "").toLowerCase().trim());
+
+  for (const c of extra.categories) {
+    const key = (c.name || "Outros").toLowerCase();
+    const target = byName.get(key) ?? (() => {
+      const nc = { name: c.name || "Outros", items: [] as any[] };
+      base.categories.push(nc); byName.set(key, nc); return nc;
+    })();
+    for (const it of c.items ?? []) {
+      const nm = (it.name || "").toLowerCase().trim();
+      if (!nm || existingItemNames.has(nm)) continue;
+      target.items.push(it);
+      existingItemNames.add(nm);
+    }
+  }
+  base.total_items_extracted = countItems(base);
+  return base;
+}
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { ocr_text, layout_hints, image_url } = await req.json();
 
-    // Support two modes: image_url (vision) or ocr_text (text)
     if (!image_url && (!ocr_text || typeof ocr_text !== "string" || ocr_text.trim().length < 10)) {
-      return new Response(
-        JSON.stringify({ error: "Either image_url or ocr_text is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Either image_url or ocr_text is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Descobrir a URL real do arquivo (imagem OU PDF)
+    let fileUrl: string | null = null;
+    if (image_url) fileUrl = image_url;
+    else if (ocr_text) {
+      const m = ocr_text.match(/https?:\/\/\S+/);
+      if (m) fileUrl = m[0].replace(/[)\].,]+$/, "");
     }
 
-    let messages: any[];
+    let userContent: any;
+    const textInstruction =
+      "Extraia EXAUSTIVAMENTE todos os itens do cardápio (nenhum item deve ficar de fora). Retorne APENAS JSON no schema definido." +
+      (layout_hints ? `\n\nDicas de layout: ${layout_hints}` : "");
 
-    if (image_url) {
-      // Vision-based: send image URL directly to multimodal model
-      messages = [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Please extract and parse the menu from this image. Return STRICT JSON only." + (layout_hints ? `\n\nLayout hints: ${layout_hints}` : "") },
-            { type: "image_url", image_url: { url: image_url } },
-          ],
-        },
+    if (fileUrl) {
+      // Baixa e envia como data URL — funciona para imagem e PDF (Gemini via gateway)
+      const { dataUrl } = await fetchAsDataUrl(fileUrl);
+      userContent = [
+        { type: "text", text: textInstruction },
+        { type: "image_url", image_url: { url: dataUrl } },
       ];
     } else {
-      // Check if input is a base64 image (legacy support)
-      const imageMatch = ocr_text.match(/^\[IMAGE_BASE64:(data:[^;]+;base64,.+)\]$/s);
+      // Texto OCR puro
+      userContent = `${textInstruction}\n\nTexto OCR do cardápio:\n\n${ocr_text}`;
+    }
 
-      if (imageMatch) {
-        messages = [
-          { role: "system", content: SYSTEM_PROMPT },
+    const messages: any[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: userContent },
+    ];
+
+    // ---- Passo 1: extração principal ----
+    let raw1 = "";
+    try {
+      raw1 = await callModel(messages, LOVABLE_API_KEY);
+    } catch (e: any) {
+      if (e.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded, tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (e.status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Adicione créditos para continuar." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      throw e;
+    }
+
+    let parsed: any;
+    try {
+      parsed = extractJson(raw1);
+    } catch {
+      return new Response(JSON.stringify({ error: "AI returned invalid JSON", raw: raw1.slice(0, 2000) }), {
+        status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!Array.isArray(parsed.categories)) parsed.categories = [];
+
+    // ---- Passo 2: verificação/auditoria para pegar itens faltantes ----
+    // Só faz sentido quando temos o arquivo original em mãos
+    if (fileUrl) {
+      try {
+        const summary = parsed.categories
+          .map((c: any) => `# ${c.name}\n` + (c.items ?? []).map((i: any) => `- ${i.name}`).join("\n"))
+          .join("\n\n")
+          .slice(0, 12000);
+
+        const verifyMessages: any[] = [
+          { role: "system", content: VERIFY_PROMPT },
           {
             role: "user",
             content: [
-              { type: "text", text: "Please extract and parse the menu from this image. Return STRICT JSON only." + (layout_hints ? `\n\nLayout hints: ${layout_hints}` : "") },
-              { type: "image_url", image_url: { url: imageMatch[1] } },
+              { type: "text", text: `Extração anterior:\n\n${summary}\n\nAgora releia o arquivo original inteiro e devolva SOMENTE os itens que faltaram, em JSON.` },
+              (userContent as any[])[1], // reenvia o arquivo
             ],
           },
         ];
-      } else {
-        // Text-based OCR
-        let userContent = `Here is the OCR-extracted menu text:\n\n${ocr_text}`;
-        if (layout_hints) {
-          userContent += `\n\nLayout hints:\n${layout_hints}`;
-        }
-        messages = [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userContent },
-        ];
+        const raw2 = await callModel(verifyMessages, LOVABLE_API_KEY);
+        const extras = extractJson(raw2);
+        parsed = mergeResults(parsed, extras);
+      } catch (e) {
+        console.warn("verify pass failed:", e);
+        // segue sem verificação
       }
     }
 
-    const model = (image_url || ocr_text?.startsWith("[IMAGE_BASE64:")) ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash";
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ model, messages }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required, please add credits." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const rawContent = data.choices?.[0]?.message?.content ?? "";
-
-    // Extract JSON from response (handle markdown code blocks)
-    let jsonStr = rawContent;
-    const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1].trim();
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch {
-      return new Response(
-        JSON.stringify({
-          error: "AI returned invalid JSON",
-          raw: rawContent.slice(0, 2000),
-        }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    parsed.total_items_extracted = countItems(parsed);
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("import-menu error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
