@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock } from "lucide-react";
+import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock, BadgeDollarSign } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
