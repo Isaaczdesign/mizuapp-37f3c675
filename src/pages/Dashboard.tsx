@@ -69,8 +69,11 @@ const Dashboard = () => {
   });
   const [tick, setTick] = useState(0);
   useEffect(() => { const t = setInterval(() => setTick((n) => n + 1), 60_000); return () => clearInterval(t); }, []);
+  void tick;
   const outsideHours = !!hoursData?.hours && !isOpenNow(hoursData.hours);
   const shopClosed = outsideHours || (hoursData && !hoursData.accepting);
+  const nextOpen = outsideHours ? nextOpenAt(hoursData!.hours) : null;
+  const countdown = nextOpen ? formatCountdown(nextOpen) : null;
 
 
   const copyMenuLink = () => {
@@ -263,7 +266,9 @@ const Dashboard = () => {
               <div className="font-bold text-red-400">Recebimento de pedidos encerrado</div>
               <div className="text-sm text-muted-foreground">
                 {outsideHours
-                  ? "O restaurante está fora do horário de funcionamento configurado. Novos pedidos serão aceitos automaticamente no próximo horário de abertura."
+                  ? (countdown
+                      ? <>O restaurante está fora do horário. Reabre em <span className="font-semibold text-red-300">{countdown}</span>{nextOpen ? ` (${nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })})` : ""}.</>
+                      : "O restaurante está fora do horário de funcionamento configurado.")
                   : "O recebimento de pedidos está desativado manualmente. Reabra em Configurações ou pelo Expediente."}
               </div>
             </div>
