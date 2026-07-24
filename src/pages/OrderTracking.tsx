@@ -86,11 +86,61 @@ export default function OrderTracking() {
     return () => clearInterval(interval);
   }, [load, payment?.payment_status]);
 
+  // Realtime: react instantly when the restaurant changes status
+  useEffect(() => {
+    if (!order?.id) return;
+    const channel = supabase
+      .channel(`order-tracking-${order.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${order.id}` },
+        () => { load(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [order?.id, load]);
+
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Detect status transitions → toast + banner + haptic + confetti on completion
+  const prevStatusRef = useRef<string | null>(null);
+  const [statusBurst, setStatusBurst] = useState<{ key: string; label: string } | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
+
+  const STATUS_MESSAGES: Record<string, { label: string; emoji: string; toast: string }> = {
+    new: { label: "Pedido recebido", emoji: "📥", toast: "Recebemos seu pedido!" },
+    preparing: { label: "Na cozinha!", emoji: "👨‍🍳", toast: "Seu pedido está sendo preparado!" },
+    ready: { label: "Pronto!", emoji: "📦", toast: "Seu pedido está pronto!" },
+    out_for_delivery: { label: "A caminho!", emoji: "🛵", toast: "Seu pedido saiu para entrega!" },
+    delivered: { label: "Entregue!", emoji: "🎉", toast: "Pedido entregue. Bom apetite!" },
+    completed: { label: "Concluído!", emoji: "🎉", toast: "Pedido concluído. Obrigado!" },
+    canceled: { label: "Cancelado", emoji: "⚠️", toast: "Seu pedido foi cancelado." },
+  };
+
+  useEffect(() => {
+    if (!order?.status) return;
+    const prev = prevStatusRef.current;
+    if (prev && prev !== order.status) {
+      const meta = STATUS_MESSAGES[order.status];
+      if (meta) {
+        toast.success(`${meta.emoji} ${meta.toast}`);
+        setStatusBurst({ key: order.status, label: meta.label });
+        try { navigator.vibrate?.([80, 40, 120]); } catch {}
+        if (order.status === "completed" || order.status === "delivered") {
+          setCelebrate(true);
+          setTimeout(() => setCelebrate(false), 3500);
+        }
+        setTimeout(() => setStatusBurst(null), 2600);
+      }
+    }
+    prevStatusRef.current = order.status;
+  }, [order?.status]);
+
+
 
   function copyPix() {
     if (!payment?.mp_qr_code) return;
