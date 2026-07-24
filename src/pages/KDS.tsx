@@ -237,13 +237,18 @@ const KDS = () => {
 
     const list = (data as unknown as Order[]) ?? [];
     const newlyArrived: Order[] = [];
+    const becameReady: Order[] = [];
     for (const o of list) {
+      const prev = prevStatus.current.get(o.id);
       if (o.status === "new" && !seenIds.current.has(o.id)) newlyArrived.push(o);
+      if (prev && prev !== "ready" && o.status === "ready") becameReady.push(o);
       seenIds.current.add(o.id);
+      prevStatus.current.set(o.id, o.status);
     }
-    if (!firstLoad.current && newlyArrived.length > 0) {
-      playBeep();
-      if (prefs.autoPrint) newlyArrived.forEach(printTicket);
+    if (!firstLoad.current && newlyArrived.length > 0) playBeep();
+    if (!firstLoad.current && prefs.autoPrint) {
+      if (prefs.printTrigger === "new" || prefs.printTrigger === "both") newlyArrived.forEach(printTicket);
+      if (prefs.printTrigger === "ready" || prefs.printTrigger === "both") becameReady.forEach(printTicket);
     }
     firstLoad.current = false;
 
