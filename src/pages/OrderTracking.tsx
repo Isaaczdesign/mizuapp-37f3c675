@@ -25,6 +25,9 @@ interface PaymentStatus {
   mp_qr_code: string | null;
   mp_qr_code_base64: string | null;
   mp_ticket_url: string | null;
+  payment_method: string | null;
+  mp_public_key: string | null;
+  total: number | null;
 }
 
 const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
