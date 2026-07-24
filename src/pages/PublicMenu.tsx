@@ -288,22 +288,65 @@ const PublicMenu = () => {
   const accentColor = restaurant?.primary_color ?? "#FF6B35";
   const openStatus = getOpenStatus(operatingHours);
 
-  // ── Upsell ──
-  const upsellItems = useMemo(() => {
+  // ── Upsell (rule engine) ──
+  type UpsellSuggestion = {
+    item: MenuItem;
+    reason: "combo" | "temaki_drink" | "high_margin" | "manual";
+    label: string;
+    emoji: string;
+    accent: string;
+  };
+  const DRINK_RX = /(bebida|drink|refri|refrigerante|suco|água|agua|cerveja|chá|cha|coca|guaraná|guarana|heineken|sake)/i;
+  const TEMAKI_RX = /temaki/i;
+  const upsellItems = useMemo<UpsellSuggestion[]>(() => {
     if (!cart.length) return [];
     const cartIds = new Set(cart.map((i) => i.menuItemId));
-    const suggestions: MenuItem[] = [];
-    const upsellIds = restaurant?.upsell_item_ids ?? [];
-    upsellIds.forEach((uid) => {
-      const item = items.find((i) => i.id === uid && !cartIds.has(i.id));
-      if (item && suggestions.length < 3) suggestions.push(item);
+    const catMap = new Map(categories.map((c) => [c.id, c.name] as const));
+    const isDrink = (it: MenuItem) =>
+      DRINK_RX.test(it.name) || DRINK_RX.test(catMap.get(it.category_id) ?? "");
+    const suggestions: UpsellSuggestion[] = [];
+    const seen = new Set<string>();
+    const push = (s: UpsellSuggestion) => {
+      if (seen.has(s.item.id) || cartIds.has(s.item.id)) return;
+      seen.add(s.item.id);
+      suggestions.push(s);
+    };
+
+    // Rule 1 — manual upsell list defined by the owner
+    (restaurant?.upsell_item_ids ?? []).forEach((uid) => {
+      const item = items.find((i) => i.id === uid);
+      if (!item) return;
+      push({ item, reason: "manual", label: "Recomendado pra você", emoji: "⭐", accent: "#FFB300" });
     });
-    if (suggestions.length < 3) {
-      const highMargin = items.find((i) => !cartIds.has(i.id) && (i.tags ?? []).includes("high_margin") && !suggestions.find((s) => s.id === i.id));
-      if (highMargin) suggestions.push(highMargin);
+
+    // Rule 2 — combo tag
+    items.forEach((it) => {
+      if ((it.tags ?? []).includes("combo")) {
+        push({ item: it, reason: "combo", label: "Vira combo!", emoji: "🎁", accent: "#E91E63" });
+      }
+    });
+
+    // Rule 3 — temaki → bebida
+    const hasTemaki = cart.some((c) => TEMAKI_RX.test(c.name));
+    const hasDrink = cart.some((c) => {
+      const it = items.find((i) => i.id === c.menuItemId);
+      return it ? isDrink(it) : DRINK_RX.test(c.name);
+    });
+    if (hasTemaki && !hasDrink) {
+      const drink = items.find((i) => isDrink(i));
+      if (drink) push({ item: drink, reason: "temaki_drink", label: "Combina com temaki", emoji: "🥤", accent: "#00B8D4" });
     }
+
+    // Rule 4 — high margin fallback
+    items.forEach((it) => {
+      if (suggestions.length >= 3) return;
+      if ((it.tags ?? []).includes("high_margin")) {
+        push({ item: it, reason: "high_margin", label: "Destaque da casa", emoji: "💎", accent: "#7C4DFF" });
+      }
+    });
+
     return suggestions.slice(0, 3);
-  }, [cart, items, restaurant]);
+  }, [cart, items, restaurant, categories]);
 
   // ── Cart Logic ──
   function openItemDetail(item: MenuItem) {
@@ -979,20 +1022,93 @@ const PublicMenu = () => {
                   </div>
                 ))}
 
-                {/* Upsell */}
+                {/* Upsell — one-tap recommendations */}
                 {upsellItems.length > 0 && (
                   <div className="pt-3 border-t border-border">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Que tal adicionar?</p>
-                    {upsellItems.map((item) => (
-                      <button key={item.id} onClick={() => { addSimpleToCart(item); }}
-                        className="w-full flex items-center justify-between p-2.5 rounded-xl bg-secondary/50 mb-1.5 hover:bg-secondary transition-colors">
-                        <div className="text-left">
-                          <p className="text-sm font-medium">{item.name}</p>
-                          <p className="text-xs font-bold" style={{ color: accentColor }}>+ {fmt(Number(item.price))}</p>
-                        </div>
-                        <Plus className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    ))}
+                    <div className="flex items-center gap-2 mb-2">
+                      <motion.span
+                        animate={{ rotate: [0, 12, -8, 0] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                        className="text-base"
+                      >
+                        ✨
+                      </motion.span>
+                      <p className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+                        Sugestões pra turbinar o pedido
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {upsellItems.map((sug, idx) => (
+                        <motion.button
+                          key={sug.item.id}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.07, type: "spring", stiffness: 320, damping: 22 }}
+                          whileHover={{ scale: 1.015 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => {
+                            if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+                              try { navigator.vibrate?.(18); } catch {}
+                            }
+                            addSimpleToCart(sug.item);
+                          }}
+                          className="group relative w-full flex items-center gap-3 p-2.5 rounded-xl overflow-hidden text-left transition-colors"
+                          style={{
+                            background: `linear-gradient(90deg, ${sug.accent}22 0%, ${sug.accent}0a 100%)`,
+                            border: `1px solid ${sug.accent}55`,
+                          }}
+                        >
+                          {/* Shimmer sweep on hover */}
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[900ms] ease-out"
+                            style={{
+                              background: `linear-gradient(100deg, transparent 30%, ${sug.accent}55 50%, transparent 70%)`,
+                            }}
+                          />
+                          {/* Thumb */}
+                          <div
+                            className="relative w-11 h-11 rounded-lg shrink-0 overflow-hidden flex items-center justify-center text-lg"
+                            style={{ background: `${sug.accent}33` }}
+                          >
+                            {sug.item.image_url
+                              ? <img src={sug.item.image_url} alt={sug.item.name} className="w-full h-full object-cover" />
+                              : <span>{sug.emoji}</span>}
+                          </div>
+                          {/* Info */}
+                          <div className="relative flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span
+                                className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+                                style={{ background: sug.accent, color: "#fff" }}
+                              >
+                                {sug.emoji} {sug.label}
+                              </span>
+                            </div>
+                            <p className="text-sm font-semibold truncate">{sug.item.name}</p>
+                            <p className="text-xs font-bold" style={{ color: sug.accent }}>
+                              + {fmt(Number(sug.item.price))}
+                            </p>
+                          </div>
+                          {/* Tap-to-add pulsing CTA */}
+                          <div className="relative shrink-0">
+                            <motion.span
+                              aria-hidden
+                              className="absolute inset-0 rounded-full"
+                              style={{ background: sug.accent, opacity: 0.35 }}
+                              animate={{ scale: [1, 1.55, 1], opacity: [0.35, 0, 0.35] }}
+                              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                            />
+                            <span
+                              className="relative w-9 h-9 rounded-full flex items-center justify-center text-white shadow-lg"
+                              style={{ background: sug.accent }}
+                            >
+                              <Plus className="w-4 h-4" strokeWidth={3} />
+                            </span>
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
