@@ -10,7 +10,7 @@ import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
   AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search,
 } from "lucide-react";
-import { isOpenNow } from "@/lib/operatingHours";
+import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 
 // ── Types ──
 interface Variation { id: string; name: string; price_delta: number; absolute_price: number | null; }
@@ -107,6 +107,8 @@ const PublicMenu = () => {
   const [search, setSearch] = useState("");
   const [showCart, setShowCart] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(0); // 0=closed, 1=tipo, 2=infos, 3=pagamento, 4=revisão
+  const [, setClockTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setClockTick((n) => n + 1), 60_000); return () => clearInterval(t); }, []);
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -576,13 +578,17 @@ const PublicMenu = () => {
         const acceptingOff = (restaurant as any)?.accepting_orders === false;
         const outsideHours = !!operatingHours && !isOpenNow(operatingHours);
         if (!acceptingOff && !outsideHours) return null;
+        const nextOpen = outsideHours ? nextOpenAt(operatingHours) : null;
+        const countdown = nextOpen ? formatCountdown(nextOpen) : null;
         return (
           <div className="mx-4 mt-4 p-4 rounded-2xl border border-red-500/30 bg-red-500/10 text-sm">
             <div className="font-bold text-red-400 mb-1">Estabelecimento fechado</div>
             <div className="text-muted-foreground">
               {acceptingOff
                 ? ((restaurant as any)?.closed_message || "O estabelecimento encerrou o atendimento e não está aceitando novos pedidos no momento.")
-                : "Fora do horário de funcionamento. Novos pedidos serão aceitos no próximo horário de abertura."}
+                : (countdown
+                    ? <>Fora do horário de funcionamento. Reabre em <span className="font-semibold text-red-300">{countdown}</span>{nextOpen ? ` (${nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })})` : ""}.</>
+                    : "Fora do horário de funcionamento. Novos pedidos serão aceitos no próximo horário de abertura.")}
             </div>
           </div>
         );
