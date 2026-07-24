@@ -28,6 +28,7 @@ interface PaymentStatus {
   payment_method: string | null;
   mp_public_key: string | null;
   total: number | null;
+  payment_expires_at: string | null;
 }
 
 const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
