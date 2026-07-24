@@ -1020,6 +1020,23 @@ const PublicMenu = () => {
               {/* Step 2: Infos (customer + mesa/endereço) */}
               {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                  {(customerName || customerWhatsapp) && (
+                    <div className="flex items-center justify-between rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs">
+                      <span className="text-muted-foreground">✨ Dados preenchidos do seu último pedido</span>
+                      <button
+                        type="button"
+                        className="text-primary hover:underline font-medium"
+                        onClick={() => {
+                          if (storageKey) localStorage.removeItem(storageKey);
+                          setCustomerName(""); setCustomerWhatsapp(""); setConsentMarketing(false);
+                          setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                          setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                        }}
+                      >
+                        Limpar
+                      </button>
+                    </div>
+                  )}
                   <div>
                     <label className="text-sm font-medium">Nome *</label>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
