@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowDownLeft, ArrowDownRight } from "lucide-react";
+import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowDownLeft, ArrowDownRight, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNotificationPrefs, PopupPosition } from "@/hooks/useNotificationPrefs";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
@@ -24,6 +24,8 @@ interface OrderPopup extends NewOrderPayload {
   customerName?: string;
   tableNumber?: number;
   items?: { name: string; quantity: number }[];
+  kind?: "new" | "canceled";
+  cancelReason?: string;
 }
 
 const positionClass: Record<PopupPosition, string> = {
@@ -34,6 +36,13 @@ const positionClass: Record<PopupPosition, string> = {
   "bottom-right": "bottom-4 right-4",
 };
 
+function extractCancelReason(notes: string | null | undefined): string | undefined {
+  if (!notes) return undefined;
+  const m = notes.match(/Cancelado pelo cliente(?::\s*([^\n]+))?/i);
+  if (!m) return undefined;
+  return (m[1] || "").trim() || "Não informado";
+}
+
 export default function OrderNotificationProvider() {
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -42,8 +51,10 @@ export default function OrderNotificationProvider() {
   const [popup, setPopup] = useState<OrderPopup | null>(null);
   const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seenOrderIds = useRef<Set<string>>(new Set());
+  const canceledOrderIds = useRef<Set<string>>(new Set());
+  const orderStatusMap = useRef<Map<string, string>>(new Map());
 
-  const playSound = useCallback(() => {
+  const playSound = useCallback((kind: "new" | "canceled" = "new") => {
     if (!prefs.sound_enabled) return;
     try {
       const ctx = new AudioContext();
@@ -59,27 +70,35 @@ export default function OrderNotificationProvider() {
         osc.start(ctx.currentTime + startTime);
         osc.stop(ctx.currentTime + startTime + 0.4);
       };
-      playBeep(880, 0);
-      playBeep(1100, 0.15);
-      playBeep(1320, 0.3);
+      if (kind === "canceled") {
+        playBeep(520, 0);
+        playBeep(380, 0.2);
+        playBeep(260, 0.4);
+      } else {
+        playBeep(880, 0);
+        playBeep(1100, 0.15);
+        playBeep(1320, 0.3);
+      }
     } catch {}
   }, [prefs.sound_enabled]);
 
   const showBrowserNotification = useCallback((order: OrderPopup) => {
     if (!prefs.browser_push_enabled) return;
     if ("Notification" in window && Notification.permission === "granted") {
+      const isCanceled = order.kind === "canceled";
       const typeLbl = order.order_type ? `${ORDER_TYPE_EMOJI[order.order_type] ?? ""} ${orderTypeLabel(order.order_type)}` : null;
       const body = [
         typeLbl,
         order.customerName && `Cliente: ${order.customerName}`,
         order.tableNumber && `Mesa ${order.tableNumber}`,
+        isCanceled && order.cancelReason && `Motivo: ${order.cancelReason}`,
         `Total: R$${Number(order.total).toFixed(2)}`,
       ].filter(Boolean).join(" · ");
 
-      const notif = new Notification("🔔 Novo Pedido!", {
+      const notif = new Notification(isCanceled ? "❌ Pedido cancelado" : "🔔 Novo Pedido!", {
         body,
         icon: "/favicon.ico",
-        tag: `order-${order.id}`,
+        tag: `order-${order.id}-${order.kind ?? "new"}`,
         requireInteraction: true,
       });
 
@@ -108,39 +127,66 @@ export default function OrderNotificationProvider() {
     return enriched;
   }, []);
 
-  const handleNewOrder = useCallback(async (payload: any) => {
-    const order = payload.new as NewOrderPayload;
-    // Ignora pedidos com pagamento online ainda pendente/recusado — só notifica quando pago
-    // (payment_status null = pagamento offline como dinheiro/maquininha, sempre notifica).
-    const ps = order.payment_status;
-    if (ps != null && ps !== "paid" && ps !== "approved") {
-      return;
-    }
-    if (seenOrderIds.current.has(order.id)) return;
-    seenOrderIds.current.add(order.id);
+  const showCanceledPopup = useCallback(async (order: NewOrderPayload) => {
+    if (canceledOrderIds.current.has(order.id)) return;
+    canceledOrderIds.current.add(order.id);
     const enriched = await enrichOrder(order);
+    enriched.kind = "canceled";
+    enriched.cancelReason = extractCancelReason(order.notes);
 
-    playSound();
+    playSound("canceled");
     showBrowserNotification(enriched);
     if (prefs.popup_enabled) {
       setPopup(enriched);
       if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current);
       autoCloseTimer.current = setTimeout(() => setPopup(null), 20000);
     }
-  }, [playSound, showBrowserNotification, enrichOrder, prefs.popup_enabled]);
+  }, [enrichOrder, playSound, showBrowserNotification, prefs.popup_enabled]);
+
+  const handleOrderChange = useCallback(async (payload: any) => {
+    const order = payload.new as NewOrderPayload;
+    const prevStatus = orderStatusMap.current.get(order.id);
+    orderStatusMap.current.set(order.id, order.status);
+
+    // Detect cancellation (new insert already canceled, or transition to canceled)
+    if (order.status === "canceled" && prevStatus !== "canceled") {
+      await showCanceledPopup(order);
+      return;
+    }
+
+    // New order path
+    const ps = order.payment_status;
+    if (ps != null && ps !== "paid" && ps !== "approved") return;
+    if (seenOrderIds.current.has(order.id)) return;
+    seenOrderIds.current.add(order.id);
+    const enriched = await enrichOrder(order);
+    enriched.kind = "new";
+
+    playSound("new");
+    showBrowserNotification(enriched);
+    if (prefs.popup_enabled) {
+      setPopup(enriched);
+      if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current);
+      autoCloseTimer.current = setTimeout(() => setPopup(null), 20000);
+    }
+  }, [playSound, showBrowserNotification, enrichOrder, prefs.popup_enabled, showCanceledPopup]);
 
   useEffect(() => {
     if (!restaurantId) return;
 
-    // Marca os pedidos já existentes como "vistos" para não estourar popup antigo ao carregar
+    // Marca pedidos existentes como "vistos" para não estourar popup antigo ao carregar
     (async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id")
+        .select("id, status")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(200);
-      (data ?? []).forEach((o: any) => seenOrderIds.current.add(o.id));
+      (data ?? []).forEach((o: any) => {
+        seenOrderIds.current.add(o.id);
+        orderStatusMap.current.set(o.id, o.status);
+        if (o.status === "canceled") canceledOrderIds.current.add(o.id);
+      });
     })();
 
     const channel = supabase
@@ -150,26 +196,33 @@ export default function OrderNotificationProvider() {
         schema: "public",
         table: "orders",
         filter: `restaurant_id=eq.${restaurantId}`,
-      }, handleNewOrder)
+      }, handleOrderChange)
       .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
         table: "orders",
         filter: `restaurant_id=eq.${restaurantId}`,
-      }, handleNewOrder)
+      }, handleOrderChange)
       .subscribe();
 
-    // Fallback polling — só considera pedidos já pagos (ou sem exigência de pagamento online).
+    // Fallback polling
     const poll = setInterval(async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, total, status, created_at, table_id, customer_id, notes, payment_status")
+        .select("id, total, status, created_at, table_id, customer_id, notes, payment_status, order_type")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(20);
       for (const o of (data ?? []) as NewOrderPayload[]) {
+        const prev = orderStatusMap.current.get(o.id);
+        if (o.status === "canceled" && !canceledOrderIds.current.has(o.id)) {
+          await showCanceledPopup(o);
+          continue;
+        }
         if (!seenOrderIds.current.has(o.id)) {
-          await handleNewOrder({ new: o });
+          await handleOrderChange({ new: o });
+        } else if (prev !== o.status) {
+          orderStatusMap.current.set(o.id, o.status);
         }
       }
     }, 8000);
@@ -179,7 +232,7 @@ export default function OrderNotificationProvider() {
       clearInterval(poll);
       if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current);
     };
-  }, [restaurantId, handleNewOrder]);
+  }, [restaurantId, handleOrderChange, showCanceledPopup]);
 
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -188,6 +241,8 @@ export default function OrderNotificationProvider() {
     if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current);
     autoCloseTimer.current = setTimeout(() => setPopup(null), 20000);
   };
+
+  const isCanceled = popup?.kind === "canceled";
 
   return (
     <AnimatePresence>
@@ -200,15 +255,21 @@ export default function OrderNotificationProvider() {
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className={`fixed z-[70] w-[360px] max-w-[calc(100vw-2rem)] ${positionClass[prefs.popup_position]}`}
         >
-          <div className="glass-card border border-primary/30 shadow-2xl shadow-primary/10 overflow-hidden">
+          <div className={`glass-card border shadow-2xl overflow-hidden ${isCanceled ? "border-destructive/40 shadow-destructive/10" : "border-primary/30 shadow-primary/10"}`}>
             {/* Header */}
-            <div className="bg-primary/10 px-4 py-3 flex items-center justify-between">
+            <div className={`px-4 py-3 flex items-center justify-between ${isCanceled ? "bg-destructive/10" : "bg-primary/10"}`}>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <ShoppingBag className="w-4 h-4 text-primary" />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isCanceled ? "bg-destructive/20" : "bg-primary/20"}`}>
+                  {isCanceled ? (
+                    <XCircle className="w-4 h-4 text-destructive" />
+                  ) : (
+                    <ShoppingBag className="w-4 h-4 text-primary" />
+                  )}
                 </div>
                 <div>
-                  <p className="font-display font-bold text-sm">Novo Pedido!</p>
+                  <p className="font-display font-bold text-sm">
+                    {isCanceled ? "Pedido cancelado" : "Novo Pedido!"}
+                  </p>
                   <p className="text-xs text-muted-foreground font-mono">#{popup.id.slice(0, 8)}</p>
                 </div>
               </div>
@@ -257,6 +318,12 @@ export default function OrderNotificationProvider() {
                 )}
               </div>
 
+              {isCanceled && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-2.5 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-destructive/80 font-semibold mb-0.5">Motivo</p>
+                  <p className="text-foreground">{popup.cancelReason || "Não informado"}</p>
+                </div>
+              )}
 
               {popup.items && popup.items.length > 0 && (
                 <div className="space-y-1">
@@ -272,12 +339,14 @@ export default function OrderNotificationProvider() {
                 </div>
               )}
 
-              {popup.notes && <p className="text-xs text-muted-foreground italic">📝 {popup.notes}</p>}
+              {popup.notes && !isCanceled && <p className="text-xs text-muted-foreground italic">📝 {popup.notes}</p>}
 
               <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="font-display font-bold text-lg text-primary">{fmt(Number(popup.total))}</span>
+                <span className={`font-display font-bold text-lg ${isCanceled ? "text-destructive" : "text-primary"}`}>
+                  {fmt(Number(popup.total))}
+                </span>
                 <Button
-                  variant="hero"
+                  variant={isCanceled ? "outline" : "hero"}
                   size="sm"
                   onClick={() => {
                     setPopup(null);
