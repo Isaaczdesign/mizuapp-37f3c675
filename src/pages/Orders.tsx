@@ -11,6 +11,7 @@ import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import AdminLayout from "@/components/AdminLayout";
 import NewOrderModal from "@/components/NewOrderModal";
 import EditOrderModal from "@/components/EditOrderModal";
+import { paymentMethodLabel } from "@/lib/paymentMethods";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
