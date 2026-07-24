@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Download, FileText, RefreshCw, ListOrdered } from "lucide-react";
+import { Download, FileText, RefreshCw, ListOrdered, ArrowLeft } from "lucide-react";
 import { fmtBRL, PAYMENT_LABEL, type ShiftRow } from "@/lib/shiftUtils";
 import { generateShiftReportPDF } from "@/lib/shiftReport";
 import { toast } from "sonner";
@@ -70,6 +70,9 @@ export default function ExpedienteHistorico() {
   return (
     <AdminLayout>
       <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4">
+        <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
+          <Link to="/expediente"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link>
+        </Button>
         <h1 className="font-display text-2xl md:text-3xl font-bold">📚 <span className="gradient-text">Histórico de expedientes</span></h1>
 
         <div className="glass-card overflow-x-auto">
