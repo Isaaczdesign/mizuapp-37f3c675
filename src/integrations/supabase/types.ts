@@ -1612,6 +1612,10 @@ export type Database = {
         Args: { _restaurant_id: string }
         Returns: boolean
       }
+      is_restaurant_open_now: {
+        Args: { _restaurant_id: string }
+        Returns: boolean
+      }
       recalc_customer_stats: {
         Args: { _customer_id: string }
         Returns: undefined

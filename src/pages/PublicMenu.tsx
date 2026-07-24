@@ -10,6 +10,7 @@ import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
   AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search,
 } from "lucide-react";
+import { isOpenNow } from "@/lib/operatingHours";
 
 // ── Types ──
 interface Variation { id: string; name: string; price_delta: number; absolute_price: number | null; }
@@ -571,14 +572,21 @@ const PublicMenu = () => {
         </div>
       </div>
 
-      {(restaurant as any)?.accepting_orders === false && (
-        <div className="mx-4 mt-4 p-4 rounded-2xl border border-red-500/30 bg-red-500/10 text-sm">
-          <div className="font-bold text-red-400 mb-1">Estabelecimento fechado</div>
-          <div className="text-muted-foreground">
-            {(restaurant as any)?.closed_message || "O estabelecimento encerrou o atendimento e não está aceitando novos pedidos no momento."}
+      {(() => {
+        const acceptingOff = (restaurant as any)?.accepting_orders === false;
+        const outsideHours = !!operatingHours && !isOpenNow(operatingHours);
+        if (!acceptingOff && !outsideHours) return null;
+        return (
+          <div className="mx-4 mt-4 p-4 rounded-2xl border border-red-500/30 bg-red-500/10 text-sm">
+            <div className="font-bold text-red-400 mb-1">Estabelecimento fechado</div>
+            <div className="text-muted-foreground">
+              {acceptingOff
+                ? ((restaurant as any)?.closed_message || "O estabelecimento encerrou o atendimento e não está aceitando novos pedidos no momento.")
+                : "Fora do horário de funcionamento. Novos pedidos serão aceitos no próximo horário de abertura."}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
 
       {/* ── Sticky Category Nav ── */}
@@ -949,14 +957,19 @@ const PublicMenu = () => {
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
                 </div>
-                <Button
-                  className="w-full py-6 text-base rounded-2xl font-bold"
-                  style={{ backgroundColor: accentColor }}
-                  disabled={(restaurant as any)?.accepting_orders === false}
-                  onClick={() => { setShowCart(false); setCheckoutStep(1); }}
-                >
-                  {(restaurant as any)?.accepting_orders === false ? "Estabelecimento fechado" : (<>Ver pedido <ChevronRight className="w-4 h-4 ml-1" /></>)}
-                </Button>
+                {(() => {
+                  const closed = (restaurant as any)?.accepting_orders === false || (!!operatingHours && !isOpenNow(operatingHours));
+                  return (
+                    <Button
+                      className="w-full py-6 text-base rounded-2xl font-bold"
+                      style={{ backgroundColor: accentColor }}
+                      disabled={closed}
+                      onClick={() => { setShowCart(false); setCheckoutStep(1); }}
+                    >
+                      {closed ? "Estabelecimento fechado" : (<>Ver pedido <ChevronRight className="w-4 h-4 ml-1" /></>)}
+                    </Button>
+                  );
+                })()}
               </div>
             </motion.div>
           </motion.div>
