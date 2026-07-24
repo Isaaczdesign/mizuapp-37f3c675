@@ -210,7 +210,8 @@ function AddonsEditor({ itemId, rid }: { itemId: string; rid: string }) {
 function MenuImportTab({ rid }: { rid: string }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [activeJob, setActiveJob] = useState<any>(null);
   const [parsedResult, setParsedResult] = useState<any>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -222,6 +223,75 @@ function MenuImportTab({ rid }: { rid: string }) {
       return data ?? [];
     },
   });
+
+  const selectAll = (parsed: any) => {
+    const allKeys = new Set<string>();
+    parsed?.categories?.forEach((cat: any, ci: number) => {
+      cat.items?.forEach((_: any, ii: number) => allKeys.add(`${ci}-${ii}`));
+    });
+    setSelectedItems(allKeys);
+  };
+
+  // Acompanha o job em andamento (realtime + polling de segurança)
+  useEffect(() => {
+    if (!activeJobId) return;
+    let stopped = false;
+
+    const apply = (job: any) => {
+      if (stopped || !job) return;
+      setActiveJob(job);
+      if (job.parsed_result) setParsedResult(job.parsed_result);
+      if (job.status === "ready_for_review") {
+        selectAll(job.parsed_result);
+        setActiveJobId(null);
+        qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+        toast.success(`Cardápio processado! ${job.items_found ?? 0} itens encontrados.`);
+      } else if (job.status === "error") {
+        setActiveJobId(null);
+        qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+        toast.error(job.error_message || "Falha ao processar o cardápio.");
+      }
+    };
+
+    const fetchJob = async () => {
+      const { data } = await (supabase as any).from("menu_import_jobs").select("*").eq("id", activeJobId).maybeSingle();
+      apply(data);
+    };
+
+    fetchJob();
+    const interval = setInterval(fetchJob, 3000);
+    const channel = supabase
+      .channel(`import-job-${activeJobId}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "menu_import_jobs", filter: `id=eq.${activeJobId}` },
+        (payload) => apply(payload.new))
+      .subscribe();
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [activeJobId, rid, qc]);
+
+  const startJob = async (jobId: string) => {
+    setParsedResult(null);
+    setSelectedItems(new Set());
+    setActiveJob(null);
+    const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ job_id: jobId }),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
+      throw new Error(errBody.error || `Erro ${resp.status}`);
+    }
+    setActiveJobId(jobId);
+    qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -246,59 +316,22 @@ function MenuImportTab({ rid }: { rid: string }) {
       }).select().single();
       if (jobErr) throw jobErr;
 
-      toast.success("Arquivo enviado! Processando com IA...");
-      setUploading(false);
-      setProcessing(true);
-
-      // For images, send the public URL for vision processing
-      // For PDFs, send filename as hint
-      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.name);
-
-      let requestBody: any;
-      if (isImage) {
-        requestBody = { image_url: urlData.publicUrl };
-      } else {
-        requestBody = { ocr_text: `[PDF file uploaded: ${file.name}]. Please analyze the file at URL: ${urlData.publicUrl}` };
-      }
-
-      // Call import-menu edge function
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!resp.ok) {
-        const errBody = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
-        throw new Error(errBody.error || `Erro ${resp.status}`);
-      }
-
-      const parsed = await resp.json();
-      if (parsed?.error) throw new Error(parsed.error);
-      setParsedResult(parsed);
-
-      // Select all items by default
-      const allKeys = new Set<string>();
-      parsed.categories?.forEach((cat: any, ci: number) => {
-        cat.items?.forEach((_: any, ii: number) => allKeys.add(`${ci}-${ii}`));
-      });
-      setSelectedItems(allKeys);
-
-      // Update job with results
-      await (supabase as any).from("menu_import_jobs").update({
-        status: "ready_for_review", parsed_result: parsed,
-      }).eq("id", job.id);
-
-      qc.invalidateQueries({ queryKey: ["import-jobs", rid] });
-      toast.success("Cardápio processado! Revise os itens abaixo.");
+      toast.success("Arquivo enviado! A importação foi enfileirada.");
+      await startJob(job.id);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setUploading(false);
-      setProcessing(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleReprocess = async (jobId: string) => {
+    try {
+      await startJob(jobId);
+      toast.success("Reprocessamento enfileirado.");
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
