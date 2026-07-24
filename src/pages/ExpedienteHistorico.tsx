@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Download, FileText, RefreshCw, ListOrdered } from "lucide-react";
+import { Download, FileText, RefreshCw, ListOrdered, ArrowLeft } from "lucide-react";
 import { fmtBRL, PAYMENT_LABEL, type ShiftRow } from "@/lib/shiftUtils";
 import { generateShiftReportPDF } from "@/lib/shiftReport";
 import { toast } from "sonner";
