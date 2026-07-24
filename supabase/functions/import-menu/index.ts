@@ -260,33 +260,8 @@ serve(async (req) => {
     }
     if (!Array.isArray(parsed.categories)) parsed.categories = [];
 
-    // ---- Passo 2: verificação/auditoria para pegar itens faltantes ----
-    // Só faz sentido quando temos o arquivo original em mãos
-    if (fileUrl) {
-      try {
-        const summary = parsed.categories
-          .map((c: any) => `# ${c.name}\n` + (c.items ?? []).map((i: any) => `- ${i.name}`).join("\n"))
-          .join("\n\n")
-          .slice(0, 12000);
-
-        const verifyMessages: any[] = [
-          { role: "system", content: VERIFY_PROMPT },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: `Extração anterior:\n\n${summary}\n\nAgora releia o arquivo original inteiro e devolva SOMENTE os itens que faltaram, em JSON.` },
-              (userContent as any[])[1], // reenvia o arquivo
-            ],
-          },
-        ];
-        const raw2 = await callModel(verifyMessages, LOVABLE_API_KEY);
-        const extras = extractJson(raw2);
-        parsed = mergeResults(parsed, extras);
-      } catch (e) {
-        console.warn("verify pass failed:", e);
-        // segue sem verificação
-      }
-    }
+    // Passo de verificação removido: dobrava o tempo e estourava o timeout de
+    // 150s do edge runtime. O prompt principal já força extração exaustiva.
 
     parsed.total_items_extracted = countItems(parsed);
 
