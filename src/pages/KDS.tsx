@@ -282,8 +282,18 @@ const KDS = () => {
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
     else document.exitFullscreen?.().catch(() => {});
-    setPrefsPatch({ tvMode: !prefs.tvMode });
   };
+
+  // Sync tvMode with actual fullscreen state (handles ESC / browser exit)
+  useEffect(() => {
+    const onFsChange = () => {
+      const isFs = !!document.fullscreenElement;
+      setPrefsPatch({ tvMode: isFs });
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredOrders = useMemo(() => {
     if (prefs.filter === "all") return orders;
