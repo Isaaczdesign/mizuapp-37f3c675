@@ -169,20 +169,27 @@ const Settings = () => {
       if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
       if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
 
-      const { error: restError } = await supabase
-        .from("restaurants")
-        .update({
-          name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
-          primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
-          payment_methods: paymentMethods,
-          dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
-          delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
-          address: address || null,
-          mp_enabled: mpEnabled,
-          mp_access_token: mpAccessToken.trim() || null,
-          mp_public_key: mpPublicKey.trim() || null,
-        } as any)
-        .eq("id", rid);
+      // Validate slug before saving
+      const cleanedSlug = slug.trim().toLowerCase();
+      if (slugCheck.status === "checking") throw new Error("Aguarde a verificação do slug");
+      if (slugCheck.status === "invalid" || slugCheck.status === "taken") {
+        throw new Error(slugCheck.msg || "Slug inválido");
+      }
+
+      const payload: any = {
+        name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
+        primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
+        payment_methods: paymentMethods,
+        dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
+        delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
+        address: address || null,
+        mp_enabled: mpEnabled,
+        mp_access_token: mpAccessToken.trim() || null,
+        mp_public_key: mpPublicKey.trim() || null,
+      };
+      if (slugCheck.status === "available") payload.slug = cleanedSlug;
+
+      const { error: restError } = await supabase.from("restaurants").update(payload).eq("id", rid);
       if (restError) throw restError;
 
       const settingsPayload: any = {
