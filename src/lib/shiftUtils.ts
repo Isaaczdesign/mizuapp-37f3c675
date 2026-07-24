@@ -77,7 +77,8 @@ export function computeShiftTotals(orders: OrderRow[]) {
 export function expectedByPaymentMethod(orders: OrderRow[]) {
   const map: Record<string, { total: number; count: number }> = {};
   for (const o of orders) {
-    if (o.status === "canceled" || o.status === "refused") continue;
+    const st = o.status as string;
+    if (st === "canceled" || st === "refused") continue;
     const key = (o as any).payment_method || "other";
     if (!map[key]) map[key] = { total: 0, count: 0 };
     map[key].total += Number(o.total || 0);
