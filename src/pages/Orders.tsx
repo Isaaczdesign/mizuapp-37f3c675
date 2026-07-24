@@ -168,6 +168,22 @@ const Orders = () => {
     return `https://www.google.com/maps/dir/?api=1${origin}&destination=${dest}&travelmode=driving`;
   }
 
+  // Load current open shift for the restaurant
+  useEffect(() => {
+    if (!restaurantId) { setCurrentShiftId(null); return; }
+    supabase.rpc("get_current_shift", { _restaurant_id: restaurantId }).then(({ data }) => {
+      const arr = data as any[] | null;
+      setCurrentShiftId(arr && arr[0]?.id ? arr[0].id : null);
+    });
+  }, [restaurantId]);
+
+  // If ?shift=<id>, load that shift's info (for the header banner)
+  useEffect(() => {
+    if (!historyShiftId) { setViewingShift(null); return; }
+    supabase.from("work_shifts").select("id, opened_at, status").eq("id", historyShiftId).maybeSingle()
+      .then(({ data }) => setViewingShift((data as any) ?? null));
+  }, [historyShiftId]);
+
   useEffect(() => {
     if (!restaurantId) return;
     loadOrders();
@@ -182,24 +198,34 @@ const Orders = () => {
       })
       .subscribe();
 
-    // Fallback polling — garante que pedidos (incluindo delivery com PIX pendente)
-    // apareçam mesmo se um evento realtime for perdido.
     const poll = setInterval(loadOrders, 10000);
-
     return () => { supabase.removeChannel(channel); clearInterval(poll); };
-  }, [restaurantId]);
+  }, [restaurantId, scopeFilter, currentShiftId, historyShiftId]);
 
   async function loadOrders() {
     if (!restaurantId) return;
-    const { data } = await supabase
+    let q = supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, shift_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
 
-    // Só exibe pedidos já pagos ou que não exigem pagamento online (payment_status null = dinheiro/maquininha).
-    // Pedidos com PIX online aguardando pagamento (pending/rejected/refused) ficam ocultos até serem confirmados.
+    if (historyShiftId) {
+      q = q.eq("shift_id", historyShiftId);
+    } else if (scopeFilter === "current") {
+      if (currentShiftId) {
+        q = q.eq("shift_id", currentShiftId);
+      } else {
+        // no open shift → show nothing under "current"
+        setOrders([]); setLoading(false); return;
+      }
+    } else if (scopeFilter === "7d") {
+      const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      q = q.gte("created_at", from);
+    }
+
+    const { data } = await q;
     const visible = ((data as unknown as Order[]) ?? []).filter(
       (o) => o.payment_status == null || o.payment_status === "paid" || o.payment_status === "approved"
     );
@@ -207,6 +233,7 @@ const Orders = () => {
     setOrders(visible);
     setLoading(false);
   }
+
 
   async function updateStatus(orderId: string, newStatus: OrderStatus) {
     const order = orders.find((o) => o.id === orderId);
