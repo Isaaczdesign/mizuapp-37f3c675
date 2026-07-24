@@ -785,8 +785,28 @@ export default function Onboarding() {
                             );
                           })}
                         </div>
+                        {menuJob && (
+                          <div className="w-full max-w-sm space-y-2">
+                            <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+                              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${menuJob.progress ?? 0}%` }} />
+                            </div>
+                            <p className="text-xs text-muted-foreground text-center">
+                              {menuJob.pages_total ? `Páginas ${menuJob.pages_processed ?? 0}/${menuJob.pages_total} · ` : ""}
+                              {menuJob.items_found ?? 0} itens encontrados
+                            </p>
+                            {Array.isArray(menuJob.logs) && menuJob.logs.length > 0 && (
+                              <div className="max-h-28 overflow-y-auto rounded-lg bg-secondary/50 p-2 space-y-1">
+                                {menuJob.logs.slice(-12).map((l: any, i: number) => (
+                                  <p key={i} className={`text-[10px] font-mono ${l.level === "error" ? "text-destructive" : "text-muted-foreground"}`}>
+                                    {l.message}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <p className="text-xs text-muted-foreground text-center">
-                          Isso pode levar alguns segundos. Não feche esta janela.
+                          Cardápios grandes são processados em lotes; isso pode levar alguns minutos.
                         </p>
                       </div>
                     </div>
