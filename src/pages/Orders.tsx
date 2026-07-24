@@ -297,6 +297,27 @@ const Orders = () => {
     setSelectedOrder(null);
   }
 
+  // Pagamento offline (no local / na retirada / na entrega): dinheiro, maquininha, pix manual etc.
+  function isOfflinePayment(order: Order) {
+    return order.payment_method !== "pix" && order.payment_method !== "credit_card_online";
+  }
+  function isPaid(order: Order) {
+    return order.payment_status === "paid" || order.payment_status === "approved";
+  }
+
+  async function confirmPayment(orderId: string) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ payment_status: "paid" } as any)
+      .eq("id", orderId);
+    if (error) { toast.error("Erro ao confirmar pagamento"); return; }
+    toast.success("💰 Pagamento confirmado!");
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, payment_status: "paid" } : o)));
+    setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, payment_status: "paid" } : prev));
+  }
+
+
+
   async function saveEta(orderId: string, isoDatetime: string | null) {
     const { error } = await supabase.from("orders").update({ delivery_eta: isoDatetime }).eq("id", orderId);
     if (error) { toast.error("Erro ao salvar previsão"); return; }
