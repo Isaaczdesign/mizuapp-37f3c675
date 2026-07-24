@@ -367,6 +367,46 @@ const Orders = () => {
         </div>
       </div>
 
+      {/* Shift scope banner / filter */}
+      {historyShiftId ? (
+        <div className="mb-4 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between gap-3 flex-wrap">
+          <div className="text-sm flex items-center gap-2 text-amber-300">
+            <Clock className="w-4 h-4" />
+            <span>
+              Vendo pedidos do expediente
+              {viewingShift ? ` aberto em ${new Date(viewingShift.opened_at).toLocaleString("pt-BR")}` : ""}
+            </span>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => { setSearchParams({}); }}>
+            Voltar ao expediente atual
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="text-xs text-muted-foreground">Escopo:</span>
+          {([
+            { key: "current", label: "Expediente atual" },
+            { key: "7d", label: "Últimos 7 dias" },
+            { key: "all", label: "Todos" },
+          ] as { key: ScopeFilter; label: string }[]).map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setScopeFilter(s.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                scopeFilter === s.key
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/60 text-muted-foreground border-border hover:text-foreground"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+          {scopeFilter === "current" && !currentShiftId && (
+            <span className="text-xs text-amber-400 ml-1">Nenhum expediente aberto</span>
+          )}
+        </div>
+      )}
+
       {/* Search */}
       <div className="mb-3 relative max-w-md">
         <input
