@@ -1455,8 +1455,9 @@ const PublicMenu = () => {
                       Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
                     if (enabled("pix")) available.push({ key: "pix", label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
                     if (mpOn) available.push({ key: "credit_card_online", label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
-                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: "Cartão de Crédito (no local)" });
-                    if (enabled("debit_card")) available.push({ key: "debit_card", label: "Cartão de Débito (no local)" });
+                    const isDelivery = orderType === "delivery";
+                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: isDelivery ? "Pagar na entrega" : "Cartão de Crédito (no local)", hint: isDelivery ? "Cartão na maquininha do entregador" : undefined });
+                    if (enabled("debit_card")) available.push({ key: "debit_card", label: isDelivery ? "Cartão de Débito (na entrega)" : "Cartão de Débito (no local)" });
                     if (enabled("cash")) available.push({ key: "cash", label: "Dinheiro" });
                     if (available.length === 0) {
                       available.push({ key: "pix", label: "PIX" }, { key: "cash", label: "Dinheiro" });
