@@ -38,9 +38,10 @@ Deno.serve(async (req) => {
 
     const { data: settings } = await supabase
       .from("settings")
-      .select("whatsapp_provider, whatsapp_api_key")
+      .select("whatsapp_provider, whatsapp_api_key, whatsapp_sender_id")
       .eq("restaurant_id", (order as any).restaurant_id)
       .maybeSingle();
+
 
     const trackingUrl = `${new URL(req.url).origin.replace(/\/functions.*/, "")}`;
     // Build customer-friendly tracking link using request Origin header when present
