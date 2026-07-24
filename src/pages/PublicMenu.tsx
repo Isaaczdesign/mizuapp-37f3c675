@@ -1044,21 +1044,52 @@ const PublicMenu = () => {
               {/* Step 2: Infos (customer + mesa/endereço) */}
               {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
-                  {(customerName || customerWhatsapp) && (
-                    <div className="flex items-center justify-between rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs">
-                      <span className="text-muted-foreground">✨ Dados preenchidos do seu último pedido</span>
-                      <button
-                        type="button"
-                        className="text-primary hover:underline font-medium"
-                        onClick={() => {
-                          if (storageKey) localStorage.removeItem(storageKey);
-                          setCustomerName(""); setCustomerWhatsapp(""); setConsentMarketing(false);
-                          setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
-                          setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
-                        }}
-                      >
-                        Limpar
-                      </button>
+                  {hasSavedData && (
+                    <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">
+                          {autofillEnabled ? "✨ Dados salvos neste dispositivo" : "Preenchimento automático desativado"}
+                          <span className="ml-1 opacity-70">· expira em 30 dias</span>
+                        </span>
+                        <button
+                          type="button"
+                          className="text-destructive hover:underline font-medium shrink-0"
+                          onClick={async () => {
+                            const { clearCustomerStorage } = await import("@/lib/publicMenuStorage");
+                            clearCustomerStorage(slug);
+                            setHasSavedData(false);
+                            setSavedAddresses([]);
+                            setSelectedAddressId(null);
+                            setCustomerName(""); setCustomerWhatsapp(""); setConsentMarketing(false);
+                            setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
+                            setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
+                          }}
+                        >
+                          Apagar tudo
+                        </button>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={autofillEnabled}
+                          onChange={async (e) => {
+                            const enabled = e.target.checked;
+                            setAutofillEnabled(enabled);
+                            const { saveCustomerStorage } = await import("@/lib/publicMenuStorage");
+                            saveCustomerStorage(slug, {
+                              v: 2, savedAt: Date.now(),
+                              autofillEnabled: enabled,
+                              customerName: enabled ? customerName.trim() : "",
+                              customerWhatsapp: enabled ? customerWhatsapp.trim() : "",
+                              consentMarketing: enabled ? consentMarketing : false,
+                              addresses: enabled ? savedAddresses : [],
+                            });
+                          }}
+                          className="rounded"
+                          style={{ accentColor }}
+                        />
+                        <span className="text-muted-foreground">Preencher automaticamente meus dados neste dispositivo</span>
+                      </label>
                     </div>
                   )}
                   <div>
