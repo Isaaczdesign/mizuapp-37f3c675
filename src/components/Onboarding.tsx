@@ -67,6 +67,7 @@ export default function Onboarding() {
   const [menuUploading, setMenuUploading] = useState(false);
   const [menuImported, setMenuImported] = useState(false);
   const [menuStage, setMenuStage] = useState<"idle" | "uploading" | "analyzing" | "saving">("idle");
+  const [menuJob, setMenuJob] = useState<any>(null);
   const [dragOver, setDragOver] = useState(false);
 
   // Step 4 — Payment
