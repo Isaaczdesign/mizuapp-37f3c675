@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { X, Plus, Minus, Search, UtensilsCrossed, ShoppingBag, Truck } from "lucide-react";
+import { paymentMethodLabel } from "@/lib/paymentMethods";
 
 interface OrderItemRow {
   id?: string;
@@ -121,7 +122,7 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
     }
     if (!payment) { toast.error("Selecione a forma de pagamento"); return; }
 
-    const summary = `Confirmar alterações no pedido?\n\n• ${cart.length} item(ns)\n• Total: R$${total.toFixed(2)}\n• Tipo: ${orderType === "dine_in" ? "No local" : orderType === "pickup" ? "Retirada" : "Delivery"}\n• Pagamento: ${payment}\n\nO cliente será notificado no WhatsApp.`;
+    const summary = `Confirmar alterações no pedido?\n\n• ${cart.length} item(ns)\n• Total: R$${total.toFixed(2)}\n• Tipo: ${orderType === "dine_in" ? "No local" : orderType === "pickup" ? "Retirada" : "Delivery"}\n• Pagamento: ${paymentMethodLabel(payment, orderType)}\n\nO cliente será notificado no WhatsApp.`;
     if (!window.confirm(summary)) return;
 
     setSubmitting(true);
@@ -291,8 +292,10 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
               <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Pagamento</label>
               <select value={payment ?? "cash"} onChange={e => setPayment(e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-2 text-sm mt-1">
                 <option value="cash">Dinheiro</option>
+                <option value="credit_card">Cartão de crédito (local)</option>
                 <option value="card">Cartão (maquininha)</option>
                 <option value="pix">PIX</option>
+                {orderType === "delivery" && <option value="on_delivery">Pagar na entrega</option>}
                 <option value="other">Outro</option>
               </select>
             </div>

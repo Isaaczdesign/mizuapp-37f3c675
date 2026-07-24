@@ -11,6 +11,7 @@ import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import AdminLayout from "@/components/AdminLayout";
 import NewOrderModal from "@/components/NewOrderModal";
 import EditOrderModal from "@/components/EditOrderModal";
+import { paymentMethodLabel } from "@/lib/paymentMethods";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
@@ -723,7 +724,7 @@ const Orders = () => {
               })()}
               {selectedOrder.payment_method && (
                 <p>
-                  <strong>Pagamento:</strong> {selectedOrder.payment_method}
+                  <strong>Pagamento:</strong> {paymentMethodLabel(selectedOrder.payment_method, selectedOrder.order_type)}
                   {selectedOrder.payment_change_for && Number(selectedOrder.payment_change_for) > 0 && (
                     <> · Troco p/ R${Number(selectedOrder.payment_change_for).toFixed(2)}</>
                   )}

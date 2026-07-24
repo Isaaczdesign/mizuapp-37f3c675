@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
+import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
 
 // ── Types ──
 interface Variation { id: string; name: string; price_delta: number; absolute_price: number | null; }
@@ -526,7 +527,7 @@ const PublicMenu = () => {
         _total: orderTotal,
         _notes: orderNotes || null,
         _order_type: orderType,
-        _payment_method: paymentMethod,
+        _payment_method: resolveStoredPaymentMethod(paymentMethod, orderType),
         _payment_change_for: paymentMethod === "cash" && changeFor ? Number(changeFor) : null,
         _table_id: orderType === "dine_in" ? (tableId ?? selectedTableId) : null,
         _delivery_fee: deliveryFeeApplied,
@@ -1593,7 +1594,7 @@ const PublicMenu = () => {
                       {orderType === "pickup" && `🛍️ Retirada`}
                       {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
                     </p>
-                    <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : orderType === "delivery" && paymentMethod === "credit_card" ? "Pagar na entrega" : paymentMethod?.replace("_", " ")}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
+                    <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod, orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
                   </div>
 
                   <div>
