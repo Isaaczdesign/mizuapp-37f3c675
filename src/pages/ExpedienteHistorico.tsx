@@ -70,6 +70,9 @@ export default function ExpedienteHistorico() {
   return (
     <AdminLayout>
       <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4">
+        <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
+          <Link to="/expediente"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link>
+        </Button>
         <h1 className="font-display text-2xl md:text-3xl font-bold">📚 <span className="gradient-text">Histórico de expedientes</span></h1>
 
         <div className="glass-card overflow-x-auto">
