@@ -136,10 +136,14 @@ function hasDeliveryRoute(order: Order | null): boolean {
 
 const Orders = () => {
   const { profile, roles } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [typeFilter, setTypeFilter] = useState<OrderType>("all");
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("current");
+  const [currentShiftId, setCurrentShiftId] = useState<string | null>(null);
+  const [viewingShift, setViewingShift] = useState<{ id: string; opened_at: string; status: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const restaurantId = profile?.restaurant_id;
   const canCancel = roles.includes("owner") || roles.includes("manager");
@@ -148,6 +152,9 @@ const Orders = () => {
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [restaurantAddress, setRestaurantAddress] = useState<string>("");
+
+  const historyShiftId = searchParams.get("shift");
+
 
   useEffect(() => {
     if (!restaurantId) return;
