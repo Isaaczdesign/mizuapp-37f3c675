@@ -595,20 +595,19 @@ const Settings = () => {
               <Select value={whatsappProvider} onValueChange={setWhatsappProvider}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="twilio">Twilio</SelectItem>
-                  <SelectItem value="360dialog">360Dialog</SelectItem>
-                  <SelectItem value="zapi">Z-API</SelectItem>
+                  <SelectItem value="meta">Meta WhatsApp Cloud API</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>API Key</Label>
-              <Input type="password" value={whatsappApiKey} onChange={(e) => setWhatsappApiKey(e.target.value)} className="mt-1" placeholder="Chave de API do provedor" />
+              <Label>Access Token</Label>
+              <Input type="password" value={whatsappApiKey} onChange={(e) => setWhatsappApiKey(e.target.value)} className="mt-1" placeholder="Token permanente da Meta" />
             </div>
             <div>
-              <Label>Sender ID / Phone Number ID</Label>
-              <Input value={whatsappSenderId} onChange={(e) => setWhatsappSenderId(e.target.value)} className="mt-1" placeholder="ID do remetente" />
+              <Label>Phone Number ID</Label>
+              <Input value={whatsappSenderId} onChange={(e) => setWhatsappSenderId(e.target.value)} className="mt-1" placeholder="Ex.: 123456789012345" />
             </div>
+
           </div>
 
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !rid} className="w-full">
