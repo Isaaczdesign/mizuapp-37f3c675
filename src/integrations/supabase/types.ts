@@ -1492,6 +1492,15 @@ export type Database = {
     }
     Functions: {
       cancel_expired_pending_payments: { Args: never; Returns: number }
+      cancel_public_order: {
+        Args: { _reason?: string; _token: string }
+        Returns: {
+          order_id: string
+          payment_status: string
+          refund_needed: boolean
+          status: string
+        }[]
+      }
       check_rate_limit: {
         Args: {
           _bucket: string

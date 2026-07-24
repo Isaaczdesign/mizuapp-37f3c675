@@ -107,6 +107,43 @@ export default function OrderTracking() {
     saveRecentOrder({ token, status: order.status, slug: order.restaurant_slug });
   }, [token, order?.status, order?.restaurant_slug]);
 
+  // ── Cancelamento pelo cliente (permitido só enquanto o status for "new") ──
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [canceling, setCanceling] = useState(false);
+
+  async function handleCancel() {
+    if (!token) return;
+    setCanceling(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("cancel_public_order", {
+        _token: token,
+        _reason: cancelReason.trim() || null,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.refund_needed) {
+        try {
+          await supabase.functions.invoke("refund-mp-payment", { body: { order_id: row.order_id } });
+        } catch (e) {
+          console.error("Falha ao solicitar reembolso", e);
+        }
+      }
+      toast.success("Pedido cancelado.");
+      setCancelOpen(false);
+      setCancelReason("");
+      await load();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message?.includes("preparo")
+        ? "O restaurante já começou a preparar seu pedido — não é mais possível cancelar."
+        : "Não foi possível cancelar. Tente novamente.");
+      await load();
+    } finally {
+      setCanceling(false);
+    }
+  }
+
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNowTs(Date.now()), 1000);
@@ -508,6 +545,53 @@ export default function OrderTracking() {
           <span className="font-display text-xl font-bold gradient-text">{fmt(order.total)}</span>
         </div>
       </div>
+
+      {/* Cancelamento — disponível até o restaurante iniciar o preparo */}
+      {order.status === "new" && (
+        <div className="mt-6">
+          {!cancelOpen ? (
+            <button
+              onClick={() => setCancelOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
+            >
+              <XCircle className="w-4 h-4" />
+              Cancelar pedido
+            </button>
+          ) : (
+            <div className="glass-card p-4 border-destructive/30 space-y-3">
+              <p className="font-display font-bold text-sm">Cancelar este pedido?</p>
+              <p className="text-xs text-muted-foreground">
+                Você pode cancelar enquanto o restaurante ainda não iniciou o preparo. Se o pagamento
+                online já foi aprovado, o estorno é solicitado automaticamente.
+              </p>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Motivo (opcional)"
+                rows={2}
+                className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setCancelOpen(false)}
+                  disabled={canceling}
+                  className="px-3 py-2.5 rounded-xl bg-secondary text-sm font-medium"
+                >
+                  Manter pedido
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={canceling}
+                  className="px-3 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {canceling && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {menuUrl && (
         <div className="grid grid-cols-2 gap-3 mt-6">
