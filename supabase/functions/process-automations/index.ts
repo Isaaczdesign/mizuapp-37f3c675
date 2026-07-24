@@ -44,13 +44,14 @@ Deno.serve(async (req) => {
       // Get settings for this restaurant
       const { data: settings } = await supabase
         .from("settings")
-        .select("whatsapp_provider, whatsapp_api_key")
+        .select("whatsapp_provider, whatsapp_api_key, whatsapp_sender_id")
         .eq("restaurant_id", rule.restaurant_id)
         .maybeSingle();
 
-      if (!settings?.whatsapp_provider || !settings?.whatsapp_api_key) {
-        continue; // No WhatsApp provider configured
+      if (settings?.whatsapp_provider !== "meta" || !settings?.whatsapp_api_key || !(settings as any)?.whatsapp_sender_id) {
+        continue; // No Meta WhatsApp Cloud API configured
       }
+
 
       // Find eligible customers based on trigger
       let customers: any[] = [];
