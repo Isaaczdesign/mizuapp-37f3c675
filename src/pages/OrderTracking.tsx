@@ -87,19 +87,10 @@ export default function OrderTracking() {
     return () => clearInterval(interval);
   }, [load, payment?.payment_status]);
 
-  // Realtime: react instantly when the restaurant changes status
-  useEffect(() => {
-    if (!order?.id) return;
-    const channel = supabase
-      .channel(`order-tracking-${order.id}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${order.id}` },
-        () => { load(); }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [order?.id, load]);
+  // Sem assinatura Realtime aqui: o cliente é anônimo e a RLS de `orders`
+  // não expõe linhas para o papel anon — o polling acima (RPC pública
+  // get_public_order) é a fonte de verdade do acompanhamento.
+
 
   // Remember this order locally so the customer can come back to it later
   useEffect(() => {
