@@ -57,8 +57,12 @@ Deno.serve(async (req) => {
     const idempotencyKey = crypto.randomUUID();
     const finalInstallments = Math.min(Math.max(Number(installments) || 1, 1), 3); // enforce max 3x
 
+    const amount = Math.round(Number(order.total) * 100) / 100;
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return json({ error: "Valor do pedido inválido" }, 400);
+    }
     const payload: Record<string, unknown> = {
-      transaction_amount: Number(order.total),
+      transaction_amount: amount,
       description: `Pedido ${order.id.slice(0, 8)}`,
       token: card_token_id,
       installments: finalInstallments,
