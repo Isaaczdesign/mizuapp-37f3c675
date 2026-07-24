@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.cancel_public_order(uuid, text) TO anon, authenticated;
