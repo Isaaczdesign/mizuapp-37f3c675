@@ -2,10 +2,15 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import AdminLayout from "@/components/AdminLayout";
-import { Maximize2, Minimize2, Volume2, VolumeX, Printer, PrinterIcon, Undo2, Pin, PinOff, LayoutGrid, Rows3, Clock } from "lucide-react";
+import { Maximize2, Minimize2, Volume2, VolumeX, Printer, PrinterIcon, Undo2, Pin, PinOff, LayoutGrid, Rows3, Clock, Settings2 } from "lucide-react";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -45,10 +50,40 @@ const TYPE_FILTERS = [
 ] as const;
 type TypeFilter = typeof TYPE_FILTERS[number]["key"];
 
-const PREFS_KEY = "kds-prefs-v2";
+const PREFS_KEY = "kds-prefs-v3";
 type ViewMode = "columns" | "tables";
-type Prefs = { sound: boolean; autoPrint: boolean; tvMode: boolean; filter: TypeFilter; view: ViewMode };
-const defaultPrefs: Prefs = { sound: true, autoPrint: false, tvMode: false, filter: "all", view: "columns" };
+type PrintTrigger = "new" | "ready" | "both";
+type PaperWidth = "58" | "80";
+type Prefs = {
+  sound: boolean;
+  autoPrint: boolean;
+  tvMode: boolean;
+  filter: TypeFilter;
+  view: ViewMode;
+  printTrigger: PrintTrigger;
+  printCopies: number;
+  paperWidth: PaperWidth;
+  printPrices: boolean;
+  printNotes: boolean;
+  printHeader: string;
+  printAutoClose: boolean;
+  printDelayMs: number;
+};
+const defaultPrefs: Prefs = {
+  sound: true,
+  autoPrint: false,
+  tvMode: false,
+  filter: "all",
+  view: "columns",
+  printTrigger: "new",
+  printCopies: 1,
+  paperWidth: "80",
+  printPrices: false,
+  printNotes: true,
+  printHeader: "🍳 COZINHA",
+  printAutoClose: true,
+  printDelayMs: 300,
+};
 
 const PINS_KEY = "kds-pinned-orders-v1";
 const loadPins = (): Set<string> => {
@@ -88,7 +123,9 @@ const KDS = () => {
     catch { return defaultPrefs; }
   });
   const [pinned, setPinned] = useState<Set<string>>(() => loadPins());
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const seenIds = useRef<Set<string>>(new Set());
+  const prevStatus = useRef<Map<string, OrderStatus>>(new Map());
   const firstLoad = useRef(true);
 
   const restaurantId = profile?.restaurant_id;
@@ -130,27 +167,39 @@ const KDS = () => {
   };
 
   const printTicket = (order: Order) => {
-    const w = window.open("", "_blank", "width=380,height=600");
-    if (!w) return;
+    const widthPx = prefs.paperWidth === "58" ? 200 : 280;
+    const w = window.open("", "_blank", `width=${widthPx + 60},height=600`);
+    if (!w) { toast.error("Bloqueador de pop-up ativo. Libere para imprimir."); return; }
     const dt = new Date(order.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     const where = order.restaurant_tables ? `Mesa ${order.restaurant_tables.number}` : `#${order.id.slice(0, 6)}`;
     const type = order.order_type ? `${ORDER_TYPE_EMOJI[order.order_type] ?? ""} ${orderTypeLabel(order.order_type)}` : "";
     const eta = estimatePrepMinutes(order);
     const items = order.order_items.map(i =>
-      `<div style="margin:4px 0"><b>${i.quantity}x</b> ${i.name}${i.notes ? `<div style="font-size:11px;color:#555">⚠️ ${i.notes}</div>` : ""}</div>`
+      `<div style="margin:4px 0"><b>${i.quantity}x</b> ${i.name}${prefs.printNotes && i.notes ? `<div style="font-size:11px;color:#555">⚠️ ${i.notes}</div>` : ""}</div>`
     ).join("");
+    const copiesHtml = Array.from({ length: Math.max(1, prefs.printCopies) }).map((_, idx) => `
+      <section style="page-break-after:${idx < prefs.printCopies - 1 ? "always" : "auto"}">
+        <h2 style="margin:0 0 4px;font-size:16px">${prefs.printHeader || "COZINHA"}</h2>
+        <div style="font-size:13px">${where} · ${dt}</div>
+        ${type ? `<div style="font-size:12px">${type}</div>` : ""}
+        <div style="font-size:12px">⏱ Preparo estimado: ${eta} min</div>
+        <hr style="border:0;border-top:1px dashed #333;margin:8px 0"/>
+        ${items}
+        ${prefs.printNotes && order.notes ? `<hr style="border:0;border-top:1px dashed #333;margin:8px 0"/><div style="font-size:11px;font-style:italic">📝 ${order.notes}</div>` : ""}
+        ${prefs.printPrices ? `<hr style="border:0;border-top:1px dashed #333;margin:8px 0"/><div style="font-size:13px;text-align:right"><b>Total: R$ ${Number(order.total || 0).toFixed(2)}</b></div>` : ""}
+        ${prefs.printCopies > 1 ? `<div style="font-size:10px;text-align:center;color:#888;margin-top:6px">via ${idx + 1}/${prefs.printCopies}</div>` : ""}
+      </section>
+    `).join("");
     w.document.write(`<html><head><title>Pedido ${where}</title>
-      <style>body{font-family:monospace;padding:12px;width:280px}h2{margin:0 0 4px;font-size:16px}hr{border:0;border-top:1px dashed #333;margin:8px 0}</style>
-      </head><body>
-      <h2>🍳 COZINHA</h2>
-      <div style="font-size:13px">${where} · ${dt}</div>
-      ${type ? `<div style="font-size:12px">${type}</div>` : ""}
-      <div style="font-size:12px">⏱ Preparo estimado: ${eta} min</div>
-      <hr/>${items}
-      ${order.notes ? `<hr/><div style="font-size:11px;font-style:italic">📝 ${order.notes}</div>` : ""}
-      </body></html>`);
+      <style>body{font-family:monospace;padding:8px;width:${widthPx}px}@media print{body{width:${prefs.paperWidth}mm;padding:0}}</style>
+      </head><body>${copiesHtml}</body></html>`);
     w.document.close();
-    setTimeout(() => { try { w.print(); } catch {} }, 250);
+    setTimeout(() => {
+      try {
+        w.print();
+        if (prefs.printAutoClose) setTimeout(() => { try { w.close(); } catch {} }, 500);
+      } catch {}
+    }, Math.max(0, prefs.printDelayMs));
   };
 
   useEffect(() => {
@@ -188,13 +237,18 @@ const KDS = () => {
 
     const list = (data as unknown as Order[]) ?? [];
     const newlyArrived: Order[] = [];
+    const becameReady: Order[] = [];
     for (const o of list) {
+      const prev = prevStatus.current.get(o.id);
       if (o.status === "new" && !seenIds.current.has(o.id)) newlyArrived.push(o);
+      if (prev && prev !== "ready" && o.status === "ready") becameReady.push(o);
       seenIds.current.add(o.id);
+      prevStatus.current.set(o.id, o.status);
     }
-    if (!firstLoad.current && newlyArrived.length > 0) {
-      playBeep();
-      if (prefs.autoPrint) newlyArrived.forEach(printTicket);
+    if (!firstLoad.current && newlyArrived.length > 0) playBeep();
+    if (!firstLoad.current && prefs.autoPrint) {
+      if (prefs.printTrigger === "new" || prefs.printTrigger === "both") newlyArrived.forEach(printTicket);
+      if (prefs.printTrigger === "ready" || prefs.printTrigger === "both") becameReady.forEach(printTicket);
     }
     firstLoad.current = false;
 
@@ -387,6 +441,9 @@ const KDS = () => {
           <Button variant="outline" size="sm" onClick={() => setPrefsPatch({ autoPrint: !prefs.autoPrint })} title={prefs.autoPrint ? "Desativar impressão automática" : "Ativar impressão automática"}>
             {prefs.autoPrint ? <Printer className="w-4 h-4 text-primary" /> : <PrinterIcon className="w-4 h-4" />}
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} title="Configurar impressão">
+            <Settings2 className="w-4 h-4" />
+          </Button>
           <Button variant="outline" size="sm" onClick={toggleFullscreen} title="Modo TV">
             {prefs.tvMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </Button>
@@ -459,6 +516,132 @@ const KDS = () => {
           )}
         </div>
       )}
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🖨️ Configurar impressão</DialogTitle>
+            <DialogDescription>
+              Ajuste como os tickets são impressos automaticamente ao chegar/ficar prontos.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">Impressão automática</Label>
+                <p className="text-xs text-muted-foreground">Imprime tickets sem clicar em cada pedido</p>
+              </div>
+              <Switch
+                checked={prefs.autoPrint}
+                onCheckedChange={(v) => setPrefsPatch({ autoPrint: v })}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Quando imprimir</Label>
+              <Select
+                value={prefs.printTrigger}
+                onValueChange={(v: PrintTrigger) => setPrefsPatch({ printTrigger: v })}
+                disabled={!prefs.autoPrint}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">Ao chegar novo pedido</SelectItem>
+                  <SelectItem value="ready">Quando marcar como Pronto</SelectItem>
+                  <SelectItem value="both">Ambos (novo + pronto)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm">Largura do papel</Label>
+                <Select
+                  value={prefs.paperWidth}
+                  onValueChange={(v: PaperWidth) => setPrefsPatch({ paperWidth: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="58">58mm</SelectItem>
+                    <SelectItem value="80">80mm</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm">Cópias (vias)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={prefs.printCopies}
+                  onChange={(e) => setPrefsPatch({ printCopies: Math.max(1, Math.min(5, Number(e.target.value) || 1)) })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Cabeçalho do ticket</Label>
+              <Input
+                value={prefs.printHeader}
+                onChange={(e) => setPrefsPatch({ printHeader: e.target.value })}
+                placeholder="🍳 COZINHA"
+                maxLength={40}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Atraso antes de imprimir (ms)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={5000}
+                step={100}
+                value={prefs.printDelayMs}
+                onChange={(e) => setPrefsPatch({ printDelayMs: Math.max(0, Math.min(5000, Number(e.target.value) || 0)) })}
+              />
+              <p className="text-xs text-muted-foreground">Dê tempo para a impressora térmica responder.</p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Incluir observações do cliente</Label>
+              <Switch checked={prefs.printNotes} onCheckedChange={(v) => setPrefsPatch({ printNotes: v })} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Incluir total (R$)</Label>
+              <Switch checked={prefs.printPrices} onCheckedChange={(v) => setPrefsPatch({ printPrices: v })} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm">Fechar janela após imprimir</Label>
+                <p className="text-xs text-muted-foreground">Evita janelas acumuladas no navegador</p>
+              </div>
+              <Switch checked={prefs.printAutoClose} onCheckedChange={(v) => setPrefsPatch({ printAutoClose: v })} />
+            </div>
+
+            <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground space-y-1">
+              <p>💡 <b>Dica:</b> no diálogo de impressão do navegador, desmarque cabeçalho/rodapé e ative "Imprimir sempre nesta impressora" para tickets automáticos.</p>
+              <p>🚫 Se nada aparecer, libere <b>pop-ups</b> para este site.</p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const sample = orders[0];
+                if (!sample) { toast.info("Faça um pedido para testar."); return; }
+                printTicket(sample);
+              }}
+            >
+              Imprimir teste
+            </Button>
+            <Button onClick={() => setSettingsOpen(false)}>Concluído</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
