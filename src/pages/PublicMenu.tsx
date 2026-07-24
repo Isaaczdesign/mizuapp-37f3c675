@@ -437,8 +437,21 @@ const PublicMenu = () => {
         }
       }
 
+      // Persist customer info for next order (no login needed)
+      if (storageKey) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({
+            customerName: customerName.trim(),
+            customerWhatsapp: customerWhatsapp.trim(),
+            consentMarketing,
+            deliveryCep, deliveryStreet, deliveryNumber,
+            deliveryNeighborhood, deliveryCity, deliveryComplement,
+          }));
+        } catch {}
+      }
+
       setCart([]); setCheckoutStep(0); setShowCart(false);
-      setCustomerName(""); setCustomerWhatsapp(""); setOrderNotes("");
+      setOrderNotes("");
       navigate(`/pedido/${created.tracking_token}`);
     } catch (err: any) {
       console.error(err);
