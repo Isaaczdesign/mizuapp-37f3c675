@@ -39,12 +39,35 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 const onlinePaymentMinAmount = 1;
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-const TAG_BADGES: Record<string, { emoji: string; label: string }> = {
-  best_seller: { emoji: "🔥", label: "Mais Vendido" },
-  recommended: { emoji: "⭐", label: "Recomendado" },
-  chef_pick: { emoji: "👨‍🍳", label: "Chef" },
-  high_margin: { emoji: "💎", label: "Destaque" },
-  combo: { emoji: "🎁", label: "Combo" },
+const TAG_BADGES: Record<
+  string,
+  { emoji: string; label: string; gradient: string; ring: string; glow: string; pulse?: boolean }
+> = {
+  best_seller: {
+    emoji: "🔥", label: "Mais Vendido",
+    gradient: "linear-gradient(135deg, #FF3D00 0%, #FF9100 100%)",
+    ring: "rgba(255,109,0,0.55)", glow: "0 0 18px rgba(255,109,0,0.55)", pulse: true,
+  },
+  recommended: {
+    emoji: "⭐", label: "Recomendado",
+    gradient: "linear-gradient(135deg, #FFB300 0%, #FFD54F 100%)",
+    ring: "rgba(255,193,7,0.5)", glow: "0 0 14px rgba(255,193,7,0.45)",
+  },
+  chef_pick: {
+    emoji: "👨‍🍳", label: "Escolha do Chef",
+    gradient: "linear-gradient(135deg, #1a1a1a 0%, #3d2b1f 100%)",
+    ring: "rgba(212,175,55,0.7)", glow: "0 0 12px rgba(212,175,55,0.45)",
+  },
+  high_margin: {
+    emoji: "💎", label: "Destaque",
+    gradient: "linear-gradient(135deg, #00B8D4 0%, #7C4DFF 100%)",
+    ring: "rgba(124,77,255,0.55)", glow: "0 0 16px rgba(124,77,255,0.5)",
+  },
+  combo: {
+    emoji: "🎁", label: "Combo",
+    gradient: "linear-gradient(135deg, #E91E63 0%, #FF5252 100%)",
+    ring: "rgba(233,30,99,0.55)", glow: "0 0 16px rgba(233,30,99,0.5)", pulse: true,
+  },
 };
 
 // ── Operating Hours helper ──
@@ -112,6 +135,7 @@ const PublicMenu = () => {
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState<null | { token: string }>(null);
   const [operatingHours, setOperatingHours] = useState<any>(null);
 
   // Order type + delivery + payment
@@ -479,7 +503,8 @@ const PublicMenu = () => {
 
       setCart([]); setCheckoutStep(0); setShowCart(false);
       setOrderNotes("");
-      navigate(`/pedido/${created.tracking_token}`);
+      setOrderSuccess({ token: created.tracking_token });
+      setTimeout(() => navigate(`/pedido/${created.tracking_token}`), 2200);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao enviar pedido. Tente novamente. Seu carrinho está preservado.");
@@ -686,15 +711,37 @@ const PublicMenu = () => {
                       <div>
                         <h3 className="font-semibold text-sm leading-tight">{item.name}</h3>
                         {tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {tags.map((t) => (
-                              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                                style={{ backgroundColor: accentColor + "15", color: accentColor }}>
-                                {TAG_BADGES[t].emoji} {TAG_BADGES[t].label}
-                              </span>
-                            ))}
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            {tags.map((t) => {
+                              const b = TAG_BADGES[t];
+                              return (
+                                <motion.span
+                                  key={t}
+                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
+                                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                                  transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                                  className="relative inline-flex items-center gap-1 text-[10px] leading-none px-2 py-1 rounded-full font-bold text-white uppercase tracking-wide overflow-hidden"
+                                  style={{
+                                    backgroundImage: b.gradient,
+                                    boxShadow: `${b.glow}, inset 0 1px 0 rgba(255,255,255,0.25)`,
+                                    border: `1px solid ${b.ring}`,
+                                  }}
+                                >
+                                  {b.pulse && (
+                                    <span
+                                      className="absolute inset-0 rounded-full animate-ping opacity-40"
+                                      style={{ backgroundImage: b.gradient }}
+                                      aria-hidden
+                                    />
+                                  )}
+                                  <span className="relative text-sm leading-none drop-shadow">{b.emoji}</span>
+                                  <span className="relative">{b.label}</span>
+                                </motion.span>
+                              );
+                            })}
                           </div>
                         )}
+
                         {item.description && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
                         )}
@@ -1491,6 +1538,88 @@ const PublicMenu = () => {
                   </div>
                 </form>
               )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Order success celebration overlay */}
+      <AnimatePresence>
+        {orderSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 backdrop-blur-xl"
+          >
+            {/* Confetti */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {Array.from({ length: 28 }).map((_, i) => {
+                const colors = [accentColor, "#FFD54F", "#FF3D00", "#7C4DFF", "#00E5FF", "#E91E63"];
+                const color = colors[i % colors.length];
+                const left = Math.random() * 100;
+                const delay = Math.random() * 0.4;
+                const duration = 1.6 + Math.random() * 1.2;
+                const rotate = Math.random() * 720 - 360;
+                return (
+                  <motion.span
+                    key={i}
+                    initial={{ y: -40, x: `${left}vw`, opacity: 0, rotate: 0 }}
+                    animate={{ y: "110vh", opacity: [0, 1, 1, 0], rotate }}
+                    transition={{ duration, delay, ease: "easeIn" }}
+                    className="absolute top-0 w-2 h-3 rounded-sm"
+                    style={{ backgroundColor: color }}
+                  />
+                );
+              })}
+            </div>
+
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 18 }}
+              className="relative text-center px-8"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.2, 1] }}
+                transition={{ duration: 0.6, times: [0, 0.6, 1], ease: "backOut" }}
+                className="mx-auto w-28 h-28 rounded-full flex items-center justify-center relative"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${accentColor}, #FFB300)`,
+                  boxShadow: `0 0 60px ${accentColor}80`,
+                }}
+              >
+                <motion.span
+                  className="absolute inset-0 rounded-full"
+                  animate={{ scale: [1, 1.4, 1.8], opacity: [0.5, 0.2, 0] }}
+                  transition={{ duration: 1.4, repeat: Infinity }}
+                  style={{ border: `2px solid ${accentColor}` }}
+                />
+                <motion.div
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ delay: 0.35, duration: 0.5, ease: "easeOut" }}
+                >
+                  <Check className="w-14 h-14 text-white" strokeWidth={3.5} />
+                </motion.div>
+              </motion.div>
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-6 font-display text-2xl font-bold"
+              >
+                Pedido enviado! 🎉
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="mt-2 text-sm text-muted-foreground"
+              >
+                Estamos te levando ao acompanhamento…
+              </motion.p>
             </motion.div>
           </motion.div>
         )}
