@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { isOpenNow } from "@/lib/operatingHours";
-import { useEffect, useState as useState2 } from "react";
 type Period = "today" | "week" | "month" | "custom";
 
 const Dashboard = () => {
