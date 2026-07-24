@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
+import { isOpenNow } from "@/lib/operatingHours";
 type Period = "today" | "week" | "month" | "custom";
 
 const Dashboard = () => {
@@ -53,6 +54,24 @@ const Dashboard = () => {
   });
 
   const publicMenuUrl = setupStatus?.slug ? `${window.location.origin}/r/${setupStatus.slug}` : null;
+
+  // Fetch operating hours + refresh clock every minute for closed-hours banner
+  const { data: hoursData } = useQuery({
+    queryKey: ["operating-hours", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const [sRes, rRes] = await Promise.all([
+        supabase.from("settings").select("operating_hours").eq("restaurant_id", rid!).maybeSingle(),
+        supabase.from("restaurants").select("accepting_orders").eq("id", rid!).maybeSingle(),
+      ]);
+      return { hours: sRes.data?.operating_hours as any, accepting: (rRes.data as any)?.accepting_orders !== false };
+    },
+  });
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTick((n) => n + 1), 60_000); return () => clearInterval(t); }, []);
+  const outsideHours = !!hoursData?.hours && !isOpenNow(hoursData.hours);
+  const shopClosed = outsideHours || (hoursData && !hoursData.accepting);
+
 
   const copyMenuLink = () => {
     if (publicMenuUrl) {
@@ -237,7 +256,23 @@ const Dashboard = () => {
           </div>
         )}
 
+        {shopClosed && (
+          <div className="mb-4 p-4 rounded-2xl border border-red-500/40 bg-red-500/10 flex items-start gap-3">
+            <Lock className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <div className="font-bold text-red-400">Recebimento de pedidos encerrado</div>
+              <div className="text-sm text-muted-foreground">
+                {outsideHours
+                  ? "O restaurante está fora do horário de funcionamento configurado. Novos pedidos serão aceitos automaticamente no próximo horário de abertura."
+                  : "O recebimento de pedidos está desativado manualmente. Reabra em Configurações ou pelo Expediente."}
+              </div>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => navigate("/settings")}>Ajustar horários</Button>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+
           <div className="flex items-center gap-3">
             <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
             <Button size="sm" variant="destructive" onClick={() => navigate("/expediente")} className="gap-1">
