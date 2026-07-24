@@ -594,7 +594,12 @@ function MenuImportTab({ rid }: { rid: string }) {
             <div key={job.id} className="glass-card p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium truncate max-w-[200px]">{job.file_url?.split("/").pop()}</p>
-                <p className="text-xs text-muted-foreground">{new Date(job.created_at).toLocaleDateString("pt-BR")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(job.created_at).toLocaleDateString("pt-BR")}
+                  {job.items_found ? ` · ${job.items_found} itens` : ""}
+                  {job.pages_total ? ` · ${job.pages_processed ?? 0}/${job.pages_total} págs` : ""}
+                </p>
+                {job.error_message && <p className="text-xs text-destructive mt-0.5">{job.error_message}</p>}
               </div>
               <div className="flex items-center gap-2">
                 {job.status === "ready_for_review" && job.parsed_result && (
@@ -609,6 +614,9 @@ function MenuImportTab({ rid }: { rid: string }) {
                     Revisar
                   </Button>
                 )}
+                <Button size="sm" variant="ghost" disabled={!!activeJobId} onClick={() => handleReprocess(job.id)}>
+                  Reprocessar
+                </Button>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[job.status] ?? ""}`}>
                   {statusLabels[job.status] ?? job.status}
                 </span>
