@@ -25,6 +25,7 @@ import PasswordResetSuccess from "./pages/PasswordResetSuccess";
 import Expediente from "./pages/Expediente";
 import ExpedienteHistorico from "./pages/ExpedienteHistorico";
 import ShortLink from "./pages/ShortLink";
+import ActiveOrderFab from "@/components/ActiveOrderFab";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ActiveOrderFab />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
