@@ -1219,11 +1219,14 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           id: string
+          mp_public_key: string
           mp_qr_code: string
           mp_qr_code_base64: string
           mp_ticket_url: string
+          payment_method: string
           payment_status: string
           status: string
+          total: number
         }[]
       }
       get_public_order: {
