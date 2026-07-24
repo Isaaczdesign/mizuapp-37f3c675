@@ -302,6 +302,16 @@ const Dashboard = () => {
                   numberOfMonths={1} locale={ptBR} className={cn("p-3 pointer-events-auto")} />
               </PopoverContent>
             </Popover>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => navigate("/expediente")}
+              className="text-muted-foreground hover:text-foreground gap-1"
+              title="Encerrar expediente"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline text-xs">Encerrar expediente</span>
+            </Button>
           </div>
         </div>
 
