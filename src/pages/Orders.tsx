@@ -724,7 +724,7 @@ const Orders = () => {
               })()}
               {selectedOrder.payment_method && (
                 <p>
-                  <strong>Pagamento:</strong> {selectedOrder.payment_method}
+                  <strong>Pagamento:</strong> {paymentMethodLabel(selectedOrder.payment_method, selectedOrder.order_type)}
                   {selectedOrder.payment_change_for && Number(selectedOrder.payment_change_for) > 0 && (
                     <> · Troco p/ R${Number(selectedOrder.payment_change_for).toFixed(2)}</>
                   )}
