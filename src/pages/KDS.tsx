@@ -31,6 +31,7 @@ const KDS = () => {
   const [loading, setLoading] = useState(true);
 
   const restaurantId = profile?.restaurant_id;
+  const [currentShiftId, setCurrentShiftId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -41,6 +42,9 @@ const KDS = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
         loadOrders();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "work_shifts", filter: `restaurant_id=eq.${restaurantId}` }, () => {
+        loadOrders();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -48,10 +52,31 @@ const KDS = () => {
 
   async function loadOrders() {
     if (!restaurantId) return;
+    // Busca o expediente atual (aberto ou em fechamento de caixa)
+    const { data: shift } = await supabase
+      .from("work_shifts")
+      .select("id")
+      .eq("restaurant_id", restaurantId)
+      .in("status", ["open", "service_closed"])
+      .order("opened_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const shiftId = shift?.id ?? null;
+    setCurrentShiftId(shiftId);
+
+    if (!shiftId) {
+      // Expediente encerrado — cozinha vazia
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
     const { data } = await supabase
       .from("orders")
       .select("id, status, notes, total, created_at, table_id, order_items(id, name, quantity, notes), restaurant_tables(number)")
       .eq("restaurant_id", restaurantId)
+      .eq("shift_id", shiftId)
       .in("status", ["new", "preparing", "ready"])
       .order("created_at", { ascending: true });
 
@@ -87,7 +112,17 @@ const KDS = () => {
         <span className="text-muted-foreground text-sm">{orders.length} pedidos ativos</span>
       </div>
 
+      {!currentShiftId ? (
+        <div className="glass-card p-8 text-center">
+          <p className="text-4xl mb-3">🌙</p>
+          <p className="font-display font-bold text-lg mb-1">Expediente encerrado</p>
+          <p className="text-sm text-muted-foreground">
+            A cozinha só recebe pedidos com o expediente aberto. Abra um novo expediente no painel para retomar o serviço.
+          </p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-100px)]">
+
         {columns.map((status) => {
           const config = statusConfig[status];
           const col = orders.filter((o) => o.status === status);
@@ -138,6 +173,7 @@ const KDS = () => {
           );
         })}
       </div>
+      )}
     </div>
     </AdminLayout>
   );
