@@ -153,17 +153,39 @@ async function callModel(messages: any[], key: string): Promise<string> {
   const res = await fetch(GATEWAY_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: MODEL, messages, max_tokens: 32000, temperature: 0.1 }),
+    body: JSON.stringify({ model: MODEL, messages, max_tokens: 32000, temperature: 0.1, stream: true }),
   });
-  if (!res.ok) {
-    const t = await res.text();
+  if (!res.ok || !res.body) {
+    const t = res.body ? await res.text() : "";
     const err: any = new Error(`AI gateway ${res.status}: ${t.slice(0, 500)}`);
     err.status = res.status;
     throw err;
   }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  // Streaming evita o idle timeout de 150s: os chunks chegam continuamente.
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let content = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const l = line.trim();
+      if (!l.startsWith("data:")) continue;
+      const payload = l.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const j = JSON.parse(payload);
+        content += j.choices?.[0]?.delta?.content ?? "";
+      } catch { /* chunk parcial, ignora */ }
+    }
+  }
+  return content;
 }
+
 
 function countItems(parsed: any): number {
   let n = 0;
@@ -195,83 +217,90 @@ function mergeResults(base: any, extra: any): any {
   return base;
 }
 
-serve(async (req) => {
+async function process(req: Request): Promise<any> {
+  const { ocr_text, layout_hints, image_url } = await req.json();
+
+  if (!image_url && (!ocr_text || typeof ocr_text !== "string" || ocr_text.trim().length < 10)) {
+    return { error: "Either image_url or ocr_text is required" };
+  }
+
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) return { error: "LOVABLE_API_KEY is not configured" };
+
+  // Descobrir a URL real do arquivo (imagem OU PDF)
+  let fileUrl: string | null = null;
+  if (image_url) fileUrl = image_url;
+  else if (ocr_text) {
+    const m = ocr_text.match(/https?:\/\/\S+/);
+    if (m) fileUrl = m[0].replace(/[)\].,]+$/, "");
+  }
+
+  const textInstruction =
+    "Extraia EXAUSTIVAMENTE todos os itens do cardápio (nenhum item deve ficar de fora). Retorne APENAS JSON no schema definido." +
+    (layout_hints ? `\n\nDicas de layout: ${layout_hints}` : "");
+
+  let userContent: any;
+  if (fileUrl) {
+    const { dataUrl } = await fetchAsDataUrl(fileUrl);
+    userContent = [
+      { type: "text", text: textInstruction },
+      { type: "image_url", image_url: { url: dataUrl } },
+    ];
+  } else {
+    userContent = `${textInstruction}\n\nTexto OCR do cardápio:\n\n${ocr_text}`;
+  }
+
+  const messages: any[] = [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: userContent },
+  ];
+
+  let raw1 = "";
+  try {
+    raw1 = await callModel(messages, LOVABLE_API_KEY);
+  } catch (e: any) {
+    if (e.status === 429) return { error: "Limite de requisições atingido, tente novamente em instantes." };
+    if (e.status === 402) return { error: "Créditos de IA esgotados. Adicione créditos para continuar." };
+    return { error: e instanceof Error ? e.message : "Erro na IA" };
+  }
+
+  let parsed: any;
+  try {
+    parsed = extractJson(raw1);
+  } catch {
+    return { error: "AI returned invalid JSON", raw: raw1.slice(0, 2000) };
+  }
+  if (!Array.isArray(parsed.categories)) parsed.categories = [];
+  parsed.total_items_extracted = countItems(parsed);
+  return parsed;
+}
+
+serve((req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  try {
-    const { ocr_text, layout_hints, image_url } = await req.json();
+  // Resposta em streaming: enviamos espaços em branco periodicamente (prefixo
+  // válido de JSON) para o gateway não considerar a conexão ociosa (504 em 150s).
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const beat = setInterval(() => {
+        try { controller.enqueue(encoder.encode(" ")); } catch { /* fechado */ }
+      }, 5000);
+      try {
+        const result = await process(req);
+        controller.enqueue(encoder.encode(JSON.stringify(result)));
+      } catch (e) {
+        console.error("import-menu error:", e);
+        controller.enqueue(encoder.encode(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" })));
+      } finally {
+        clearInterval(beat);
+        controller.close();
+      }
+    },
+  });
 
-    if (!image_url && (!ocr_text || typeof ocr_text !== "string" || ocr_text.trim().length < 10)) {
-      return new Response(JSON.stringify({ error: "Either image_url or ocr_text is required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
-    // Descobrir a URL real do arquivo (imagem OU PDF)
-    let fileUrl: string | null = null;
-    if (image_url) fileUrl = image_url;
-    else if (ocr_text) {
-      const m = ocr_text.match(/https?:\/\/\S+/);
-      if (m) fileUrl = m[0].replace(/[)\].,]+$/, "");
-    }
-
-    let userContent: any;
-    const textInstruction =
-      "Extraia EXAUSTIVAMENTE todos os itens do cardápio (nenhum item deve ficar de fora). Retorne APENAS JSON no schema definido." +
-      (layout_hints ? `\n\nDicas de layout: ${layout_hints}` : "");
-
-    if (fileUrl) {
-      // Baixa e envia como data URL — funciona para imagem e PDF (Gemini via gateway)
-      const { dataUrl } = await fetchAsDataUrl(fileUrl);
-      userContent = [
-        { type: "text", text: textInstruction },
-        { type: "image_url", image_url: { url: dataUrl } },
-      ];
-    } else {
-      // Texto OCR puro
-      userContent = `${textInstruction}\n\nTexto OCR do cardápio:\n\n${ocr_text}`;
-    }
-
-    const messages: any[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: userContent },
-    ];
-
-    // ---- Passo 1: extração principal ----
-    let raw1 = "";
-    try {
-      raw1 = await callModel(messages, LOVABLE_API_KEY);
-    } catch (e: any) {
-      if (e.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded, tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (e.status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Adicione créditos para continuar." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      throw e;
-    }
-
-    let parsed: any;
-    try {
-      parsed = extractJson(raw1);
-    } catch {
-      return new Response(JSON.stringify({ error: "AI returned invalid JSON", raw: raw1.slice(0, 2000) }), {
-        status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (!Array.isArray(parsed.categories)) parsed.categories = [];
-
-    // Passo de verificação removido: dobrava o tempo e estourava o timeout de
-    // 150s do edge runtime. O prompt principal já força extração exaustiva.
-
-    parsed.total_items_extracted = countItems(parsed);
-
-    return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("import-menu error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  return new Response(stream, {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });
+

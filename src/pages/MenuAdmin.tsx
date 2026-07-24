@@ -277,6 +277,7 @@ function MenuImportTab({ rid }: { rid: string }) {
       }
 
       const parsed = await resp.json();
+      if (parsed?.error) throw new Error(parsed.error);
       setParsedResult(parsed);
 
       // Select all items by default
