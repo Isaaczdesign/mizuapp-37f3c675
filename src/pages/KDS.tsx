@@ -394,7 +394,11 @@ const KDS = () => {
         </div>
       </div>
 
-      {!currentShiftId ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : !currentShiftId ? (
         <div className="glass-card p-8 text-center">
           <p className="text-4xl mb-3">🌙</p>
           <p className="font-display font-bold text-lg mb-1">Expediente encerrado</p>
