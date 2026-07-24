@@ -60,6 +60,8 @@ const Settings = () => {
   const [mpEnabled, setMpEnabled] = useState<boolean>(false);
   const [mpAccessToken, setMpAccessToken] = useState<string>("");
   const [mpPublicKey, setMpPublicKey] = useState<string>("");
+  const [slug, setSlug] = useState<string>("");
+  const [slugCheck, setSlugCheck] = useState<{ status: "idle" | "checking" | "available" | "taken" | "invalid" | "same"; msg?: string }>({ status: "idle" });
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -109,8 +111,31 @@ const Settings = () => {
       setMpEnabled(((restaurant as any).mp_enabled ?? false) as boolean);
       setMpAccessToken(((restaurant as any).mp_access_token ?? "") as string);
       setMpPublicKey(((restaurant as any).mp_public_key ?? "") as string);
+      setSlug((restaurant as any).slug ?? "");
     }
   }, [restaurant]);
+
+  // Slug live validation (debounced)
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    const cleaned = slug.trim().toLowerCase();
+    const currentSlug = ((restaurant as any).slug ?? "").toLowerCase();
+    if (!cleaned) { setSlugCheck({ status: "invalid", msg: "Slug obrigatório" }); return; }
+    if (!/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/.test(cleaned)) {
+      setSlugCheck({ status: "invalid", msg: "Use 3–40 caracteres: letras minúsculas, números e hífen" });
+      return;
+    }
+    if (cleaned === currentSlug) { setSlugCheck({ status: "same" }); return; }
+    setSlugCheck({ status: "checking" });
+    const t = setTimeout(async () => {
+      const { data, error } = await (supabase as any).rpc("check_slug_available", {
+        _slug: cleaned, _restaurant_id: restaurant.id,
+      });
+      if (error) { setSlugCheck({ status: "invalid", msg: error.message }); return; }
+      setSlugCheck(data ? { status: "available" } : { status: "taken", msg: "Este slug já está em uso" });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [slug, restaurant]);
 
   useEffect(() => {
     if (settings) {
