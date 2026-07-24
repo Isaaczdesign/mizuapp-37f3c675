@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
-import { isOpenNow } from "@/lib/operatingHours";
+import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 type Period = "today" | "week" | "month" | "custom";
 
 const Dashboard = () => {
