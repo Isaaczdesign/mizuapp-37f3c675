@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil } from "lucide-react";
+import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
@@ -13,6 +14,7 @@ import EditOrderModal from "@/components/EditOrderModal";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
+type ScopeFilter = "current" | "7d" | "all";
 
 interface Order {
   id: string;
@@ -33,6 +35,7 @@ interface Order {
   order_items: { id: string; name: string; quantity: number; unit_price: number; notes: string | null }[];
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
+  shift_id: string | null;
 }
 
 const PAYMENT_BADGE: Record<string, { label: string; cls: string }> = {
