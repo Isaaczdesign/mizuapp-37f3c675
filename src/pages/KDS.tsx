@@ -2,10 +2,15 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import AdminLayout from "@/components/AdminLayout";
-import { Maximize2, Minimize2, Volume2, VolumeX, Printer, PrinterIcon, Undo2, Pin, PinOff, LayoutGrid, Rows3, Clock } from "lucide-react";
+import { Maximize2, Minimize2, Volume2, VolumeX, Printer, PrinterIcon, Undo2, Pin, PinOff, LayoutGrid, Rows3, Clock, Settings2 } from "lucide-react";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
