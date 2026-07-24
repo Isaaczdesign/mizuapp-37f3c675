@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock } from "lucide-react";
+import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock, BadgeDollarSign } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
@@ -297,6 +297,27 @@ const Orders = () => {
     setSelectedOrder(null);
   }
 
+  // Pagamento offline (no local / na retirada / na entrega): dinheiro, maquininha, pix manual etc.
+  function isOfflinePayment(order: Order) {
+    return order.payment_method !== "pix" && order.payment_method !== "credit_card_online";
+  }
+  function isPaid(order: Order) {
+    return order.payment_status === "paid" || order.payment_status === "approved";
+  }
+
+  async function confirmPayment(orderId: string) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ payment_status: "paid" } as any)
+      .eq("id", orderId);
+    if (error) { toast.error("Erro ao confirmar pagamento"); return; }
+    toast.success("💰 Pagamento confirmado!");
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, payment_status: "paid" } : o)));
+    setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, payment_status: "paid" } : prev));
+  }
+
+
+
   async function saveEta(orderId: string, isoDatetime: string | null) {
     const { error } = await supabase.from("orders").update({ delivery_eta: isoDatetime }).eq("id", orderId);
     if (error) { toast.error("Erro ao salvar previsão"); return; }
@@ -513,14 +534,14 @@ const Orders = () => {
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
                         {(() => {
-                          const isOnlinePix = order.payment_method === "pix";
-                          const key = isOnlinePix ? (order.payment_status ?? "pending") : "not_required";
+                          const offline = isOfflinePayment(order);
+                          const key = offline ? (isPaid(order) ? "approved" : "not_required") : (order.payment_status ?? "pending");
                           const pb = PAYMENT_BADGE[key] ?? PAYMENT_BADGE.pending;
                           let label = pb.label;
                           if (key === "not_required") {
-                            if (order.order_type === "delivery") label = "Na entrega";
-                            else if (order.order_type === "pickup") label = "Na retirada";
-                            else label = "No local";
+                            if (order.order_type === "delivery") label = "Receber na entrega";
+                            else if (order.order_type === "pickup") label = "Receber na retirada";
+                            else label = "Receber no local";
                           }
                           return (
                             <span className={`inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full font-medium ${pb.cls}`}>
@@ -566,6 +587,15 @@ const Orders = () => {
                           <button onClick={() => setSelectedOrder(order)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+                          {isOfflinePayment(order) && !isPaid(order) && order.status !== "canceled" && (
+                            <button
+                              onClick={() => confirmPayment(order.id)}
+                              title="Confirmar pagamento recebido"
+                              className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+                            >
+                              <BadgeDollarSign className="w-3.5 h-3.5" /> Pago
+                            </button>
+                          )}
                           {next && (
                             <Button variant="hero" size="sm" className="text-xs h-7" onClick={() => updateStatus(order.id, next)}>
                               {getNextLabel(order.status, order.order_type)}
@@ -698,6 +728,24 @@ const Orders = () => {
                     <> · Troco p/ R${Number(selectedOrder.payment_change_for).toFixed(2)}</>
                   )}
                 </p>
+              )}
+              {isOfflinePayment(selectedOrder) && (
+                <div className="pt-2 border-t border-border">
+                  {isPaid(selectedOrder) ? (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400">
+                      <BadgeDollarSign className="w-4 h-4" /> Pagamento confirmado
+                    </span>
+                  ) : (
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      className="w-full gap-1"
+                      onClick={() => confirmPayment(selectedOrder.id)}
+                    >
+                      <BadgeDollarSign className="w-4 h-4" /> Confirmar pagamento (R${Number(selectedOrder.total).toFixed(2)})
+                    </Button>
+                  )}
+                </div>
               )}
               {selectedOrder.delivery_fee > 0 && (
                 <p><strong>Taxa de entrega:</strong> R${Number(selectedOrder.delivery_fee).toFixed(2)}</p>
