@@ -17,6 +17,7 @@ const allNavItems: NavItem[] = [
   { to: "/tables", icon: QrCode, label: "Mesas", roles: ["owner", "manager"] },
   { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
   { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"] },
+  { to: "/expediente", icon: Lock, label: "Expediente", roles: ["owner", "manager"] },
 ];
 
 const bottomItems: NavItem[] = [
