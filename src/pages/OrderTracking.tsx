@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import MpCardForm from "@/components/MpCardForm";
 
 interface TrackingOrder {
   id: string;
@@ -24,6 +25,9 @@ interface PaymentStatus {
   mp_qr_code: string | null;
   mp_qr_code_base64: string | null;
   mp_ticket_url: string | null;
+  payment_method: string | null;
+  mp_public_key: string | null;
+  total: number | null;
 }
 
 const DEFAULT_FLOW: { key: string; label: string; icon: any }[] = [
@@ -165,6 +169,30 @@ export default function OrderTracking() {
                   Esta tela atualiza automaticamente assim que o pagamento é confirmado.
                 </p>
               </div>
+            )}
+
+            {payment.payment_method === "credit_card_online"
+              && payment.payment_status !== "approved"
+              && payment.payment_status !== "in_process"
+              && payment.mp_public_key && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CreditCard className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold">Pague com cartão</p>
+                  </div>
+                  <MpCardForm
+                    trackingToken={token!}
+                    publicKey={payment.mp_public_key}
+                    amount={Number(payment.total ?? order.total)}
+                    onApproved={load}
+                  />
+                </div>
+            )}
+
+            {payment.payment_method === "credit_card_online" && !payment.mp_public_key && (
+              <p className="text-xs text-amber-400">
+                O restaurante ainda não configurou a chave pública do Mercado Pago. Escolha outra forma de pagamento.
+              </p>
             )}
 
             {payment.payment_status === "approved" && (

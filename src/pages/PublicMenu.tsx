@@ -1112,12 +1112,14 @@ const PublicMenu = () => {
                   <h3 className="font-display font-bold">Forma de pagamento</h3>
                   {(() => {
                     const pm = restaurant.payment_methods;
-                    const available: { key: string; label: string }[] = [];
+                    const mpOn = Boolean((restaurant as any).mp_enabled);
+                    const available: { key: string; label: string; hint?: string }[] = [];
                     const enabled = (k: string) =>
                       Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
-                    if (enabled("pix")) available.push({ key: "pix", label: "PIX" });
-                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: "Cartão de Crédito" });
-                    if (enabled("debit_card")) available.push({ key: "debit_card", label: "Cartão de Débito" });
+                    if (enabled("pix")) available.push({ key: "pix", label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? "QR Code na próxima tela" : undefined });
+                    if (mpOn) available.push({ key: "credit_card_online", label: "Cartão de Crédito (online)", hint: "até 3x sem juros" });
+                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: "Cartão de Crédito (no local)" });
+                    if (enabled("debit_card")) available.push({ key: "debit_card", label: "Cartão de Débito (no local)" });
                     if (enabled("cash")) available.push({ key: "cash", label: "Dinheiro" });
                     if (available.length === 0) {
                       available.push({ key: "pix", label: "PIX" }, { key: "cash", label: "Dinheiro" });
@@ -1131,7 +1133,10 @@ const PublicMenu = () => {
                         style={paymentMethod === p.key ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
                       >
                         <CreditCard className="w-4 h-4" style={{ color: accentColor }} />
-                        <span className="text-sm font-medium">{p.label}</span>
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-medium">{p.label}</p>
+                          {p.hint && <p className="text-[10px] text-muted-foreground">{p.hint}</p>}
+                        </div>
                       </button>
                     ));
                   })()}
