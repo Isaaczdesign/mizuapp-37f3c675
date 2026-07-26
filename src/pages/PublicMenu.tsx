@@ -13,6 +13,9 @@ import {
 import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
+import MenuItemCard from "@/components/public-menu/MenuItemCard";
+import { resolveMenuTheme } from "@/lib/menuThemes";
+
 
 // ── Types ──
 interface Variation { id: string; name: string; price_delta: number; absolute_price: number | null; }
