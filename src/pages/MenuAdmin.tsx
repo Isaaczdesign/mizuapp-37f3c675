@@ -879,7 +879,9 @@ const MenuAdmin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="items">Itens do Cardápio</TabsTrigger>
             <TabsTrigger value="import">Importar Cardápio</TabsTrigger>
+            <TabsTrigger value="theme">Personalizar</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="items">
             <div className="grid md:grid-cols-[240px_1fr] gap-6">
