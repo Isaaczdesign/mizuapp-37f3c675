@@ -649,10 +649,25 @@ const MenuAdmin = () => {
     queryKey: ["restaurant", rid],
     enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code").eq("id", rid!).single();
+      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code, menu_theme").eq("id", rid!).single();
       return data;
     },
   });
+
+  const { data: previewItems } = useQuery({
+    queryKey: ["menu-preview-items", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("menu_items")
+        .select("id, name, description, price, image_url, tags")
+        .eq("restaurant_id", rid!)
+        .eq("is_available", true)
+        .limit(3);
+      return data ?? [];
+    },
+  });
+
 
   const publicMenuUrl = restaurant?.slug ? `${window.location.origin}/r/${restaurant.slug}` : null;
 
