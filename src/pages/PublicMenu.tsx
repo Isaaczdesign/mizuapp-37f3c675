@@ -13,6 +13,9 @@ import {
 import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
+import MenuItemCard from "@/components/public-menu/MenuItemCard";
+import { resolveMenuTheme } from "@/lib/menuThemes";
+
 
 // ── Types ──
 interface Variation { id: string; name: string; price_delta: number; absolute_price: number | null; }
@@ -33,7 +36,7 @@ interface Restaurant {
   banner_url: string | null; description: string | null; pickup_dine_in_note: string | null;
   owner_phone: string | null; upsell_item_ids: string[] | null;
   pickup_enabled: boolean; dine_in_enabled: boolean; delivery_enabled: boolean;
-  delivery_fee: number | null; payment_methods: any; mp_enabled?: boolean;
+  delivery_fee: number | null; payment_methods: any; mp_enabled?: boolean; menu_theme?: string | null;
 }
 type OrderType = "dine_in" | "pickup" | "delivery";
 
@@ -41,36 +44,8 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 const onlinePaymentMinAmount = 1;
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-const TAG_BADGES: Record<
-  string,
-  { emoji: string; label: string; gradient: string; ring: string; glow: string; pulse?: boolean }
-> = {
-  best_seller: {
-    emoji: "🔥", label: "Mais Vendido",
-    gradient: "linear-gradient(135deg, #FF3D00 0%, #FF9100 100%)",
-    ring: "rgba(255,109,0,0.55)", glow: "0 0 18px rgba(255,109,0,0.55)", pulse: true,
-  },
-  recommended: {
-    emoji: "⭐", label: "Recomendado",
-    gradient: "linear-gradient(135deg, #FFB300 0%, #FFD54F 100%)",
-    ring: "rgba(255,193,7,0.5)", glow: "0 0 14px rgba(255,193,7,0.45)",
-  },
-  chef_pick: {
-    emoji: "👨‍🍳", label: "Escolha do Chef",
-    gradient: "linear-gradient(135deg, #1a1a1a 0%, #3d2b1f 100%)",
-    ring: "rgba(212,175,55,0.7)", glow: "0 0 12px rgba(212,175,55,0.45)",
-  },
-  high_margin: {
-    emoji: "💎", label: "Destaque",
-    gradient: "linear-gradient(135deg, #00B8D4 0%, #7C4DFF 100%)",
-    ring: "rgba(124,77,255,0.55)", glow: "0 0 16px rgba(124,77,255,0.5)",
-  },
-  combo: {
-    emoji: "🎁", label: "Combo",
-    gradient: "linear-gradient(135deg, #E91E63 0%, #FF5252 100%)",
-    ring: "rgba(233,30,99,0.55)", glow: "0 0 16px rgba(233,30,99,0.5)", pulse: true,
-  },
-};
+// Badges de tag e card de item vivem em @/components/public-menu/MenuItemCard
+
 
 // ── Operating Hours helper ──
 function getOpenStatus(hours: any): { isOpen: boolean; label: string } {
@@ -316,7 +291,9 @@ const PublicMenu = () => {
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
   const accentColor = restaurant?.primary_color ?? "#FF6B35";
+  const menuTheme = resolveMenuTheme(restaurant?.menu_theme);
   const openStatus = getOpenStatus(operatingHours);
+
 
   // ── Upsell (rule engine) ──
   type UpsellSuggestion = {
@@ -791,85 +768,27 @@ const PublicMenu = () => {
             data-cat-id={cat.id}
             className="mb-6 scroll-mt-[60px]"
           >
-            <h2 className="font-display text-lg font-bold mb-3 sticky top-[52px] bg-background/90 backdrop-blur-sm py-2 z-20">
+            <h2 className={`${menuTheme.categoryTitleClass} mb-3 sticky top-[52px] bg-background/90 backdrop-blur-sm py-2 z-20`}>
               {cat.name}
             </h2>
 
-            <div className="space-y-2">
+            <div className={menuTheme.listClass}>
               {cat.items.map((item, idx) => {
                 const inCart = cart.filter((c) => c.menuItemId === item.id).reduce((s, c) => s + c.quantity, 0);
-                const tags = (item.tags ?? []).filter((t) => TAG_BADGES[t]);
                 return (
-                  <motion.div
+                  <MenuItemCard
                     key={item.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03, duration: 0.3 }}
+                    item={item}
+                    theme={menuTheme}
+                    accentColor={accentColor}
+                    inCart={inCart}
+                    index={idx}
                     onClick={() => openItemDetail(item)}
-                    className="flex gap-3 p-3 rounded-2xl bg-card/60 backdrop-blur border border-white/[0.05] cursor-pointer hover:border-white/[0.1] transition-all active:scale-[0.98]"
-                  >
-                    <div className="flex-1 min-w-0 flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-semibold text-sm leading-tight">{item.name}</h3>
-                        {tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-1.5">
-                            {tags.map((t) => {
-                              const b = TAG_BADGES[t];
-                              return (
-                                <motion.span
-                                  key={t}
-                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
-                                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                                  transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                                  className="relative inline-flex items-center gap-1 text-[10px] leading-none px-2 py-1 rounded-full font-bold text-white uppercase tracking-wide overflow-hidden"
-                                  style={{
-                                    backgroundImage: b.gradient,
-                                    boxShadow: `${b.glow}, inset 0 1px 0 rgba(255,255,255,0.25)`,
-                                    border: `1px solid ${b.ring}`,
-                                  }}
-                                >
-                                  {b.pulse && (
-                                    <span
-                                      className="absolute inset-0 rounded-full animate-ping opacity-40"
-                                      style={{ backgroundImage: b.gradient }}
-                                      aria-hidden
-                                    />
-                                  )}
-                                  <span className="relative text-sm leading-none drop-shadow">{b.emoji}</span>
-                                  <span className="relative">{b.label}</span>
-                                </motion.span>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {item.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-display font-bold text-sm" style={{ color: accentColor }}>
-                          {fmt(Number(item.price))}
-                        </span>
-                        {inCart > 0 && (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                            style={{ backgroundColor: accentColor + "20", color: accentColor }}>
-                            {inCart}× no carrinho
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {item.image_url && (
-                      <img
-                        src={item.image_url} alt={item.name}
-                        className="w-24 h-24 rounded-xl object-cover shrink-0"
-                        loading="lazy"
-                      />
-                    )}
-                  </motion.div>
+                  />
                 );
               })}
             </div>
+
           </div>
         ))}
       </div>

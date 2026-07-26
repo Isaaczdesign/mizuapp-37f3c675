@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link } from "lucide-react";
 import UpsellBadges from "@/components/UpsellBadges";
+import MenuThemeTab from "@/components/menu-admin/MenuThemeTab";
+
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -649,10 +651,25 @@ const MenuAdmin = () => {
     queryKey: ["restaurant", rid],
     enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code").eq("id", rid!).single();
+      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code, menu_theme").eq("id", rid!).single();
       return data;
     },
   });
+
+  const { data: previewItems } = useQuery({
+    queryKey: ["menu-preview-items", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("menu_items")
+        .select("id, name, description, price, image_url, tags")
+        .eq("restaurant_id", rid!)
+        .eq("is_active", true)
+        .limit(3);
+      return data ?? [];
+    },
+  });
+
 
   const publicMenuUrl = restaurant?.slug ? `${window.location.origin}/r/${restaurant.slug}` : null;
 
@@ -864,7 +881,9 @@ const MenuAdmin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="items">Itens do Cardápio</TabsTrigger>
             <TabsTrigger value="import">Importar Cardápio</TabsTrigger>
+            <TabsTrigger value="theme">Personalizar</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="items">
             <div className="grid md:grid-cols-[240px_1fr] gap-6">
@@ -934,6 +953,18 @@ const MenuAdmin = () => {
           <TabsContent value="import">
             {rid && <MenuImportTab rid={rid} />}
           </TabsContent>
+
+          <TabsContent value="theme">
+            <MenuThemeTab
+              restaurantId={rid ?? undefined}
+              currentTheme={(restaurant as any)?.menu_theme}
+              currentColor={(restaurant as any)?.primary_color}
+              restaurantName={(restaurant as any)?.name}
+              publicMenuUrl={publicMenuUrl}
+              previewItems={(previewItems ?? []) as any}
+            />
+          </TabsContent>
+
         </Tabs>
 
         {/* Item Dialog - Enhanced */}

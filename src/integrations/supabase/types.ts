@@ -967,6 +967,7 @@ export type Database = {
           id: string
           is_active: boolean
           logo_url: string | null
+          menu_theme: string
           mp_access_token: string | null
           mp_enabled: boolean
           mp_public_key: string | null
@@ -995,6 +996,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          menu_theme?: string
           mp_access_token?: string | null
           mp_enabled?: boolean
           mp_public_key?: string | null
@@ -1023,6 +1025,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          menu_theme?: string
           mp_access_token?: string | null
           mp_enabled?: boolean
           mp_public_key?: string | null
@@ -1634,6 +1637,7 @@ export type Database = {
           id: string
           is_active: boolean
           logo_url: string
+          menu_theme: string
           mp_enabled: boolean
           name: string
           operating_hours: Json
