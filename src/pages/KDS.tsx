@@ -270,10 +270,11 @@ const KDS = () => {
     // Atualização otimista para feedback imediato (não depende do Realtime)
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
 
-    const patch: Record<string, unknown> = { status: newStatus };
     const nowIso = new Date().toISOString();
+    const patch: { status: OrderStatus; preparing_started_at?: string; ready_at?: string } = { status: newStatus };
     if (newStatus === "preparing") patch.preparing_started_at = nowIso;
     if (newStatus === "ready") patch.ready_at = nowIso;
+
 
     const { data, error } = await supabase
       .from("orders")
