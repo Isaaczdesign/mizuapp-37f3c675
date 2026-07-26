@@ -267,10 +267,30 @@ const KDS = () => {
   }
 
   async function updateStatus(orderId: string, newStatus: OrderStatus, silent = false) {
-    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
-    if (error) { toast.error("Erro ao atualizar"); return; }
+    // Atualização otimista para feedback imediato (não depende do Realtime)
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+
+    const patch: Record<string, unknown> = { status: newStatus };
+    const nowIso = new Date().toISOString();
+    if (newStatus === "preparing") patch.preparing_started_at = nowIso;
+    if (newStatus === "ready") patch.ready_at = nowIso;
+
+    const { data, error } = await supabase
+      .from("orders")
+      .update(patch)
+      .eq("id", orderId)
+      .select("id, status")
+      .maybeSingle();
+
+    if (error || !data) {
+      toast.error(error?.message ? `Erro ao atualizar: ${error.message}` : "Erro ao atualizar o pedido");
+      await loadOrders();
+      return;
+    }
     if (!silent) toast.success("Status atualizado!");
+    await loadOrders();
   }
+
 
   // Tick a cada 15s para atualizar timers/etas
   const [, setTick] = useState(0);
