@@ -949,6 +949,18 @@ const MenuAdmin = () => {
           <TabsContent value="import">
             {rid && <MenuImportTab rid={rid} />}
           </TabsContent>
+
+          <TabsContent value="theme">
+            <MenuThemeTab
+              restaurantId={rid ?? undefined}
+              currentTheme={(restaurant as any)?.menu_theme}
+              currentColor={(restaurant as any)?.primary_color}
+              restaurantName={(restaurant as any)?.name}
+              publicMenuUrl={publicMenuUrl}
+              previewItems={(previewItems ?? []) as any}
+            />
+          </TabsContent>
+
         </Tabs>
 
         {/* Item Dialog - Enhanced */}
