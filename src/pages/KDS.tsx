@@ -210,7 +210,9 @@ const KDS = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => loadOrders())
       .on("postgres_changes", { event: "*", schema: "public", table: "work_shifts", filter: `restaurant_id=eq.${restaurantId}` }, () => loadOrders())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const poll = setInterval(() => loadOrders(), 10000);
+    return () => { supabase.removeChannel(channel); clearInterval(poll); };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
 
