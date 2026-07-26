@@ -766,85 +766,27 @@ const PublicMenu = () => {
             data-cat-id={cat.id}
             className="mb-6 scroll-mt-[60px]"
           >
-            <h2 className="font-display text-lg font-bold mb-3 sticky top-[52px] bg-background/90 backdrop-blur-sm py-2 z-20">
+            <h2 className={`${menuTheme.categoryTitleClass} mb-3 sticky top-[52px] bg-background/90 backdrop-blur-sm py-2 z-20`}>
               {cat.name}
             </h2>
 
-            <div className="space-y-2">
+            <div className={menuTheme.listClass}>
               {cat.items.map((item, idx) => {
                 const inCart = cart.filter((c) => c.menuItemId === item.id).reduce((s, c) => s + c.quantity, 0);
-                const tags = (item.tags ?? []).filter((t) => TAG_BADGES[t]);
                 return (
-                  <motion.div
+                  <MenuItemCard
                     key={item.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03, duration: 0.3 }}
+                    item={item}
+                    theme={menuTheme}
+                    accentColor={accentColor}
+                    inCart={inCart}
+                    index={idx}
                     onClick={() => openItemDetail(item)}
-                    className="flex gap-3 p-3 rounded-2xl bg-card/60 backdrop-blur border border-white/[0.05] cursor-pointer hover:border-white/[0.1] transition-all active:scale-[0.98]"
-                  >
-                    <div className="flex-1 min-w-0 flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-semibold text-sm leading-tight">{item.name}</h3>
-                        {tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-1.5">
-                            {tags.map((t) => {
-                              const b = TAG_BADGES[t];
-                              return (
-                                <motion.span
-                                  key={t}
-                                  initial={{ scale: 0.6, opacity: 0, y: -4 }}
-                                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                                  transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                                  className="relative inline-flex items-center gap-1 text-[10px] leading-none px-2 py-1 rounded-full font-bold text-white uppercase tracking-wide overflow-hidden"
-                                  style={{
-                                    backgroundImage: b.gradient,
-                                    boxShadow: `${b.glow}, inset 0 1px 0 rgba(255,255,255,0.25)`,
-                                    border: `1px solid ${b.ring}`,
-                                  }}
-                                >
-                                  {b.pulse && (
-                                    <span
-                                      className="absolute inset-0 rounded-full animate-ping opacity-40"
-                                      style={{ backgroundImage: b.gradient }}
-                                      aria-hidden
-                                    />
-                                  )}
-                                  <span className="relative text-sm leading-none drop-shadow">{b.emoji}</span>
-                                  <span className="relative">{b.label}</span>
-                                </motion.span>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {item.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-display font-bold text-sm" style={{ color: accentColor }}>
-                          {fmt(Number(item.price))}
-                        </span>
-                        {inCart > 0 && (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                            style={{ backgroundColor: accentColor + "20", color: accentColor }}>
-                            {inCart}× no carrinho
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {item.image_url && (
-                      <img
-                        src={item.image_url} alt={item.name}
-                        className="w-24 h-24 rounded-xl object-cover shrink-0"
-                        loading="lazy"
-                      />
-                    )}
-                  </motion.div>
+                  />
                 );
               })}
             </div>
+
           </div>
         ))}
       </div>
