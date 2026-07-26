@@ -41,36 +41,8 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 const onlinePaymentMinAmount = 1;
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-const TAG_BADGES: Record<
-  string,
-  { emoji: string; label: string; gradient: string; ring: string; glow: string; pulse?: boolean }
-> = {
-  best_seller: {
-    emoji: "🔥", label: "Mais Vendido",
-    gradient: "linear-gradient(135deg, #FF3D00 0%, #FF9100 100%)",
-    ring: "rgba(255,109,0,0.55)", glow: "0 0 18px rgba(255,109,0,0.55)", pulse: true,
-  },
-  recommended: {
-    emoji: "⭐", label: "Recomendado",
-    gradient: "linear-gradient(135deg, #FFB300 0%, #FFD54F 100%)",
-    ring: "rgba(255,193,7,0.5)", glow: "0 0 14px rgba(255,193,7,0.45)",
-  },
-  chef_pick: {
-    emoji: "👨‍🍳", label: "Escolha do Chef",
-    gradient: "linear-gradient(135deg, #1a1a1a 0%, #3d2b1f 100%)",
-    ring: "rgba(212,175,55,0.7)", glow: "0 0 12px rgba(212,175,55,0.45)",
-  },
-  high_margin: {
-    emoji: "💎", label: "Destaque",
-    gradient: "linear-gradient(135deg, #00B8D4 0%, #7C4DFF 100%)",
-    ring: "rgba(124,77,255,0.55)", glow: "0 0 16px rgba(124,77,255,0.5)",
-  },
-  combo: {
-    emoji: "🎁", label: "Combo",
-    gradient: "linear-gradient(135deg, #E91E63 0%, #FF5252 100%)",
-    ring: "rgba(233,30,99,0.55)", glow: "0 0 16px rgba(233,30,99,0.5)", pulse: true,
-  },
-};
+// Badges de tag e card de item vivem em @/components/public-menu/MenuItemCard
+
 
 // ── Operating Hours helper ──
 function getOpenStatus(hours: any): { isOpen: boolean; label: string } {
