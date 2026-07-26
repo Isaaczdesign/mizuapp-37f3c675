@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link } from "lucide-react";
 import UpsellBadges from "@/components/UpsellBadges";
+import MenuThemeTab from "@/components/menu-admin/MenuThemeTab";
+
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
