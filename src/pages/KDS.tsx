@@ -210,7 +210,9 @@ const KDS = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => loadOrders())
       .on("postgres_changes", { event: "*", schema: "public", table: "work_shifts", filter: `restaurant_id=eq.${restaurantId}` }, () => loadOrders())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const poll = setInterval(() => loadOrders(), 10000);
+    return () => { supabase.removeChannel(channel); clearInterval(poll); };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
 
@@ -267,10 +269,31 @@ const KDS = () => {
   }
 
   async function updateStatus(orderId: string, newStatus: OrderStatus, silent = false) {
-    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
-    if (error) { toast.error("Erro ao atualizar"); return; }
+    // Atualização otimista para feedback imediato (não depende do Realtime)
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+
+    const nowIso = new Date().toISOString();
+    const patch: { status: OrderStatus; preparing_started_at?: string; ready_at?: string } = { status: newStatus };
+    if (newStatus === "preparing") patch.preparing_started_at = nowIso;
+    if (newStatus === "ready") patch.ready_at = nowIso;
+
+
+    const { data, error } = await supabase
+      .from("orders")
+      .update(patch)
+      .eq("id", orderId)
+      .select("id, status")
+      .maybeSingle();
+
+    if (error || !data) {
+      toast.error(error?.message ? `Erro ao atualizar: ${error.message}` : "Erro ao atualizar o pedido");
+      await loadOrders();
+      return;
+    }
     if (!silent) toast.success("Status atualizado!");
+    await loadOrders();
   }
+
 
   // Tick a cada 15s para atualizar timers/etas
   const [, setTick] = useState(0);
