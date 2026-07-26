@@ -662,7 +662,7 @@ const MenuAdmin = () => {
         .from("menu_items")
         .select("id, name, description, price, image_url, tags")
         .eq("restaurant_id", rid!)
-        .eq("is_available", true)
+        .eq("is_active", true)
         .limit(3);
       return data ?? [];
     },
