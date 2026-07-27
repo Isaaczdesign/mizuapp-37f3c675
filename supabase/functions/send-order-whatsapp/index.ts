@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { audit, resolveTenant } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,12 +22,43 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Staff-only endpoint: the tenant always comes from the JWT, never from the body.
+    const tenant = await resolveTenant(req, supabase);
+    if (!tenant) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: order, error: oErr } = await supabase
       .from("orders")
       .select("id, restaurant_id, tracking_token, delivery_eta, order_type, customers(name, whatsapp), restaurants(name, slug), restaurant_tables(number)")
       .eq("id", order_id)
+      .eq("restaurant_id", tenant.restaurantId)
       .maybeSingle();
-    if (oErr || !order) throw new Error(oErr?.message ?? "order not found");
+    if (oErr || !order) {
+      await audit(supabase, {
+        restaurantId: tenant.restaurantId,
+        userId: tenant.userId,
+        action: "whatsapp.denied_or_missing_order",
+        entityType: "order",
+        entityId: order_id,
+        metadata: { event },
+      });
+      return new Response(JSON.stringify({ error: "Pedido não encontrado" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    await audit(supabase, {
+      restaurantId: tenant.restaurantId,
+      userId: tenant.userId,
+      action: "whatsapp.notify",
+      entityType: "order",
+      entityId: order_id,
+      metadata: { event },
+    });
+
 
     const cust: any = (order as any).customers;
     const rest: any = (order as any).restaurants;
