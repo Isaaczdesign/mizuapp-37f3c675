@@ -279,14 +279,17 @@ function MenuImportTab({ rid }: { rid: string }) {
     setParsedResult(null);
     setSelectedItems(new Set());
     setActiveJob(null);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
     const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${accessToken ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
       body: JSON.stringify({ job_id: jobId }),
     });
+
     if (!resp.ok) {
       const errBody = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
       throw new Error(errBody.error || `Erro ${resp.status}`);
