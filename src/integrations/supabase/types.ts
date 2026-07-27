@@ -1689,6 +1689,10 @@ export type Database = {
         Args: { _restaurant_id: string }
         Returns: boolean
       }
+      log_data_access: {
+        Args: { _action: string; _entity_type: string; _metadata?: Json }
+        Returns: undefined
+      }
       recalc_customer_stats: {
         Args: { _customer_id: string }
         Returns: undefined
