@@ -1,27 +1,55 @@
 // Refunds a Mercado Pago payment (PIX or card) in full.
-// Called from the dashboard when staff cancels a paid online order.
-import { createClient } from "npm:@supabase/supabase-js@2";
+// Two authorized paths:
+//  - staff: authenticated user, order must belong to the tenant on their JWT (order_id)
+//  - customer: unauthenticated, must prove ownership with the unguessable tracking_token
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { adminClient, audit, resolveTenant } from "../_shared/tenant.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { order_id } = await req.json();
-    if (!order_id) return json({ error: "order_id required" }, 400);
+    const body = await req.json().catch(() => ({}));
+    const orderId = body?.order_id;
+    const trackingToken = body?.tracking_token;
+    if (!orderId && !trackingToken) return json({ error: "order_id ou tracking_token obrigatório" }, 400);
 
-    const admin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const admin = adminClient();
+    const tenant = await resolveTenant(req, admin);
 
-    const { data: order, error: oErr } = await admin
+    let query = admin
       .from("orders")
-      .select("id, restaurant_id, mp_payment_id, payment_status, payment_method, total")
-      .eq("id", order_id)
-      .maybeSingle();
+      .select("id, restaurant_id, mp_payment_id, payment_status, payment_method, total");
+    query = trackingToken ? query.eq("tracking_token", trackingToken) : query.eq("id", orderId);
 
+    const { data: order, error: oErr } = await query.maybeSingle();
     if (oErr || !order) return json({ error: "Pedido não encontrado" }, 404);
+
+    // Staff path: ignore any restaurant provided by the client, enforce the JWT tenant.
+    if (!trackingToken) {
+      if (!tenant) return json({ error: "Não autorizado" }, 401);
+      if (order.restaurant_id !== tenant.restaurantId) {
+        await audit(admin, {
+          restaurantId: tenant.restaurantId,
+          userId: tenant.userId,
+          action: "refund.denied_cross_tenant",
+          entityType: "order",
+          entityId: order.id,
+          metadata: { attempted_restaurant_id: order.restaurant_id },
+        });
+        return json({ error: "Não autorizado" }, 403);
+      }
+    }
+
+    await audit(admin, {
+      restaurantId: order.restaurant_id,
+      userId: tenant?.userId ?? null,
+      action: "refund.attempt",
+      entityType: "order",
+      entityId: order.id,
+      metadata: { via: trackingToken ? "customer_token" : "staff", payment_status: order.payment_status },
+    });
+
     if (!order.mp_payment_id) {
       return json({ ok: true, skipped: true, reason: "Pedido sem pagamento online vinculado" });
     }
@@ -54,6 +82,14 @@ Deno.serve(async (req) => {
     const mpData = await mpResp.json().catch(() => ({}));
     if (!mpResp.ok) {
       console.error("MP refund failed", mpResp.status, mpData);
+      await audit(admin, {
+        restaurantId: order.restaurant_id,
+        userId: tenant?.userId ?? null,
+        action: "refund.failed",
+        entityType: "order",
+        entityId: order.id,
+        metadata: { status: mpResp.status, message: mpData?.message ?? null },
+      });
       return json({
         error: mpData?.message || "Falha ao reembolsar no Mercado Pago",
         details: mpData,
@@ -63,6 +99,15 @@ Deno.serve(async (req) => {
     await admin.from("orders").update({
       payment_status: "refunded",
     }).eq("id", order.id);
+
+    await audit(admin, {
+      restaurantId: order.restaurant_id,
+      userId: tenant?.userId ?? null,
+      action: "refund.succeeded",
+      entityType: "order",
+      entityId: order.id,
+      metadata: { refund_id: mpData?.id ?? null, amount: mpData?.amount ?? order.total },
+    });
 
     return json({ ok: true, refund_id: mpData?.id, amount: mpData?.amount ?? order.total });
   } catch (err) {
