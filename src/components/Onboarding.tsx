@@ -231,14 +231,17 @@ export default function Onboarding() {
       if (jobErr) throw jobErr;
 
       setMenuStage("analyzing");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/import-menu`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ job_id: job.id }),
       });
+
       if (!resp.ok) throw new Error("Erro ao enfileirar a importação do cardápio");
 
       // Aguarda o job assíncrono terminar (progresso parcial vai aparecendo na tela)
