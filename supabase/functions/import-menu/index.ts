@@ -325,13 +325,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: job } = await admin.from("menu_import_jobs").select("id").eq("id", jobId).maybeSingle();
+    // Tenant comes from the JWT — never from the request body.
+    const tenant = await resolveTenant(req, admin);
+    if (!tenant) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: job } = await admin
+      .from("menu_import_jobs")
+      .select("id, restaurant_id")
+      .eq("id", jobId)
+      .maybeSingle();
     if (!job) {
       return new Response(JSON.stringify({ error: "Job não encontrado" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (job.restaurant_id !== tenant.restaurantId) {
+      await audit(admin, {
+        restaurantId: tenant.restaurantId,
+        userId: tenant.userId,
+        action: "menu_import.denied_cross_tenant",
+        entityType: "menu_import_job",
+        entityId: jobId,
+        metadata: { attempted_restaurant_id: job.restaurant_id },
+      });
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    await audit(admin, {
+      restaurantId: tenant.restaurantId,
+      userId: tenant.userId,
+      action: "menu_import.started",
+      entityType: "menu_import_job",
+      entityId: jobId,
+    });
+
 
     await admin.from("menu_import_jobs").update({
       status: "queued", progress: 0, pages_processed: 0, items_found: 0,
