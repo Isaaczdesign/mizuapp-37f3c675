@@ -136,7 +136,7 @@ export default function OrderTracking() {
       const row = Array.isArray(data) ? data[0] : data;
       if (row?.refund_needed) {
         try {
-          await supabase.functions.invoke("refund-mp-payment", { body: { order_id: row.order_id } });
+          await supabase.functions.invoke("refund-mp-payment", { body: { tracking_token: token } });
         } catch (e) {
           console.error("Falha ao solicitar reembolso", e);
         }
