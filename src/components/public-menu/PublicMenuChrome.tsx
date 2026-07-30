@@ -189,7 +189,7 @@ function InfoChip({ icon, children }: { icon: React.ReactNode; children: React.R
    BUSCA + CATEGORIAS (sticky, mobile e tablet)
    ════════════════════════════════════════════════════════ */
 export function MenuStickyBar({
-  search, onSearch, categories, activeCategory, onCategory, accentColor,
+  search, onSearch, categories, activeCategory, onCategory, accentColor, className = "",
 }: {
   search: string;
   onSearch: (v: string) => void;
@@ -197,6 +197,7 @@ export function MenuStickyBar({
   activeCategory: string | null;
   onCategory: (id: string) => void;
   accentColor: string;
+  className?: string;
 }) {
   const [focused, setFocused] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
