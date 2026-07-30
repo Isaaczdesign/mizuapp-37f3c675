@@ -258,9 +258,23 @@ export function useKeyboardFocusScroll(active: boolean) {
       const target = e.target as Element | null;
       if (!isField(target)) return;
       focused = target;
+      // O iOS rola o "layout viewport" ao focar dentro de um elemento fixo:
+      // desfazemos esse deslocamento em cada frame do primeiro meio segundo,
+      // eliminando o salto visual do sheet.
+      const undoPageScroll = () => {
+        if (window.scrollY !== 0) window.scrollTo(0, 0);
+      };
+      undoPageScroll();
+      const start = performance.now();
+      const tick = () => {
+        undoPageScroll();
+        if (performance.now() - start < 600) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
       // Espera o teclado terminar de abrir antes de reposicionar.
-      [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(), ms)));
+      [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(false), ms)));
     };
+
     // Durante as transições do sheet o elemento focado pode perder o foco
     // (re-render/animação). Se nenhum outro campo assumiu, devolvemos o foco.
     const onFocusOut = (e: FocusEvent) => {
