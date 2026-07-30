@@ -678,7 +678,7 @@ const PublicMenu = () => {
   const categoryCounts = categorizedItems.map((c) => ({ id: c.id, name: c.name, count: c.items.length }));
 
   return (
-    <div className="min-h-[100dvh] bg-[#080909] text-[#F7F7F5] lg:flex">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-[#080909] text-[#F7F7F5] lg:flex">
       {/* ── Desktop: sidebar fixa ── */}
       <MenuSidebar
         name={restaurant.name}

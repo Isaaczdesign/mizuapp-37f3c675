@@ -214,22 +214,36 @@ export function MenuStickyBar({
   useEffect(() => {
     const el = barRef.current;
     if (!el) return;
+    let raf = 0;
     const apply = () => {
-      document.documentElement.style.setProperty(
-        "--menu-sticky-h",
-        `${Math.round(el.getBoundingClientRect().height)}px`,
-      );
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        document.documentElement.style.setProperty(
+          "--menu-sticky-h",
+          `${Math.round(el.getBoundingClientRect().height)}px`,
+        );
+      });
     };
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(el);
     window.addEventListener("resize", apply);
+    window.addEventListener("orientationchange", apply);
+    // Teclado do iOS: o visualViewport muda sem disparar `resize` da window.
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", apply);
+    vv?.addEventListener("scroll", apply);
     return () => {
+      cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("resize", apply);
+      window.removeEventListener("orientationchange", apply);
+      vv?.removeEventListener("resize", apply);
+      vv?.removeEventListener("scroll", apply);
       document.documentElement.style.removeProperty("--menu-sticky-h");
     };
   }, [categories.length, search]);
+
 
   return (
     <div ref={barRef} className={`sticky top-0 z-40 mt-5 ${GLASS_SOFT} ${className}`}>
@@ -279,7 +293,7 @@ export function MenuStickyBar({
           ref={railRef}
           role="tablist"
           aria-label="Categorias"
-          className="max-w-3xl mx-auto flex gap-2 px-4 sm:px-6 pb-3 overflow-x-auto scrollbar-hide"
+          className="max-w-3xl mx-auto flex gap-2 px-4 sm:px-6 pb-3 overflow-x-auto overscroll-x-contain scrollbar-hide"
         >
           {categories.map((cat) => {
             const active = activeCategory === cat.id;
