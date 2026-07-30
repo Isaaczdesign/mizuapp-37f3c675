@@ -116,3 +116,74 @@ export function useSheetViewport(open: boolean) {
     height: vp.height ? `${vp.height}px` : "100dvh",
   };
 }
+
+/**
+ * Mantém o campo focado sempre visível quando o teclado abre/fecha,
+ * sem "saltos": cancela o scroll nativo do navegador e reposiciona
+ * suavemente dentro do container rolável do sheet.
+ */
+export function useKeyboardFocusScroll(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+
+    let focused: HTMLElement | null = null;
+    let raf = 0;
+    const timers: number[] = [];
+
+    const isField = (el: Element | null): el is HTMLElement =>
+      !!el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+
+    const reveal = (smooth = true) => {
+      if (!focused || !document.contains(focused)) return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (!focused) return;
+        const vv = window.visualViewport;
+        const viewTop = vv ? vv.offsetTop : 0;
+        const viewBottom = viewTop + (vv ? vv.height : window.innerHeight);
+        const rect = focused.getBoundingClientRect();
+        const margin = 24;
+
+        // Container rolável mais próximo (o corpo do sheet).
+        let scroller: HTMLElement | null = focused.parentElement;
+        while (scroller && scroller !== document.body) {
+          const style = getComputedStyle(scroller);
+          if (/(auto|scroll)/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight) break;
+          scroller = scroller.parentElement;
+        }
+        if (!scroller || scroller === document.body) return;
+
+        let delta = 0;
+        if (rect.bottom > viewBottom - margin) delta = rect.bottom - (viewBottom - margin);
+        else if (rect.top < viewTop + margin) delta = rect.top - (viewTop + margin);
+        if (delta === 0) return;
+
+        scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: smooth ? "smooth" : "auto" });
+      });
+    };
+
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target as Element | null;
+      if (!isField(target)) return;
+      focused = target;
+      // Espera o teclado terminar de abrir antes de reposicionar.
+      [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(), ms)));
+    };
+    const onFocusOut = () => { focused = null; };
+    const onViewportChange = () => reveal(false);
+
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    window.visualViewport?.addEventListener("resize", onViewportChange);
+    window.visualViewport?.addEventListener("scroll", onViewportChange);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      window.visualViewport?.removeEventListener("resize", onViewportChange);
+      window.visualViewport?.removeEventListener("scroll", onViewportChange);
+    };
+  }, [active]);
+}
