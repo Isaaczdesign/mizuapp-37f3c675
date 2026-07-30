@@ -840,7 +840,7 @@ const Orders = () => {
           onSaved={loadOrders}
         />
       )}
-    </div>
+    </PageShell>
     </AdminLayout>
   );
 };
