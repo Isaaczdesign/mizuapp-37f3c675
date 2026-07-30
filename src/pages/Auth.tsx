@@ -185,18 +185,21 @@ const Auth = () => {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-[380px]"
         >
-          <a href="/" aria-label="Mizu" className="inline-block">
-            <Logo className="h-8 lg:h-9" />
-          </a>
+          <div className="text-center lg:text-left">
+            <a href="/" aria-label="Mizu" className="inline-block">
+              <Logo className="h-8 lg:h-9" />
+            </a>
 
-          <h1 className="mt-6 lg:mt-8 text-[1.75rem] lg:text-[2rem] leading-tight font-semibold tracking-tight text-[#efeae1]">
-            {isSignup ? "Crie sua conta" : "Bem-vindo de volta"}
-          </h1>
-          <p className="mt-2 lg:mt-3 text-sm leading-relaxed text-white/40">
-            {isSignup
-              ? "Configure seu restaurante em poucos minutos."
-              : "Acesse o painel para gerenciar seu restaurante."}
-          </p>
+            <h1 className="mt-6 lg:mt-8 text-[1.75rem] lg:text-[2rem] leading-tight font-semibold tracking-tight text-[#efeae1]">
+              {isSignup ? "Crie sua conta" : "Bem-vindo de volta"}
+            </h1>
+            <p className="mt-2 lg:mt-3 text-sm leading-relaxed text-white/40">
+              {isSignup
+                ? "Configure seu restaurante em poucos minutos."
+                : "Acesse o painel para gerenciar seu restaurante."}
+            </p>
+          </div>
+
 
           <form onSubmit={handleSubmit} className="mt-6 lg:mt-8 space-y-4 lg:space-y-5">
             <div>
