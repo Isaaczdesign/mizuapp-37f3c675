@@ -1208,17 +1208,21 @@ const PublicMenu = () => {
                             })}
                             <button
                               type="button"
-                              className={`w-full text-left rounded-lg border border-dashed px-3 py-2 text-sm transition ${
-                                selectedAddressId === null ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                              className={`w-full flex items-center gap-2 ${R_FIELD} border border-dashed px-3 py-2.5 text-sm transition-all duration-200 ${
+                                selectedAddressId === null
+                                  ? ""
+                                  : "border-white/[0.12] text-white/60 hover:text-white hover:border-white/25"
                               }`}
+                              style={selectedAddressId === null ? { borderColor: accentColor, backgroundColor: `${accentColor}10`, color: accentColor } : {}}
                               onClick={() => {
                                 setSelectedAddressId(null);
                                 setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
                                 setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
                               }}
                             >
-                              + Novo endereço
+                              <Plus className={ICON_SM} strokeWidth={ICON_STROKE} /> Novo endereço
                             </button>
+
                           </div>
                         </div>
                       )}
