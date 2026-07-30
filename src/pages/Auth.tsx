@@ -14,7 +14,7 @@ const RESET_COOLDOWN_SECONDS = 60;
 const RESET_STORAGE_KEY = "koban_reset_last_sent";
 
 const fieldClass =
-  "mt-2 h-12 rounded-xl bg-[#151515] border border-white/10 px-4 text-[#efeae1] placeholder:text-white/25 transition-all duration-300 focus-visible:ring-0 focus-visible:border-[#D4AF37]/70 focus-visible:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]";
+  "mt-1.5 lg:mt-2 h-11 lg:h-12 rounded-xl bg-[#151515] border border-white/10 px-4 text-[#efeae1] placeholder:text-white/25 transition-all duration-300 focus-visible:ring-0 focus-visible:border-[#D4AF37]/70 focus-visible:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]";
 const labelClass = "text-xs font-medium uppercase tracking-[0.14em] text-white/40";
 
 
@@ -175,9 +175,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0B0B0B] flex">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#0B0B0B] flex">
       {/* Coluna esquerda — formulário */}
-      <div className="relative flex w-full lg:w-[35%] items-center justify-center px-6 py-12 sm:px-10">
+      <div className="relative flex w-full lg:w-[35%] items-center justify-center px-6 py-8 sm:px-10 lg:py-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -185,19 +185,19 @@ const Auth = () => {
           className="w-full max-w-[380px]"
         >
           <a href="/" aria-label="Mizu" className="inline-block">
-            <Logo className="h-9" />
+            <Logo className="h-8 lg:h-9" />
           </a>
 
-          <h1 className="mt-10 text-[2rem] leading-tight font-semibold tracking-tight text-[#efeae1]">
+          <h1 className="mt-6 lg:mt-8 text-[1.75rem] lg:text-[2rem] leading-tight font-semibold tracking-tight text-[#efeae1]">
             {isSignup ? "Crie sua conta" : "Bem-vindo de volta"}
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-white/40">
+          <p className="mt-2 lg:mt-3 text-sm leading-relaxed text-white/40">
             {isSignup
               ? "Configure seu restaurante em poucos minutos."
               : "Acesse o painel para gerenciar seu restaurante."}
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-10 space-y-6">
+          <form onSubmit={handleSubmit} className="mt-6 lg:mt-8 space-y-4 lg:space-y-5">
             <div>
               <Label htmlFor="email" className={labelClass}>E-mail</Label>
               <Input
@@ -258,16 +258,16 @@ const Auth = () => {
               whileHover={{ scale: loading ? 1 : 1.015 }}
               whileTap={{ scale: loading ? 1 : 0.985 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-semibold tracking-wide text-[#0B0B0B] shadow-[0_8px_30px_-10px_rgba(212,175,55,0.6)] transition-colors duration-300 hover:bg-[#e0c256] disabled:opacity-60"
+              className="flex h-11 lg:h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-semibold tracking-wide text-[#0B0B0B] shadow-[0_8px_30px_-10px_rgba(212,175,55,0.6)] transition-colors duration-300 hover:bg-[#e0c256] disabled:opacity-60"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Processando…" : isSignup ? "Criar conta" : "Entrar"}
             </motion.button>
           </form>
 
-          <div className="mt-8 space-y-3 text-center">
+          <div className="mt-6 lg:mt-8 space-y-2 lg:space-y-3 text-center">
             {!isSignup && (
-              <div className="space-y-3">
+              <div className="space-y-2 lg:space-y-3">
                 <button
                   type="button"
                   onClick={() => sendResetEmail(false)}
