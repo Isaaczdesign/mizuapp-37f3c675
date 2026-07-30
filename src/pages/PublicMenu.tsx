@@ -1554,7 +1554,8 @@ const PublicMenu = () => {
                 </form>
               )}
             </motion.div>
-          </motion.div>
+          </div>
+
         )}
       </AnimatePresence>
 
