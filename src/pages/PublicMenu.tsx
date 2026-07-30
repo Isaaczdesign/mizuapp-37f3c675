@@ -15,6 +15,8 @@ import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
 import MenuItemCard from "@/components/public-menu/MenuItemCard";
 import { resolveMenuTheme } from "@/lib/menuThemes";
+import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
+
 
 
 // ── Types ──
@@ -594,64 +596,21 @@ const PublicMenu = () => {
   })).filter((c) => c.items.length > 0);
 
   return (
-    <div className="min-h-screen bg-background pb-28">
-      {/* ── Banner ── */}
-      <div className="relative">
-        {restaurant.banner_url ? (
-          <div className="h-48 md:h-56 relative">
-            <img src={restaurant.banner_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          </div>
-        ) : (
-          <div className="h-32 relative" style={{ background: `linear-gradient(135deg, ${accentColor}30, ${accentColor}05)` }}>
-            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
-          </div>
-        )}
+    <div className="min-h-screen bg-background pb-32">
+      {/* ── Hero premium ── */}
+      <RestaurantHero
+        name={restaurant.name}
+        description={restaurant.description}
+        logoUrl={restaurant.logo_url}
+        bannerUrl={restaurant.banner_url}
+        accentColor={accentColor}
+        isOpen={openStatus.isOpen}
+        statusLabel={openStatus.label}
+        deliveryEnabled={restaurant.delivery_enabled}
+        deliveryFee={restaurant.delivery_fee}
+        ownerPhone={restaurant.owner_phone}
+      />
 
-        {/* Restaurant info overlaying banner */}
-        <div className="relative -mt-16 px-4 z-10">
-          <div className="flex items-end gap-3">
-            {restaurant.logo_url ? (
-              <img src={restaurant.logo_url} alt="" className="w-16 h-16 rounded-2xl object-cover border-2 border-background shadow-lg shrink-0" />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl border-2 border-background shadow-lg flex items-center justify-center shrink-0"
-                style={{ backgroundColor: accentColor + "20" }}>
-                <UtensilsCrossed className="w-7 h-7" style={{ color: accentColor }} />
-              </div>
-            )}
-            <div className="flex-1 min-w-0 pb-1">
-              <h1 className="font-display text-xl font-bold truncate">{restaurant.name}</h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                  openStatus.isOpen ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${openStatus.isOpen ? "bg-green-400" : "bg-red-400"}`} />
-                  {openStatus.label}
-                </span>
-              </div>
-            </div>
-            {restaurant.owner_phone && (
-              <a href={`https://wa.me/${restaurant.owner_phone.replace(/\D/g, "")}`}
-                target="_blank" rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-                style={{ backgroundColor: accentColor + "15" }}>
-                <Phone className="w-4 h-4" style={{ color: accentColor }} />
-              </a>
-            )}
-          </div>
-
-          {restaurant.description && (
-            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{restaurant.description}</p>
-          )}
-
-          {/* Badge */}
-          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-            style={{ backgroundColor: accentColor + "10", color: accentColor }}>
-            <Star className="w-3 h-3" />
-            Peça direto sem taxas de app
-          </div>
-        </div>
-      </div>
 
       {(() => {
         const acceptingOff = (restaurant as any)?.accepting_orders === false;
@@ -699,52 +658,19 @@ const PublicMenu = () => {
         </div>
       )}
 
-      <div className="sticky top-0 z-40 mt-4 bg-background/90 backdrop-blur-xl border-b border-border">
-        <div className="px-4 pt-2 pb-1">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar no cardápio..."
-              className="w-full bg-secondary/60 rounded-full pl-9 pr-9 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-background/50"
-                aria-label="Limpar busca"
-              >
-                <X className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            )}
-          </div>
-        </div>
-        {!search && (
-          <div ref={categoryNavRef} className="flex gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
-                className="px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all font-medium"
-                style={
-                  activeCategory === cat.id
-                    ? { backgroundColor: accentColor, color: "white" }
-                    : {}
-                }
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <MenuStickyBar
+        search={search}
+        onSearch={setSearch}
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategory={scrollToCategory}
+        accentColor={accentColor}
+      />
 
       {/* ── Items by Category ── */}
-      <div className="px-4 pt-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
         {categorizedItems.length === 0 && (
-          <div className="text-center py-16">
+          <div className="text-center py-20">
             {search ? (
               <>
                 <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
@@ -766,14 +692,16 @@ const PublicMenu = () => {
             key={cat.id}
             ref={(el) => { categoryRefs.current[cat.id] = el; }}
             data-cat-id={cat.id}
-            className="mb-6 scroll-mt-[60px]"
+            className="mb-10 scroll-mt-[64px]"
           >
-            <h2 className={`${menuTheme.categoryTitleClass} mb-3 sticky top-[52px] bg-background/90 backdrop-blur-sm py-2 z-20`}>
-              {cat.name}
-            </h2>
+            <div className="sticky top-[60px] z-20 -mx-1 px-1 py-2.5 mb-4 bg-background/80 backdrop-blur-xl">
+              <h2 className={menuTheme.categoryTitleClass}>{cat.name}</h2>
+              <span className="mt-2 block h-px w-14 rounded-full" style={{ backgroundColor: accentColor + "66" }} />
+            </div>
 
             <div className={menuTheme.listClass}>
               {cat.items.map((item, idx) => {
+
                 const inCart = cart.filter((c) => c.menuItemId === item.id).reduce((s, c) => s + c.quantity, 0);
                 return (
                   <MenuItemCard
@@ -800,67 +728,83 @@ const PublicMenu = () => {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex flex-col"
           >
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowItemDetail(null)} />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowItemDetail(null)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="mt-auto relative bg-card border-t border-border rounded-t-3xl max-h-[90vh] flex flex-col"
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="mt-auto relative w-full sm:max-w-lg sm:mx-auto bg-[#141414] border-t sm:border border-white/[0.08] rounded-t-[28px] sm:rounded-[28px] sm:mb-6 max-h-[92vh] flex flex-col overflow-hidden shadow-[0_-30px_80px_-40px_rgba(0,0,0,1)]"
             >
               {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-muted" />
-              </div>
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-white/25" />
 
               <div className="overflow-y-auto flex-1">
-                {showItemDetail.image_url && (
-                  <img src={showItemDetail.image_url} alt="" className="w-full h-56 object-cover" />
-                )}
-                <div className="p-4 space-y-4">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">{showItemDetail.name}</h2>
-                    <p className="font-display text-lg font-bold mt-1" style={{ color: accentColor }}>
+                {showItemDetail.image_url ? (
+                  <div className="relative">
+                    <img src={showItemDetail.image_url} alt="" className="w-full h-64 sm:h-72 object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#141414] to-transparent" />
+                    <button
+                      onClick={() => setShowItemDetail(null)}
+                      aria-label="Fechar"
+                      className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/10 active:scale-90 transition-transform"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : <div className="h-6" />}
+                <div className="p-5 space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <h2 className="font-display text-[22px] font-bold tracking-tight leading-tight">{showItemDetail.name}</h2>
+                    <span
+                      className="font-display text-lg font-bold shrink-0 px-3 py-1.5 rounded-full border tabular-nums"
+                      style={{ color: accentColor, borderColor: accentColor + "33", backgroundColor: accentColor + "12" }}
+                    >
                       {fmt(Number(showItemDetail.price))}
-                    </p>
+                    </span>
                   </div>
 
                   {showItemDetail.description && (
-                    <p className="text-sm text-muted-foreground">{showItemDetail.description}</p>
+                    <p className="text-[13.5px] leading-relaxed text-muted-foreground">{showItemDetail.description}</p>
                   )}
 
+
                   {showItemDetail.ingredients && (
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Ingredientes</p>
-                      <p className="text-sm">{showItemDetail.ingredients}</p>
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4">
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-1.5">Ingredientes</p>
+                      <p className="text-[13px] leading-relaxed">{showItemDetail.ingredients}</p>
                     </div>
                   )}
 
                   {showItemDetail.allergens && (
-                    <div className="flex items-start gap-2 p-3 rounded-xl bg-yellow-500/10">
+                    <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
                       <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-yellow-500">{showItemDetail.allergens}</p>
+                      <p className="text-xs text-yellow-500/90 leading-relaxed">{showItemDetail.allergens}</p>
                     </div>
                   )}
 
                   {/* Variations */}
                   {(showItemDetail.variations?.length ?? 0) > 0 && (
                     <div>
-                      <p className="text-sm font-semibold mb-2">Variação</p>
-                      <div className="space-y-1.5">
-                        {showItemDetail.variations!.map((v) => (
-                          <button key={v.id}
-                            onClick={() => setSelectedVariation(selectedVariation?.id === v.id ? null : v)}
-                            className={`w-full flex items-center justify-between p-3 rounded-xl text-sm transition-all ${
-                              selectedVariation?.id === v.id ? "" : "bg-secondary"
-                            }`}
-                            style={selectedVariation?.id === v.id ? { outlineColor: accentColor, backgroundColor: accentColor + "08", outline: `2px solid ${accentColor}` } : {}}
-                          >
-                            <span>{v.name}</span>
-                            <span className="font-medium" style={{ color: accentColor }}>
-                              {v.absolute_price != null ? fmt(Number(v.absolute_price)) :
-                                v.price_delta > 0 ? `+${fmt(Number(v.price_delta))}` : "incluso"}
-                            </span>
-                          </button>
-                        ))}
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-2.5">Variação</p>
+                      <div className="space-y-2">
+                        {showItemDetail.variations!.map((v) => {
+                          const isSelected = selectedVariation?.id === v.id;
+                          return (
+                            <motion.button key={v.id}
+                              whileTap={{ scale: 0.985 }}
+                              onClick={() => setSelectedVariation(isSelected ? null : v)}
+                              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl text-[13.5px] border transition-all"
+                              style={isSelected
+                                ? { borderColor: accentColor, backgroundColor: accentColor + "12", boxShadow: `0 10px 30px -22px ${accentColor}` }
+                                : { borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)" }}
+                            >
+                              <span className="font-medium">{v.name}</span>
+                              <span className="font-semibold tabular-nums" style={{ color: accentColor }}>
+                                {v.absolute_price != null ? fmt(Number(v.absolute_price)) :
+                                  v.price_delta > 0 ? `+${fmt(Number(v.price_delta))}` : "incluso"}
+                              </span>
+                            </motion.button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -868,23 +812,24 @@ const PublicMenu = () => {
                   {/* Addons */}
                   {(showItemDetail.addons?.length ?? 0) > 0 && (
                     <div>
-                      <p className="text-sm font-semibold mb-2">Adicionais</p>
-                      <div className="space-y-1.5">
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-2.5">Adicionais</p>
+                      <div className="space-y-2">
                         {showItemDetail.addons!.map((a) => {
                           const isSelected = selectedAddons.find((sa) => sa.id === a.id);
                           return (
-                            <button key={a.id}
+                            <motion.button key={a.id}
+                              whileTap={{ scale: 0.985 }}
                               onClick={() => setSelectedAddons(isSelected
                                 ? selectedAddons.filter((sa) => sa.id !== a.id) : [...selectedAddons, a]
                               )}
-                              className={`w-full flex items-center justify-between p-3 rounded-xl text-sm transition-all ${
-                                isSelected ? "" : "bg-secondary"
-                              }`}
-                              style={isSelected ? { outlineColor: accentColor, backgroundColor: accentColor + "08", outline: `2px solid ${accentColor}` } : {}}
+                              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl text-[13.5px] border transition-all"
+                              style={isSelected
+                                ? { borderColor: accentColor, backgroundColor: accentColor + "12", boxShadow: `0 10px 30px -22px ${accentColor}` }
+                                : { borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)" }}
                             >
-                              <span>{a.name}</span>
-                              <span className="font-medium" style={{ color: accentColor }}>+{fmt(Number(a.price))}</span>
-                            </button>
+                              <span className="font-medium">{a.name}</span>
+                              <span className="font-semibold tabular-nums" style={{ color: accentColor }}>+{fmt(Number(a.price))}</span>
+                            </motion.button>
                           );
                         })}
                       </div>
@@ -892,23 +837,38 @@ const PublicMenu = () => {
                   )}
 
                   {/* Quantity */}
-                  <div className="flex items-center justify-center gap-6 py-2">
-                    <button onClick={() => setDetailQty(Math.max(1, detailQty - 1))}
-                      className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center transition-transform active:scale-90">
+                  <div className="flex items-center justify-center gap-5 py-1">
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => setDetailQty(Math.max(1, detailQty - 1))}
+                      aria-label="Diminuir"
+                      className="w-11 h-11 rounded-full border border-white/[0.08] bg-white/[0.04] flex items-center justify-center">
                       <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="font-display text-2xl font-bold w-8 text-center">{detailQty}</span>
-                    <button onClick={() => setDetailQty(detailQty + 1)}
-                      className="w-10 h-10 rounded-xl text-white flex items-center justify-center transition-transform active:scale-90"
-                      style={{ backgroundColor: accentColor }}>
+                    </motion.button>
+                    <AnimatePresence mode="popLayout">
+                      <motion.span
+                        key={detailQty}
+                        initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}
+                        transition={{ duration: 0.16 }}
+                        className="font-display text-2xl font-bold w-10 text-center tabular-nums"
+                      >
+                        {detailQty}
+                      </motion.span>
+                    </AnimatePresence>
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => setDetailQty(detailQty + 1)}
+                      aria-label="Aumentar"
+                      className="w-11 h-11 rounded-full text-white flex items-center justify-center"
+                      style={{ backgroundColor: accentColor, boxShadow: `0 12px 30px -16px ${accentColor}` }}>
                       <Plus className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 border-t border-border">
-                <Button className="w-full py-6 text-base rounded-2xl font-bold" style={{ backgroundColor: accentColor }}
+              <div
+                className="p-4 border-t border-white/[0.06] bg-[#141414]/90 backdrop-blur-xl"
+                style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
+              >
+                <Button className="w-full py-6 text-base rounded-2xl font-bold text-white transition-transform active:scale-[0.985]"
+                  style={{ backgroundColor: accentColor, boxShadow: `0 18px 40px -22px ${accentColor}` }}
                   onClick={addToCartFromDetail}>
                   Adicionar • {fmt(
                     ((selectedVariation?.absolute_price != null ? Number(selectedVariation.absolute_price) :
@@ -917,6 +877,7 @@ const PublicMenu = () => {
                   )}
                 </Button>
               </div>
+
             </motion.div>
           </motion.div>
         )}
@@ -925,22 +886,15 @@ const PublicMenu = () => {
       {/* ── Floating Cart Bar ── */}
       <AnimatePresence>
         {cartCount > 0 && !showCart && !showItemDetail && checkoutStep === 0 && (
-          <motion.button
-            initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+          <FloatingCartBar
+            count={cartCount}
+            total={cartTotal}
+            accentColor={accentColor}
             onClick={() => setShowCart(true)}
-            className="fixed bottom-4 left-4 right-4 text-white rounded-2xl py-4 px-5 flex items-center justify-between z-50 transition-transform active:scale-[0.98]"
-            style={{ backgroundColor: accentColor, boxShadow: `0 8px 32px -4px ${accentColor}60` }}
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4" />
-              </div>
-              <span className="font-bold">{cartCount} {cartCount === 1 ? "item" : "itens"}</span>
-            </div>
-            <span className="font-display font-bold text-lg">{fmt(cartTotal)}</span>
-          </motion.button>
+          />
         )}
       </AnimatePresence>
+
 
       {/* ── Cart Drawer ── */}
       <AnimatePresence>
