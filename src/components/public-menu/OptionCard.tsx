@@ -1,10 +1,10 @@
 import { LucideIcon, ChevronRight, Check } from "lucide-react";
 import {
-  ICON_TILE,
   ICON_LG,
   ICON_SM,
   ICON_STROKE,
   R_CARD_SM,
+  R_TILE,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
 } from "./menuTokens";
