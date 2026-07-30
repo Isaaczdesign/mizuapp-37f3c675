@@ -818,7 +818,7 @@ function DesktopPreview({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.28 }}
               >
-                <div className="font-display text-lg font-bold mb-4" style={{ color }}>Mais pedidos</div>
+                <div className="font-display text-base font-bold mb-3" style={{ color }}>Mais pedidos</div>
                 <MenuThemeMock theme={theme} color={color} items={items} device="desktop" />
 
               </motion.div>
