@@ -71,3 +71,29 @@ export const accentGlow = (c: string) => `0 10px 30px -16px ${c}`;
 
 export const brl = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+/** ---- Estados de seleção / hover compartilhados (checkout, mesa, endereços, cupom) ---- */
+
+/** Base de transição para qualquer superfície selecionável */
+export const SELECTABLE_BASE =
+  "border transition-all duration-300 ease-out active:scale-[0.99]";
+
+/** Estado não selecionado (inclui hover) */
+export const SELECTABLE_IDLE =
+  "border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.14] hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)]";
+
+/** Estado selecionado — borda sólida, gradiente sutil, halo e sombra projetada */
+export const selectedSurface = (c: string) => ({
+  borderColor: c,
+  backgroundImage: `linear-gradient(145deg, ${c}18, ${c}0c)`,
+  boxShadow: `0 0 0 4px ${c}1f, 0 6px 20px -6px ${c}`,
+});
+
+/** Tile de ícone dentro de uma superfície selecionável */
+export const selectedTileStyle = (c: string, selected: boolean) => ({
+  backgroundColor: selected ? `${c}1f` : "rgba(255,255,255,0.04)",
+  borderColor: selected ? `${c}55` : "rgba(255,255,255,0.08)",
+  boxShadow: selected
+    ? `inset 0 1px 0 ${c}33`
+    : "inset 0 1px 0 rgba(255,255,255,0.04)",
+});
