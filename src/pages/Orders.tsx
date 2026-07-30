@@ -360,34 +360,37 @@ const Orders = () => {
 
   return (
     <AdminLayout collapsible>
-    <div className="min-h-screen bg-background p-4">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h1 className="font-display text-2xl font-bold">
-          📋 <span className="gradient-text">Pedidos</span>
-        </h1>
-        <div className="flex items-center gap-2 flex-wrap">
-        <Button variant="hero" size="sm" onClick={() => setShowNewOrder(true)} className="gap-1">
-          <Plus className="w-4 h-4" /> Novo pedido
-        </Button>
-        <button
-          onClick={() => {
-            const next = !prefs.sound_enabled;
-            save({ sound_enabled: next });
-            toast.success(next ? "🔊 Alerta sonoro ativado" : "🔇 Alerta sonoro desativado");
-          }}
-          className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-            prefs.sound_enabled
-              ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
-              : "bg-secondary border-border text-muted-foreground hover:text-foreground"
-          }`}
-          title={prefs.sound_enabled ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
-          aria-pressed={prefs.sound_enabled}
-        >
-          {prefs.sound_enabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          <span className="hidden sm:inline">{prefs.sound_enabled ? "Som ativado" : "Som desativado"}</span>
-        </button>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        icon={FileText}
+        title="Pedidos"
+        subtitle="Acompanhe e atualize o status de cada pedido em tempo real."
+        actions={
+          <>
+            <Button variant="hero" size="sm" onClick={() => setShowNewOrder(true)} className="gap-1 rounded-xl">
+              <Plus className="w-4 h-4" /> Novo pedido
+            </Button>
+            <button
+              onClick={() => {
+                const next = !prefs.sound_enabled;
+                save({ sound_enabled: next });
+                toast.success(next ? "🔊 Alerta sonoro ativado" : "🔇 Alerta sonoro desativado");
+              }}
+              className={`inline-flex items-center gap-2 px-3 h-9 rounded-xl text-sm font-medium border transition-colors ${
+                prefs.sound_enabled
+                  ? "bg-accent/10 border-accent/30 text-accent hover:bg-accent/15"
+                  : "bg-card/60 border-border text-muted-foreground hover:text-foreground"
+              }`}
+              title={prefs.sound_enabled ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
+              aria-pressed={prefs.sound_enabled}
+            >
+              {prefs.sound_enabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              <span className="hidden sm:inline">{prefs.sound_enabled ? "Som ativado" : "Som desativado"}</span>
+            </button>
+          </>
+        }
+      />
+
 
       {/* Shift scope banner / filter */}
       {historyShiftId ? (
