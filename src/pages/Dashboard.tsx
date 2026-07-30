@@ -234,218 +234,321 @@ const Dashboard = () => {
     },
   });
 
+  // Previous comparable period (display-only comparison)
+  const prevRange = useMemo(() => {
+    const span = dateRange.to.getTime() - dateRange.from.getTime();
+    return { from: new Date(dateRange.from.getTime() - span - 1), to: new Date(dateRange.from.getTime() - 1) };
+  }, [dateRange]);
+
+  const { data: prevStats } = useQuery({
+    queryKey: ["dashboard-stats-prev", rid, prevRange.from.toISOString(), prevRange.to.toISOString()],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase.from("orders").select("total, status")
+        .eq("restaurant_id", rid!)
+        .gte("created_at", prevRange.from.toISOString())
+        .lte("created_at", prevRange.to.toISOString());
+      const valid = (data ?? []).filter((o: any) => o.status !== "canceled");
+      const revenue = valid.reduce((s: number, o: any) => s + Number(o.total), 0);
+      return { revenue, count: valid.length, avg: valid.length ? revenue / valid.length : 0 };
+    },
+  });
+
+  const delta = (curr: number, prev?: number) => (prev && prev > 0 ? ((curr - prev) / prev) * 100 : null);
+
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const int = (v: number) => String(Math.round(v));
   const periodLabel = { today: "Hoje", week: "Semana", month: "Mês", custom: "Personalizado" };
+  const firstName = (profile?.display_name ?? "").trim().split(" ")[0];
 
   const cards = [
-    { label: "Receita", value: fmt(stats?.revenue ?? 0), icon: DollarSign, color: "text-green-400" },
-    { label: "Pedidos", value: String(stats?.count ?? 0), icon: ShoppingBag, color: "text-primary" },
-    { label: "Ticket Médio", value: fmt(stats?.avg ?? 0), icon: Target, color: "text-blue-400" },
-    { label: "Lucro Estimado", value: fmt(stats?.estimatedProfit ?? 0), icon: TrendingUp, color: "text-emerald-400" },
-    { label: "Clientes Novos", value: String(stats?.newCustomers ?? 0), icon: Users, color: "text-cyan-400" },
-    { label: "Recorrentes", value: String(stats?.recurringCustomers ?? 0), icon: Repeat, color: "text-purple-400" },
+    { label: "Receita", raw: stats?.revenue ?? 0, format: fmt, icon: DollarSign, hint: <Trend delta={delta(stats?.revenue ?? 0, prevStats?.revenue)} />, accent: true },
+    { label: "Pedidos", raw: stats?.count ?? 0, format: int, icon: ShoppingBag, hint: <Trend delta={delta(stats?.count ?? 0, prevStats?.count)} /> },
+    { label: "Ticket médio", raw: stats?.avg ?? 0, format: fmt, icon: Target, hint: <Trend delta={delta(stats?.avg ?? 0, prevStats?.avg)} /> },
+    { label: "Lucro estimado", raw: stats?.estimatedProfit ?? 0, format: fmt, icon: TrendingUp, hint: <span className="text-muted-foreground">baseado em custo/margem</span> },
+    { label: "Clientes novos", raw: stats?.newCustomers ?? 0, format: int, icon: Users, hint: <span className="text-muted-foreground">no período selecionado</span> },
+    { label: "Recorrentes", raw: stats?.recurringCustomers ?? 0, format: int, icon: Repeat, hint: <span className="text-muted-foreground">clientes que voltaram</span> },
   ];
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        {/* Setup Progress Banner */}
-        {setupStatus && !setupStatus.allDone && !bannerDismissed && (
-          <div className="glass-card p-4 mb-6 border border-primary/20">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Rocket className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-display font-bold text-sm">Complete a configuração do seu restaurante</h3>
-                  <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground transition-colors">
-                    <X className="w-4 h-4" />
+      <div className="relative">
+        {/* ambient gradient */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(60%_100%_at_50%_0%,hsl(var(--accent)/0.07),transparent_70%)]" />
+
+        <div className="relative p-5 md:p-8 max-w-[1400px] mx-auto space-y-6 md:space-y-8">
+          {/* Header */}
+          <motion.div initial="hidden" animate="show" variants={stagger} className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+            <motion.div variants={fadeUp}>
+              <h1 className="font-display text-2xl md:text-[28px] font-semibold tracking-tight text-foreground">
+                Bem-vindo de volta{firstName ? `, ${firstName}` : ""} <span className="align-middle">👋</span>
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1.5">
+                Aqui está um resumo do desempenho do seu restaurante {period === "today" ? "hoje" : "no período selecionado"}.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center p-1 rounded-2xl border border-border bg-card/60 backdrop-blur-xl">
+                {(["today", "week", "month"] as Period[]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPeriod(p)}
+                    className={cn(
+                      "relative px-3.5 py-1.5 text-xs font-medium rounded-xl transition-colors",
+                      period === p ? "text-accent-foreground" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {period === p && (
+                      <motion.span layoutId="period-pill" transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        className="absolute inset-0 rounded-xl bg-accent shadow-[0_6px_20px_-8px_hsl(var(--accent)/0.7)]" />
+                    )}
+                    <span className="relative">{periodLabel[p]}</span>
                   </button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {setupStatus.completed}/{setupStatus.total} etapas concluídas
-                </p>
-                <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-2 h-1.5" />
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {setupStatus.steps.filter((s) => !s.done).map((s) => (
-                    <span key={s.label} className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                      {s.label}
-                    </span>
-                  ))}
-                </div>
-                <Button size="sm" variant="outline" className="mt-3" onClick={() => window.location.href = "/settings"}>
-                  Ir para Configurações
+                ))}
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant={period === "custom" ? "default" : "outline"} className="rounded-xl">
+                    <CalendarIcon className="w-4 h-4 mr-1.5" />
+                    {period === "custom" && customRange?.from && customRange?.to
+                      ? `${format(customRange.from, "dd/MM")} — ${format(customRange.to, "dd/MM")}`
+                      : "Personalizado"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 rounded-2xl" align="end">
+                  <Calendar mode="range" selected={customRange}
+                    onSelect={(range) => { setCustomRange(range); if (range?.from && range?.to) setPeriod("custom"); }}
+                    numberOfMonths={1} locale={ptBR} className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+
+              {hasActiveShift && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={openCloseDialog}
+                  className="rounded-xl text-muted-foreground hover:text-foreground gap-1.5"
+                  title="Encerrar expediente"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-xs">Encerrar expediente</span>
                 </Button>
+              )}
+            </motion.div>
+          </motion.div>
+
+          {/* Setup Progress Banner */}
+          {setupStatus && !setupStatus.allDone && !bannerDismissed && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <Surface className="p-5 border-accent/25">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                    <Rocket className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-display font-semibold text-sm">Complete a configuração do seu restaurante</h3>
+                      <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{setupStatus.completed}/{setupStatus.total} etapas concluídas</p>
+                    <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-3 h-1.5" />
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {setupStatus.steps.filter((s) => !s.done).map((s) => (
+                        <span key={s.label} className="text-[11px] px-2.5 py-1 rounded-full bg-secondary/70 border border-border text-muted-foreground">
+                          {s.label}
+                        </span>
+                      ))}
+                    </div>
+                    <Button size="sm" variant="outline" className="mt-4 rounded-xl" onClick={() => (window.location.href = "/settings")}>
+                      Ir para Configurações
+                    </Button>
+                  </div>
+                </div>
+              </Surface>
+            </motion.div>
+          )}
+
+          {shopClosed && (
+            <Surface className="p-5 border-destructive/40 bg-destructive/5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <Lock className="w-5 h-5 text-destructive shrink-0" />
+                <div className="flex-1">
+                  <div className="font-display font-semibold text-destructive text-sm">Recebimento de pedidos encerrado</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {outsideHours
+                      ? (countdown
+                          ? <>O restaurante está fora do horário. Reabre em <span className="font-semibold text-foreground">{countdown}</span>{nextOpen ? ` (${nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })})` : ""}.</>
+                          : "O restaurante está fora do horário de funcionamento configurado.")
+                      : "O recebimento de pedidos está desativado manualmente. Reabra em Configurações ou pelo Expediente."}
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" className="rounded-xl" onClick={() => navigate("/settings")}>Ajustar horários</Button>
               </div>
-            </div>
-          </div>
-        )}
+            </Surface>
+          )}
 
-        {/* Public Menu Link */}
-        {publicMenuUrl && (
-          <div className="glass-card p-4 mb-6 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Link className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground">Link do cardápio para clientes</p>
-              <p className="text-sm font-mono truncate text-foreground">{publicMenuUrl}</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={copyMenuLink}>
-              <Copy className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.open(publicMenuUrl, "_blank")}>
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
+          {/* Public Menu Link */}
+          {publicMenuUrl && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <Surface hover className="relative overflow-hidden p-5">
+                <div className="pointer-events-none absolute -left-16 -top-16 w-52 h-52 rounded-full bg-accent/10 blur-3xl" />
+                <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="w-11 h-11 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                    <Link className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-sm">Link do cardápio digital</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Compartilhe com seus clientes ou use no QR Code das mesas.</p>
+                    <p className="text-xs font-mono truncate text-accent mt-2">{publicMenuUrl}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="outline" size="sm" className="rounded-xl" onClick={copyMenuLink}>
+                      <Copy className="w-4 h-4 mr-1.5" /> Copiar
+                    </Button>
+                    <Button size="sm" className="rounded-xl" onClick={() => window.open(publicMenuUrl, "_blank")}>
+                      <ExternalLink className="w-4 h-4 mr-1.5" /> Abrir
+                    </Button>
+                  </div>
+                </div>
+              </Surface>
+            </motion.div>
+          )}
 
-        {shopClosed && (
-          <div className="mb-4 p-4 rounded-2xl border border-red-500/40 bg-red-500/10 flex items-start gap-3">
-            <Lock className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
-            <div className="flex-1">
-              <div className="font-bold text-red-400">Recebimento de pedidos encerrado</div>
-              <div className="text-sm text-muted-foreground">
-                {outsideHours
-                  ? (countdown
-                      ? <>O restaurante está fora do horário. Reabre em <span className="font-semibold text-red-300">{countdown}</span>{nextOpen ? ` (${nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })})` : ""}.</>
-                      : "O restaurante está fora do horário de funcionamento configurado.")
-                  : "O recebimento de pedidos está desativado manualmente. Reabra em Configurações ou pelo Expediente."}
-              </div>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => navigate("/settings")}>Ajustar horários</Button>
-          </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-
-          <div className="flex items-center gap-3">
-            <h1 className="font-display text-2xl md:text-3xl font-bold">📊 <span className="gradient-text">Dashboard</span></h1>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {(["today", "week", "month"] as Period[]).map((p) => (
-              <Button key={p} size="sm" variant={period === p ? "default" : "outline"} onClick={() => setPeriod(p)}>
-                {periodLabel[p]}
-              </Button>
+          {/* KPI Cards */}
+          <motion.div
+            key={`${period}-${dateRange.from.toISOString()}`}
+            initial="hidden"
+            animate="show"
+            variants={stagger}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
+          >
+            {cards.map((card) => (
+              <MetricCard
+                key={card.label}
+                label={card.label}
+                icon={card.icon}
+                accent={card.accent}
+                hint={card.hint}
+                value={stats ? <AnimatedValue value={card.raw} format={card.format} /> : <Skeleton className="h-7 w-24" />}
+              />
             ))}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button size="sm" variant={period === "custom" ? "default" : "outline"}>
-                  <CalendarIcon className="w-4 h-4 mr-1" />
-                  {period === "custom" && customRange?.from && customRange?.to
-                    ? `${format(customRange.from, "dd/MM")} — ${format(customRange.to, "dd/MM")}`
-                    : "Personalizado"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar mode="range" selected={customRange}
-                  onSelect={(range) => { setCustomRange(range); if (range?.from && range?.to) setPeriod("custom"); }}
-                  numberOfMonths={1} locale={ptBR} className={cn("p-3 pointer-events-auto")} />
-              </PopoverContent>
-            </Popover>
-            {hasActiveShift && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={openCloseDialog}
-                className="text-muted-foreground hover:text-foreground gap-1"
-                title="Encerrar expediente"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-xs">Encerrar expediente</span>
-              </Button>
-            )}
-          </div>
-        </div>
+          </motion.div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {cards.map((card) => (
-            <div key={card.label} className="glass-card p-4">
-              <card.icon className={`w-5 h-5 mb-2 ${card.color}`} />
-              <p className="font-display text-lg md:text-xl font-bold">{card.value}</p>
-              <p className="text-xs text-muted-foreground">{card.label}</p>
+          {/* Reactivation */}
+          <Surface hover className="p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+              <Repeat className="w-5 h-5 text-accent" />
             </div>
-          ))}
-        </div>
+            <div className="flex-1">
+              <p className="font-display text-xl font-semibold tabular-nums">{(stats?.reactivationRate ?? 0).toFixed(1)}%</p>
+              <p className="text-xs text-muted-foreground">Taxa de reativação · clientes inativos há 30 dias que voltaram a pedir</p>
+            </div>
+          </Surface>
 
-        {/* Reactivation Rate */}
-        <div className="glass-card p-4 mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Repeat className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <p className="font-display font-bold text-lg">{(stats?.reactivationRate ?? 0).toFixed(1)}%</p>
-            <p className="text-xs text-muted-foreground">Taxa de Reativação (30 dias)</p>
-          </div>
-        </div>
+          {/* Charts */}
+          <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+            <Surface className="p-6">
+              <SectionHeader
+                title="Evolução de receita"
+                subtitle={`${format(dateRange.from, "dd/MM")} — ${format(dateRange.to, "dd/MM")}`}
+                icon={TrendingUp}
+                action={<span className="text-xs text-muted-foreground hidden sm:block">{periodLabel[period]}</span>}
+              />
+              {(stats?.evolution?.some((d) => d.revenue > 0) ?? false) ? (
+                <ResponsiveContainer width="100%" height={230}>
+                  <LineChart data={stats?.evolution ?? []} margin={{ left: -12, right: 8, top: 6 }}>
+                    <defs>
+                      <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" />
+                        <stop offset="100%" stopColor="hsl(var(--accent))" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis tickLine={false} axisLine={false} width={54} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <Tooltip cursor={{ stroke: "hsl(var(--accent))", strokeOpacity: 0.25 }} content={<ChartTooltip formatter={fmt} />} />
+                    <Line type="monotone" dataKey="revenue" stroke="url(#revLine)" strokeWidth={2.5} dot={false}
+                      activeDot={{ r: 4, fill: "hsl(var(--accent))" }} animationDuration={700} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyState icon={TrendingUp} title="Sem receita registrada" description="Assim que os primeiros pedidos forem concluídos, a evolução aparecerá aqui." />
+              )}
+            </Surface>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          {/* Revenue evolution */}
-          <div className="glass-card p-6">
-            <h2 className="font-display font-bold mb-4">Evolução de Receita</h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={stats?.evolution ?? []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip formatter={(v: number) => fmt(v)} />
-                <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Peak hours */}
-          <div className="glass-card p-6">
-            <h2 className="font-display font-bold mb-4">Horários de Pico</h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={stats?.peakHours ?? []}>
-                <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="pedidos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Top Items by Sales */}
-          <div className="glass-card p-6">
-            <h2 className="font-display font-bold mb-4">Top Itens (Vendas)</h2>
-            {(stats?.topItems?.length ?? 0) === 0 ? (
-              <p className="text-muted-foreground text-sm">Nenhum pedido neste período.</p>
-            ) : (
-              <ul className="space-y-2">
-                {stats?.topItems?.map((item, i) => (
-                  <li key={item.name} className="flex justify-between items-center">
-                    <span className="text-sm"><span className="text-muted-foreground mr-2">#{i + 1}</span>{item.name}</span>
-                    <span className="font-mono text-sm font-bold">{item.qty}x</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <Surface className="p-6">
+              <SectionHeader title="Horários de pico" subtitle="Distribuição de pedidos por hora" icon={CalendarIcon} />
+              {(stats?.peakHours?.some((h) => h.pedidos > 0) ?? false) ? (
+                <ResponsiveContainer width="100%" height={230}>
+                  <BarChart data={stats?.peakHours ?? []} margin={{ left: -18, right: 8, top: 6 }}>
+                    <defs>
+                      <linearGradient id="peakBar" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--accent))" />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="hour" tickLine={false} axisLine={false} interval={2} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={40} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <Tooltip cursor={{ fill: "hsl(var(--accent)/0.06)" }} content={<ChartTooltip />} />
+                    <Bar dataKey="pedidos" fill="url(#peakBar)" radius={[6, 6, 2, 2]} animationDuration={700} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyState icon={CalendarIcon} title="Nenhum pedido no período" description="Os horários com maior movimento aparecerão aqui para ajudar no planejamento da equipe." />
+              )}
+            </Surface>
           </div>
 
-          {/* Top Items by Profit */}
-          <div className="glass-card p-6">
-            <h2 className="font-display font-bold mb-4">Top Itens (Lucro)</h2>
-            {(stats?.topItemsByProfit?.length ?? 0) === 0 ? (
-              <p className="text-muted-foreground text-sm">Sem dados de custo/margem cadastrados.</p>
-            ) : (
-              <ul className="space-y-2">
-                {stats?.topItemsByProfit?.map((item, i) => (
-                  <li key={item.name} className="flex justify-between items-center">
-                    <span className="text-sm"><span className="text-muted-foreground mr-2">#{i + 1}</span>{item.name}</span>
-                    <span className="font-mono text-sm font-bold text-green-400">{fmt(item.profit)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* Top items */}
+          <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+            <Surface className="p-6">
+              <SectionHeader title="Top itens por vendas" subtitle="Os 5 mais pedidos do período" icon={ShoppingBag} />
+              {(stats?.topItems?.length ?? 0) === 0 ? (
+                <EmptyState icon={ShoppingBag} title="Nenhum pedido neste período" description="Quando os pedidos começarem a chegar, seus campeões de venda aparecerão aqui." />
+              ) : (
+                <ul className="space-y-1">
+                  {stats?.topItems?.map((item, i) => (
+                    <motion.li key={item.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                      className="flex justify-between items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-secondary/50 transition-colors">
+                      <span className="flex items-center gap-3 min-w-0">
+                        <span className="w-6 h-6 rounded-lg bg-secondary border border-border text-[11px] font-semibold flex items-center justify-center text-muted-foreground shrink-0">{i + 1}</span>
+                        <span className="text-sm truncate">{item.name}</span>
+                      </span>
+                      <span className="font-mono text-sm font-semibold tabular-nums shrink-0">{item.qty}x</span>
+                    </motion.li>
+                  ))}
+                </ul>
+              )}
+            </Surface>
+
+            <Surface className="p-6">
+              <SectionHeader title="Top itens por lucro" subtitle="Maior contribuição de margem" icon={TrendingUp} />
+              {(stats?.topItemsByProfit?.length ?? 0) === 0 ? (
+                <EmptyState icon={Target} title="Sem dados de custo ou margem" description="Cadastre custo/margem dos itens no cardápio para desbloquear a análise de lucratividade." />
+              ) : (
+                <ul className="space-y-1">
+                  {stats?.topItemsByProfit?.map((item, i) => (
+                    <motion.li key={item.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                      className="flex justify-between items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-secondary/50 transition-colors">
+                      <span className="flex items-center gap-3 min-w-0">
+                        <span className="w-6 h-6 rounded-lg bg-secondary border border-border text-[11px] font-semibold flex items-center justify-center text-muted-foreground shrink-0">{i + 1}</span>
+                        <span className="text-sm truncate">{item.name}</span>
+                      </span>
+                      <span className="font-mono text-sm font-semibold tabular-nums text-emerald-400 shrink-0">{fmt(item.profit)}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+              )}
+            </Surface>
           </div>
         </div>
       </div>
+
 
       <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
         <DialogContent className="max-w-lg">
