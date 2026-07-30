@@ -789,7 +789,7 @@ function DesktopPreview({
 
       <div className="flex-1 min-h-0 flex">
         {/* sidebar de categorias */}
-        <aside className="w-32 shrink-0 border-r border-border/60 p-3 space-y-1.5">
+        <aside className="w-24 shrink-0 border-r border-border/60 p-3 space-y-1.5">
           <div className="flex items-center gap-1.5 h-8 rounded-lg bg-secondary/50 border border-border/60 px-2 mb-2">
             <Search className="w-3 h-3" style={{ color }} />
             <span className="text-[10px] text-muted-foreground">Buscar…</span>
@@ -827,7 +827,7 @@ function DesktopPreview({
         </div>
 
         {/* carrinho lateral */}
-        <aside className="w-40 shrink-0 border-l border-border/60 p-3 flex flex-col">
+        <aside className="w-24 shrink-0 border-l border-border/60 p-3 flex flex-col">
           <div className="text-[11px] font-semibold mb-2 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Seu pedido</div>
 
           <div className="flex-1 space-y-2">
