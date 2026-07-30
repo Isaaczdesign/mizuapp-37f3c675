@@ -112,3 +112,14 @@
     @apply px-4 py-16 md:px-8 md:py-24 lg:px-16 lg:py-32;
   }
 }
+
+/* iOS: evita o zoom automático ao focar campos (Safari amplia quando a fonte < 16px).
+   Vale para telas pequenas com ponteiro grosso (celular/tablet). */
+@media (max-width: 1023px) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+    line-height: 1.35;
+  }
+}
