@@ -9,7 +9,7 @@ const getRecoveryButton = (html: string) => {
 describe("recovery email HTML", () => {
   it("renders the reset-password button as a clickable link with full URL and recovery token params", () => {
     const confirmationUrl = `${PASSWORD_RESET_REDIRECT_URL}?token_hash=token-abc-123&type=recovery&redirect_to=${encodeURIComponent(PASSWORD_RESET_REDIRECT_URL)}`;
-    const html = buildRecoveryEmailHtml({ confirmationUrl, siteName: "Kōban" });
+    const html = buildRecoveryEmailHtml({ confirmationUrl, siteName: "Mizu" });
     const button = getRecoveryButton(html);
 
     expect(button).not.toBeNull();

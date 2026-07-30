@@ -310,7 +310,7 @@ export default function Onboarding() {
       await supabase.from("profiles").update({
         onboarding_complete: true,
       } as any).eq("user_id", user.id);
-      toast.success("Tudo pronto! Bem-vindo ao Kōban 🎉");
+      toast.success("Tudo pronto! Bem-vindo à Mizu 🎉");
       window.location.reload();
     } catch (err: any) {
       toast.error(err.message);
@@ -493,7 +493,7 @@ export default function Onboarding() {
       <div className="border-b border-border px-4 py-4">
         <div className="max-w-2xl mx-auto">
           <h1 className="font-display text-lg font-bold">
-            Bem-vindo ao <span className="gradient-text">Kōban</span>
+            Bem-vindo à <span className="gradient-text">Mizu</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Você está {progress}% pronto para vender

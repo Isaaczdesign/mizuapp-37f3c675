@@ -30,7 +30,7 @@ export const assertRecoveryConfirmationUrl = (confirmationUrl: string) => {
 
 export const buildRecoveryEmailHtml = ({
   confirmationUrl,
-  siteName = "Kōban",
+  siteName = "Mizu",
 }: RecoveryEmailHtmlOptions) => {
   const href = assertRecoveryConfirmationUrl(confirmationUrl);
   const safeHref = escapeHtml(href);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle2, LayoutDashboard, LogIn, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { Logo } from "@/components/Logo";
 
 const PasswordResetSuccess = () => {
   const navigate = useNavigate();
@@ -27,8 +28,8 @@ const PasswordResetSuccess = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="font-display text-2xl font-bold gradient-text">
-            Kōban
+          <Link to="/" aria-label="Mizu" className="inline-block">
+            <Logo className="h-10 mx-auto" />
           </Link>
         </div>
 

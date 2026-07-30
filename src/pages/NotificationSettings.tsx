@@ -31,7 +31,7 @@ export default function NotificationSettings() {
     setPermission(result);
     if (result === "granted") {
       toast.success("Notificações ativadas!");
-      new Notification("Kōban", { body: "Você receberá alertas de novos pedidos aqui." });
+      new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui." });
     } else if (result === "denied") {
       toast.error("Permissão negada. Ative manualmente nas configurações do navegador.");
     }
