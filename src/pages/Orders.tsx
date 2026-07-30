@@ -12,6 +12,7 @@ import AdminLayout from "@/components/AdminLayout";
 import NewOrderModal from "@/components/NewOrderModal";
 import EditOrderModal from "@/components/EditOrderModal";
 import { paymentMethodLabel } from "@/lib/paymentMethods";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
@@ -360,34 +361,37 @@ const Orders = () => {
 
   return (
     <AdminLayout collapsible>
-    <div className="min-h-screen bg-background p-4">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h1 className="font-display text-2xl font-bold">
-          📋 <span className="gradient-text">Pedidos</span>
-        </h1>
-        <div className="flex items-center gap-2 flex-wrap">
-        <Button variant="hero" size="sm" onClick={() => setShowNewOrder(true)} className="gap-1">
-          <Plus className="w-4 h-4" /> Novo pedido
-        </Button>
-        <button
-          onClick={() => {
-            const next = !prefs.sound_enabled;
-            save({ sound_enabled: next });
-            toast.success(next ? "🔊 Alerta sonoro ativado" : "🔇 Alerta sonoro desativado");
-          }}
-          className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-            prefs.sound_enabled
-              ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
-              : "bg-secondary border-border text-muted-foreground hover:text-foreground"
-          }`}
-          title={prefs.sound_enabled ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
-          aria-pressed={prefs.sound_enabled}
-        >
-          {prefs.sound_enabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          <span className="hidden sm:inline">{prefs.sound_enabled ? "Som ativado" : "Som desativado"}</span>
-        </button>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        icon={FileText}
+        title="Pedidos"
+        subtitle="Acompanhe e atualize o status de cada pedido em tempo real."
+        actions={
+          <>
+            <Button variant="hero" size="sm" onClick={() => setShowNewOrder(true)} className="gap-1 rounded-xl">
+              <Plus className="w-4 h-4" /> Novo pedido
+            </Button>
+            <button
+              onClick={() => {
+                const next = !prefs.sound_enabled;
+                save({ sound_enabled: next });
+                toast.success(next ? "🔊 Alerta sonoro ativado" : "🔇 Alerta sonoro desativado");
+              }}
+              className={`inline-flex items-center gap-2 px-3 h-9 rounded-xl text-sm font-medium border transition-colors ${
+                prefs.sound_enabled
+                  ? "bg-accent/10 border-accent/30 text-accent hover:bg-accent/15"
+                  : "bg-card/60 border-border text-muted-foreground hover:text-foreground"
+              }`}
+              title={prefs.sound_enabled ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
+              aria-pressed={prefs.sound_enabled}
+            >
+              {prefs.sound_enabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              <span className="hidden sm:inline">{prefs.sound_enabled ? "Som ativado" : "Som desativado"}</span>
+            </button>
+          </>
+        }
+      />
+
 
       {/* Shift scope banner / filter */}
       {historyShiftId ? (
@@ -512,17 +516,17 @@ const Orders = () => {
           const colOrders = filtered.filter((o) => o.status === col.status);
           return (
             <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col">
-              <div className={`${col.color} text-primary-foreground rounded-t-xl px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
+              <div className={`${col.color} text-primary-foreground rounded-t-[20px] px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
                 <span>{col.label}</span>
                 <span className="bg-background/20 rounded-full px-2 py-0.5 text-xs">{colOrders.length}</span>
               </div>
-              <div className="flex-1 bg-card/20 rounded-b-xl border border-border border-t-0 p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="flex-1 bg-card/20 rounded-b-[20px] border border-border/70 border-t-0 p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {colOrders.map((order) => {
                   const next = getNextStatus(order.status, order.order_type);
                   const meta = TYPE_META[order.order_type] ?? TYPE_META.dine_in;
                   const TypeIcon = meta.icon;
                   return (
-                    <div key={order.id} className="glass-card p-3 space-y-2">
+                    <div key={order.id} className="glass-card-hover overflow-hidden p-3 space-y-2 min-w-0">
                       <div className="flex items-center justify-between">
                         <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${meta.color}`}>
                           <TypeIcon className="w-3 h-3" />
@@ -582,12 +586,25 @@ const Orders = () => {
                         ))}
                         {order.order_items.length > 3 && <li className="text-muted-foreground">+{order.order_items.length - 3} itens</li>}
                       </ul>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="font-display font-bold text-sm text-primary">R${Number(order.total).toFixed(2)}</span>
-                        <div className="flex gap-1">
-                          <button onClick={() => setSelectedOrder(order)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
+                      <div className="pt-2 mt-1 border-t border-border/60 space-y-2">
+                        <span className="block font-display font-bold text-sm text-primary">R${Number(order.total).toFixed(2)}</span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            title="Ver detalhes"
+                            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+                          >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (order.status as string) !== "delivered" && (
+                            <button
+                              onClick={() => updateStatus(order.id, "canceled")}
+                              title="Cancelar pedido"
+                              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition-colors"
+                            >
+                              <XIcon className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           {isOfflinePayment(order) && !isPaid(order) && order.status !== "canceled" && (
                             <button
                               onClick={() => confirmPayment(order.id)}
@@ -598,14 +615,14 @@ const Orders = () => {
                             </button>
                           )}
                           {next && (
-                            <Button variant="hero" size="sm" className="text-xs h-7" onClick={() => updateStatus(order.id, next)}>
+                            <Button
+                              variant="hero"
+                              size="sm"
+                              className="text-xs h-7 px-3 rounded-lg flex-1 min-w-[84px]"
+                              onClick={() => updateStatus(order.id, next)}
+                            >
                               {getNextLabel(order.status, order.order_type)}
                             </Button>
-                          )}
-                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (order.status as string) !== "delivered" && (
-                            <button onClick={() => updateStatus(order.id, "canceled")} className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition-colors">
-                              <XIcon className="w-3.5 h-3.5" />
-                            </button>
                           )}
                         </div>
                       </div>
@@ -837,7 +854,7 @@ const Orders = () => {
           onSaved={loadOrders}
         />
       )}
-    </div>
+    </PageShell>
     </AdminLayout>
   );
 };

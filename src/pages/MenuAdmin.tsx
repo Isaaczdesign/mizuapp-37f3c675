@@ -24,6 +24,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import MenuLinkQR from "@/components/MenuLinkQR";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 const TAG_OPTIONS = [
   { value: "best_seller", label: "🔥 Mais Vendido" },
@@ -839,9 +840,9 @@ const MenuAdmin = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold">🍣 <span className="gradient-text">Gestão de Cardápio</span></h1>
+      <PageShell>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <PageHeader emoji="🍣" title="Gestão de Cardápio" subtitle="Itens, importação inteligente e personalização visual." />
           <div className="flex flex-wrap gap-2">
             {publicMenuUrl && restaurant && (
               <>
@@ -1051,7 +1052,7 @@ const MenuAdmin = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 };

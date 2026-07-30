@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { QRCodeSVG } from "qrcode.react";
 import { Plus, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 const Tables = () => {
   const { profile } = useAuth();
@@ -81,10 +82,8 @@ const Tables = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        <h1 className="font-display text-2xl md:text-3xl font-bold mb-6">
-          🪑 <span className="gradient-text">Mesas & QR Codes</span>
-        </h1>
+      <PageShell>
+        <PageHeader emoji="🪑" title="Mesas & QR Codes" subtitle="Gerencie as mesas do salão e gere QR Codes de pedido." />
 
         <div className="flex gap-2 mb-6">
           <Input
@@ -165,7 +164,7 @@ const Tables = () => {
             )}
           </DialogContent>
         </Dialog>
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 };
