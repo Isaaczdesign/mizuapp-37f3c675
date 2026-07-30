@@ -838,13 +838,18 @@ const MenuAdmin = () => {
   const formMargin = itemForm.margin_percent ? parseFloat(itemForm.margin_percent) : null;
   const formProfit = formCost ? formPrice - formCost : formMargin ? formPrice * formMargin : null;
 
+  const totalItems = (items ?? []).length;
+  const totalCats = (categories ?? []).length;
+
   return (
     <AdminLayout>
       <PageShell>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <PageHeader emoji="🍣" title="Gestão de Cardápio" subtitle="Itens, importação inteligente e personalização visual." />
-          <div className="flex flex-wrap gap-2">
-            {publicMenuUrl && restaurant && (
+        <PageHeader
+          emoji="🍣"
+          title="Gestão de Cardápio"
+          subtitle="Itens, importação inteligente e personalização visual."
+          actions={
+            publicMenuUrl && restaurant ? (
               <>
                 <MenuLinkQR
                   slug={restaurant.slug}
@@ -855,52 +860,66 @@ const MenuAdmin = () => {
                   onShortCodeGenerated={() => qc.invalidateQueries({ queryKey: ["restaurant", rid] })}
                 />
                 <Button variant="outline" size="sm" onClick={copyLink}>
-                  <Copy className="w-4 h-4 mr-1" /> Copiar Link
+                  <Copy className="w-4 h-4 mr-1.5" /> Copiar link
                 </Button>
-                <Button variant="default" size="sm" onClick={() => window.open(publicMenuUrl, "_blank")}>
-                  <ExternalLink className="w-4 h-4 mr-1" /> Ver Cardápio Virtual
+                <Button size="sm" onClick={() => window.open(publicMenuUrl, "_blank")}>
+                  <ExternalLink className="w-4 h-4 mr-1.5" /> Ver cardápio
                 </Button>
               </>
-            )}
-          </div>
-        </div>
+            ) : undefined
+          }
+        />
 
-        {/* Public Menu Link */}
+        {/* Public menu link */}
         {publicMenuUrl && (
-          <div className="glass-card p-4 mb-6 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Link className="w-5 h-5 text-primary" />
-            </div>
+          <Surface className="p-3.5 flex items-center gap-3">
+            <span className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center shrink-0">
+              <Link className="w-4 h-4 text-accent" />
+            </span>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground">Link do cardápio para clientes</p>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Link público do cardápio</p>
               <p className="text-sm font-mono truncate text-foreground">{publicMenuUrl}</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={copyLink}>
+            <Button variant="ghost" size="sm" onClick={copyLink} className="shrink-0">
               <Copy className="w-4 h-4" />
             </Button>
-          </div>
+          </Surface>
         )}
 
-        <Tabs defaultValue="items" className="w-full">
-          <TabsList className="mb-6 flex flex-col sm:flex-row sm:h-10 h-auto gap-2 sm:gap-1 p-2 sm:p-1">
-            <TabsTrigger value="items" className="w-full sm:w-auto justify-start sm:justify-center py-3 sm:py-1.5 text-sm">Itens do Cardápio</TabsTrigger>
-            <TabsTrigger value="import" className="w-full sm:w-auto justify-start sm:justify-center py-3 sm:py-1.5 text-sm">Importar Cardápio</TabsTrigger>
-            <TabsTrigger value="theme" className="w-full sm:w-auto justify-start sm:justify-center py-3 sm:py-1.5 text-sm">Personalizar</TabsTrigger>
+        <Tabs defaultValue="items" className="w-full flex flex-col gap-4">
+          <TabsList className="h-auto w-full sm:w-auto sm:inline-flex grid grid-cols-3 gap-1 p-1 rounded-2xl border border-border bg-card/60 backdrop-blur-xl">
+            {[
+              { v: "items", label: "Itens", icon: UtensilsCrossed },
+              { v: "import", label: "Importar", icon: Upload },
+              { v: "theme", label: "Personalizar", icon: Palette },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.v}
+                value={t.v}
+                className="gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-[0_6px_20px_-8px_hsl(var(--accent)/0.7)]"
+              >
+                <t.icon className="w-4 h-4 shrink-0" />
+                <span className="truncate">{t.label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-
-          <TabsContent value="items">
-            <div className="grid md:grid-cols-[240px_1fr] gap-6">
-              {/* Categories sidebar */}
-              <div>
-                <h2 className="font-display font-bold mb-3 text-sm text-muted-foreground uppercase tracking-wider">Categorias</h2>
+          <TabsContent value="items" className="mt-0">
+            <div className="grid lg:grid-cols-[280px_1fr] gap-4">
+              {/* Categories panel */}
+              <Surface className="p-4 h-fit lg:sticky lg:top-4">
+                <SectionHeader
+                  title="Categorias"
+                  subtitle={`${totalCats} ${totalCats === 1 ? "categoria" : "categorias"}`}
+                  icon={LayoutList}
+                />
                 <div className="flex gap-2 mb-3">
-                  <Input placeholder="Nova categoria" value={catName} onChange={(e) => setCatName(e.target.value)} className="bg-card/60 text-sm" onKeyDown={(e) => e.key === "Enter" && catName.trim() && addCat.mutate(catName.trim())} />
-                  <Button size="sm" onClick={() => catName.trim() && addCat.mutate(catName.trim())} disabled={addCat.isPending}><Plus className="w-4 h-4" /></Button>
+                  <Input placeholder="Nova categoria" value={catName} onChange={(e) => setCatName(e.target.value)} className="bg-background/40 text-sm h-9" onKeyDown={(e) => e.key === "Enter" && catName.trim() && addCat.mutate(catName.trim())} />
+                  <Button size="sm" className="h-9 px-3" onClick={() => catName.trim() && addCat.mutate(catName.trim())} disabled={addCat.isPending}><Plus className="w-4 h-4" /></Button>
                 </div>
-                {(categories ?? []).length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-sm text-muted-foreground mb-2">Nenhuma categoria ainda.</p>
+                {totalCats === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border/70 py-7 px-3 text-center">
+                    <p className="text-sm text-foreground/80 mb-1">Nenhuma categoria ainda</p>
                     <p className="text-xs text-muted-foreground">Crie categorias para organizar seu cardápio.</p>
                   </div>
                 ) : (
@@ -916,30 +935,32 @@ const MenuAdmin = () => {
                     </SortableContext>
                   </DndContext>
                 )}
-              </div>
+              </Surface>
 
-              {/* Items grid */}
-              <div>
+              {/* Items panel */}
+              <Surface className="p-4">
                 {!selectedCat ? (
-                  <div className="glass-card p-12 text-center text-muted-foreground">
+                  <div className="py-16 text-center text-muted-foreground">
                     <UtensilsCrossed className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                    <p>Selecione uma categoria para gerenciar os itens.</p>
+                    <p className="text-sm">Selecione uma categoria para gerenciar os itens.</p>
                   </div>
                 ) : (
                   <>
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="font-display font-bold">{categories?.find((c) => c.id === selectedCat)?.name}</h2>
-                      <Button onClick={openCreateItem}><Plus className="w-4 h-4 mr-1" /> Novo Item</Button>
-                    </div>
-                    {(items ?? []).length === 0 ? (
-                      <div className="glass-card p-12 text-center">
-                        <p className="text-muted-foreground mb-2">Nenhum item nesta categoria.</p>
-                        <Button onClick={openCreateItem} variant="outline"><Plus className="w-4 h-4 mr-1" /> Criar primeiro item</Button>
+                    <SectionHeader
+                      title={categories?.find((c) => c.id === selectedCat)?.name ?? "Itens"}
+                      subtitle={`${totalItems} ${totalItems === 1 ? "item" : "itens"} nesta categoria`}
+                      icon={UtensilsCrossed}
+                      action={<Button size="sm" onClick={openCreateItem}><Plus className="w-4 h-4 mr-1.5" /> Novo item</Button>}
+                    />
+                    {totalItems === 0 ? (
+                      <div className="rounded-xl border border-dashed border-border/70 py-14 text-center">
+                        <p className="text-sm text-muted-foreground mb-3">Nenhum item nesta categoria.</p>
+                        <Button onClick={openCreateItem} variant="outline" size="sm"><Plus className="w-4 h-4 mr-1.5" /> Criar primeiro item</Button>
                       </div>
                     ) : (
                       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleItemDragEnd}>
                         <SortableContext items={(items ?? []).map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                             {(items ?? []).map((item) => (
                               <SortableMenuItem key={item.id} item={item} fmt={fmt} openEditItem={openEditItem}
                                 deleteItem={(id: string) => deleteItemMut.mutate(id)} toggleItem={(v: any) => toggleItemMut.mutate(v)} />
@@ -950,26 +971,29 @@ const MenuAdmin = () => {
                     )}
                   </>
                 )}
-              </div>
+              </Surface>
             </div>
           </TabsContent>
 
-          <TabsContent value="import">
-            {rid && <MenuImportTab rid={rid} />}
+          <TabsContent value="import" className="mt-0">
+            <Surface className="p-4">{rid && <MenuImportTab rid={rid} />}</Surface>
           </TabsContent>
 
-          <TabsContent value="theme">
-            <MenuThemeTab
-              restaurantId={rid ?? undefined}
-              currentTheme={(restaurant as any)?.menu_theme}
-              currentColor={(restaurant as any)?.primary_color}
-              restaurantName={(restaurant as any)?.name}
-              publicMenuUrl={publicMenuUrl}
-              previewItems={(previewItems ?? []) as any}
-            />
+          <TabsContent value="theme" className="mt-0">
+            <Surface className="p-4">
+              <MenuThemeTab
+                restaurantId={rid ?? undefined}
+                currentTheme={(restaurant as any)?.menu_theme}
+                currentColor={(restaurant as any)?.primary_color}
+                restaurantName={(restaurant as any)?.name}
+                publicMenuUrl={publicMenuUrl}
+                previewItems={(previewItems ?? []) as any}
+              />
+            </Surface>
           </TabsContent>
 
         </Tabs>
+
 
         {/* Item Dialog - Enhanced */}
         <Dialog open={!!itemDialog} onOpenChange={() => setItemDialog(null)}>
