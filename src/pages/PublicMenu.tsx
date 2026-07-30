@@ -35,6 +35,7 @@ import {
 } from "@/components/public-menu/menuTokens";
 import { useSheetViewport, useKeyboardFocusScroll, useVisualViewport } from "@/hooks/useSheetViewport";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { AutoResizeTextarea } from "@/components/public-menu/AutoResizeTextarea";
 
 
 
@@ -956,8 +957,8 @@ const PublicMenu = () => {
                   <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
                     <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                   </label>
-                <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[16px] leading-snug resize-none min-h-[76px] outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
+                <AutoResizeTextarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
+                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[16px] leading-snug outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
               </div>
@@ -1547,8 +1548,8 @@ const PublicMenu = () => {
                     <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
                       <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                     </label>
-                    <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[16px] leading-snug resize-none min-h-[76px] outline-none focus:border-white/20 transition-colors`}
+                    <AutoResizeTextarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
+                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[16px] leading-snug outline-none focus:border-white/20 transition-colors`}
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
 
