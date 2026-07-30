@@ -466,6 +466,8 @@ const PublicMenu = () => {
         cartKey, menuItemId: item.id,
         name: item.name + (selectedVariation ? ` (${selectedVariation.name})` : ""),
         price: totalPrice, quantity: detailQty, variationName: selectedVariation?.name,
+        variationId: selectedVariation?.id ?? null,
+        addonIds: selectedAddons.map((a) => a.id),
         selectedAddons: selectedAddons.map((a) => ({ name: a.name, price: Number(a.price) })),
         image_url: item.image_url,
       }];
