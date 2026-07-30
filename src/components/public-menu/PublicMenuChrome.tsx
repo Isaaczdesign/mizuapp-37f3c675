@@ -332,6 +332,8 @@ export function MenuStickyBar({
 export function FloatingCartBar({
   count, total, accentColor, onClick,
 }: { count: number; total: number; accentColor: string; onClick: () => void }) {
+  const { keyboardInset } = useVisualViewport();
+
   return (
     <motion.div
       initial={{ y: 80, opacity: 0 }}
