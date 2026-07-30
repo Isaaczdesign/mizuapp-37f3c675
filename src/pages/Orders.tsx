@@ -361,7 +361,7 @@ const Orders = () => {
 
   return (
     <AdminLayout collapsible>
-    <PageShell>
+    <PageShell fullHeight className="lg:h-full lg:overflow-hidden gap-3">
       <PageHeader
         icon={FileText}
         title="Pedidos"
@@ -395,7 +395,7 @@ const Orders = () => {
 
       {/* Shift scope banner / filter */}
       {historyShiftId ? (
-        <div className="mb-4 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between gap-3 flex-wrap">
+        <div className="shrink-0 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between gap-3 flex-wrap">
           <div className="text-sm flex items-center gap-2 text-amber-300">
             <Clock className="w-4 h-4" />
             <span>
@@ -408,7 +408,7 @@ const Orders = () => {
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="shrink-0 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground">Escopo:</span>
           {([
             { key: "current", label: "Expediente atual" },
@@ -434,7 +434,7 @@ const Orders = () => {
       )}
 
       {/* Search */}
-      <div className="mb-3 relative max-w-md">
+      <div className="shrink-0 relative w-full lg:max-w-md">
         <input
           type="text"
           value={searchQuery}
@@ -459,7 +459,7 @@ const Orders = () => {
       </div>
 
       {/* Type filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+      <div className="shrink-0 flex gap-2 overflow-x-auto pb-1">
 
         {([
           { key: "all", label: "Todos", icon: FileText },
@@ -497,7 +497,7 @@ const Orders = () => {
 
 
       {scopeFilter === "current" && !currentShiftId && !historyShiftId && (
-        <div className="mb-6 p-6 rounded-2xl border border-border bg-card/40 text-center">
+        <div className="shrink-0 p-6 rounded-2xl border border-border bg-card/40 text-center">
           <div className="text-3xl mb-2">🕒</div>
           <div className="font-bold mb-1">Nenhum expediente aberto</div>
           <div className="text-sm text-muted-foreground mb-3">
@@ -511,16 +511,16 @@ const Orders = () => {
         </div>
       )}
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-2">
         {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
           const colOrders = filtered.filter((o) => o.status === col.status);
           return (
-            <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col">
+            <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col min-h-0 max-h-full">
               <div className={`${col.color} text-primary-foreground rounded-t-[20px] px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
                 <span>{col.label}</span>
                 <span className="bg-background/20 rounded-full px-2 py-0.5 text-xs">{colOrders.length}</span>
               </div>
-              <div className="flex-1 bg-card/20 rounded-b-[20px] border border-border/70 border-t-0 p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="flex-1 min-h-0 bg-card/20 rounded-b-[20px] border border-border/70 border-t-0 p-2 space-y-2 overflow-y-auto">
                 {colOrders.map((order) => {
                   const next = getNextStatus(order.status, order.order_type);
                   const meta = TYPE_META[order.order_type] ?? TYPE_META.dine_in;
