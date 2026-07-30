@@ -175,19 +175,31 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <a href="/" aria-label="Mizu" className="inline-block"><Logo className="h-10 mx-auto" /></a>
-          <p className="text-muted-foreground mt-2">
-            {isSignup ? "Crie sua conta e seu restaurante" : "Entre na sua conta"}
-          </p>
-        </div>
+    <div className="min-h-screen w-full bg-[#0B0B0B] flex">
+      {/* Coluna esquerda — formulário */}
+      <div className="relative flex w-full lg:w-[35%] items-center justify-center px-6 py-12 sm:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-[380px]"
+        >
+          <a href="/" aria-label="Mizu" className="inline-block">
+            <Logo className="h-9" />
+          </a>
 
-        <div className="glass-card p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="mt-10 text-[2rem] leading-tight font-semibold tracking-tight text-[#efeae1]">
+            {isSignup ? "Crie sua conta" : "Bem-vindo de volta"}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-white/40">
+            {isSignup
+              ? "Configure seu restaurante em poucos minutos."
+              : "Acesse o painel para gerenciar seu restaurante."}
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-10 space-y-6">
             <div>
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email" className={labelClass}>E-mail</Label>
               <Input
                 id="email"
                 type="email"
@@ -195,11 +207,11 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="seu@email.com"
-                className="mt-1"
+                className={fieldClass}
               />
             </div>
             <div>
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className={labelClass}>Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -208,13 +220,13 @@ const Auth = () => {
                 required
                 minLength={6}
                 placeholder={isSignup ? "Mín. 6 caracteres, com maiúscula e minúscula" : "Sua senha"}
-                className="mt-1"
+                className={fieldClass}
               />
             </div>
             {isSignup && (
               <>
                 <div>
-                  <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                  <Label htmlFor="confirmPassword" className={labelClass}>Confirmar senha</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -223,65 +235,89 @@ const Auth = () => {
                     required
                     minLength={6}
                     placeholder="Repita a senha"
-                    className="mt-1"
+                    className={fieldClass}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="restaurant">Nome do Restaurante</Label>
+                  <Label htmlFor="restaurant" className={labelClass}>Nome do Restaurante</Label>
                   <Input
                     id="restaurant"
                     value={restaurantName}
                     onChange={(e) => setRestaurantName(e.target.value)}
                     required
                     placeholder="Ex: Sushi Katana"
-                    className="mt-1"
+                    className={fieldClass}
                   />
                 </div>
               </>
             )}
-            <Button variant="hero" className="w-full" disabled={loading}>
-              {loading ? "Processando..." : isSignup ? "Criar Conta" : "Entrar"}
-            </Button>
+
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ scale: loading ? 1 : 1.015 }}
+              whileTap={{ scale: loading ? 1 : 0.985 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-semibold tracking-wide text-[#0B0B0B] shadow-[0_8px_30px_-10px_rgba(212,175,55,0.6)] transition-colors duration-300 hover:bg-[#e0c256] disabled:opacity-60"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? "Processando…" : isSignup ? "Criar conta" : "Entrar"}
+            </motion.button>
           </form>
 
-          <div className="mt-4 text-center space-y-2">
+          <div className="mt-8 space-y-3 text-center">
             {!isSignup && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <button
                   type="button"
                   onClick={() => sendResetEmail(false)}
                   disabled={loading || cooldown > 0}
-                  className="block w-full text-sm text-primary hover:underline disabled:opacity-60 disabled:cursor-not-allowed disabled:no-underline"
+                  className="block w-full text-sm text-white/50 transition-colors hover:text-[#D4AF37] disabled:opacity-50"
                 >
                   {cooldown > 0 && resetSentTo
                     ? `E-mail enviado para ${resetSentTo}`
                     : "Esqueceu a senha?"}
                 </button>
                 {resetSentTo && (
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
                     onClick={() => sendResetEmail(true)}
                     disabled={loading || cooldown > 0}
-                    className="w-full"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-transparent text-sm text-white/60 transition-colors hover:border-white/20 hover:text-[#efeae1] disabled:opacity-50"
                   >
-                    {cooldown > 0
-                      ? `Reenviar em ${cooldown}s`
-                      : "Reenviar e-mail de recuperação"}
-                  </Button>
+                    {cooldown > 0 ? `Reenviar em ${cooldown}s` : "Reenviar e-mail de recuperação"}
+                  </button>
                 )}
               </div>
             )}
             <button
               type="button"
               onClick={() => setIsSignup(!isSignup)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              className="text-sm text-white/40 transition-colors hover:text-[#D4AF37]"
             >
-              {isSignup ? "Já tem conta? Entrar" : "Não tem conta? Cadastrar"}
+              {isSignup ? "Já tem conta? Entrar" : "Não tem conta? Criar conta"}
             </button>
           </div>
-        </div>
+        </motion.div>
+      </div>
+
+      {/* Coluna direita — fotografia */}
+      <div className="relative hidden lg:block lg:w-[65%] p-3">
+        <motion.div
+          initial={{ opacity: 0, scale: 1.03 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+          className="relative h-full w-full overflow-hidden rounded-3xl"
+        >
+          <img
+            src={authSushi}
+            alt="Sushi gourmet"
+            width={1024}
+            height={1536}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B]/70 via-[#0B0B0B]/10 to-transparent" />
+        </motion.div>
       </div>
     </div>
   );
