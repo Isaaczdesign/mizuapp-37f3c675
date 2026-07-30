@@ -892,17 +892,17 @@ const PublicMenu = () => {
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
               </div>
-              <div className="flex items-center justify-between px-4 pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between px-4 pt-1 pb-3 lg:pt-4 border-b border-white/[0.06]">
                 <h2 className="font-display text-lg font-bold">Seu Pedido</h2>
-                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-9 h-9 ${R_TILE} bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-10 h-10 ${R_TILE} bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
                   <X className={ICON_SM} strokeWidth={ICON_STROKE} />
                 </button>
               </div>
-              <div className="overflow-y-auto flex-1 p-4 space-y-3">
+              <div className="overflow-y-auto flex-1 px-4 pt-4 pb-2 space-y-3">
                 {cart.map((item) => (
                   <div
                     key={item.cartKey}
-                    className={`flex items-center gap-3 p-2.5 ${R_CARD_SM} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}
+                    className={`flex items-center gap-3 p-3 ${R_CARD_SM} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}
                   >
                     {item.image_url && (
                       <img src={item.image_url} alt="" className={`w-12 h-12 ${R_TILE} object-cover shrink-0`} />
@@ -914,15 +914,15 @@ const PublicMenu = () => {
                       )}
                       <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{fmt(item.price)}</p>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-8 h-8 rounded-xl bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-9 h-9 rounded-xl bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
                         <Minus className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} />
                       </button>
-                      <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
+                      <span className="text-sm font-bold w-6 text-center tabular-nums">{item.quantity}</span>
                       <button
                         onClick={() => setCart((prev) => prev.map((i) => i.cartKey === item.cartKey ? { ...i, quantity: i.quantity + 1 } : i))}
                         aria-label="Adicionar uma unidade"
-                        className="w-8 h-8 rounded-xl text-[#080909] flex items-center justify-center transition-transform active:scale-95"
+                        className="w-9 h-9 rounded-xl text-[#080909] flex items-center justify-center transition-transform active:scale-95"
                         style={{ backgroundColor: accentColor }}>
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
                       </button>
@@ -943,7 +943,7 @@ const PublicMenu = () => {
               </div>
 
 
-              <div className="p-4 border-t border-white/[0.06] space-y-3">
+              <div className="px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-white/[0.06] space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
