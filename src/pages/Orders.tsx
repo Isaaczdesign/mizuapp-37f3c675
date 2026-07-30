@@ -12,6 +12,7 @@ import AdminLayout from "@/components/AdminLayout";
 import NewOrderModal from "@/components/NewOrderModal";
 import EditOrderModal from "@/components/EditOrderModal";
 import { paymentMethodLabel } from "@/lib/paymentMethods";
+import { PageShell, PageHeader, Surface, EmptyState } from "@/components/dashboard/ui";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type OrderType = "all" | "dine_in" | "pickup" | "delivery";
