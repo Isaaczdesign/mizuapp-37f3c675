@@ -131,7 +131,7 @@ export default function ExpedienteHistorico() {
             </tbody>
           </table>
         </div>
-      </div>
+      </PageShell>
 
       <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
