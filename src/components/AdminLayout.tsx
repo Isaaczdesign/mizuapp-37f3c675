@@ -160,16 +160,17 @@ export default function AdminLayout({ children, collapsible = false }: { childre
       {/* Desktop sidebar — animated width */}
       <aside
         aria-hidden={!desktopVisible}
-        className={`hidden md:flex flex-col border-r border-border bg-card/40 backdrop-blur-xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
-          desktopVisible ? "w-56 opacity-100" : "w-0 opacity-0 border-r-0"
+        className={`hidden md:flex flex-col border-r border-border/60 bg-card/50 backdrop-blur-2xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
+          desktopVisible ? "w-64 opacity-100" : "w-0 opacity-0 border-r-0"
         }`}
       >
-        <div className="p-4 border-b border-border flex items-center justify-between gap-2 min-w-[14rem]">
-          <a href="/" aria-label="Mizu"><Logo className="h-8" /></a>
+        <div className="relative p-5 border-b border-border/60 flex items-center justify-between gap-2 min-w-[16rem]">
+          <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
+          <a href="/" aria-label="Mizu" className="relative transition-transform duration-200 hover:scale-[1.03]"><Logo className="h-9" /></a>
           {collapsible && (
             <button
               onClick={() => setHidden(true)}
-              className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary transition-colors"
+              className="relative text-muted-foreground hover:text-foreground p-1.5 rounded-xl hover:bg-secondary transition-colors"
               aria-label="Ocultar menu lateral"
               title="Ocultar menu lateral"
             >
@@ -177,10 +178,11 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             </button>
           )}
         </div>
-        <div className="flex-1 flex flex-col min-w-[14rem]">
+        <div className="flex-1 flex flex-col min-w-[16rem]">
           {renderNav()}
         </div>
       </aside>
+
 
       {/* Desktop floating "show" button when sidebar is hidden */}
       {collapsible && hidden && (
