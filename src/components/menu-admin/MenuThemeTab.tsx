@@ -46,6 +46,8 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
 
   /** Aba de dispositivo que está sendo editada */
   const [device, setDevice] = useState<MenuDevice>("mobile");
+  const [fullscreen, setFullscreen] = useState(false);
+
   const [themeMobile, setThemeMobile] = useState<MenuThemeId>(savedMobile);
   const [themeDesktop, setThemeDesktop] = useState<MenuThemeId>(savedDesktop);
   /** Quando ativo, escolher um template aplica nos dois dispositivos */
