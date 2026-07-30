@@ -33,7 +33,8 @@ interface MenuItem {
 }
 interface CartItem {
   cartKey: string; menuItemId: string; name: string; price: number; quantity: number;
-  variationName?: string; selectedAddons: { name: string; price: number }[];
+  variationName?: string; variationId?: string | null; addonIds?: string[];
+  selectedAddons: { name: string; price: number }[];
   image_url: string | null; itemNotes?: string;
 }
 interface Category { id: string; name: string; sort_order: number; }
@@ -465,6 +466,8 @@ const PublicMenu = () => {
         cartKey, menuItemId: item.id,
         name: item.name + (selectedVariation ? ` (${selectedVariation.name})` : ""),
         price: totalPrice, quantity: detailQty, variationName: selectedVariation?.name,
+        variationId: selectedVariation?.id ?? null,
+        addonIds: selectedAddons.map((a) => a.id),
         selectedAddons: selectedAddons.map((a) => ({ name: a.name, price: Number(a.price) })),
         image_url: item.image_url,
       }];
@@ -569,11 +572,12 @@ const PublicMenu = () => {
         complement: deliveryComplement.trim() || null,
       } : null;
 
+      // Preço é recalculado no servidor a partir do cardápio; enviamos apenas as escolhas.
       const itemsPayload = cart.map((item) => ({
         menu_item_id: item.menuItemId,
-        name: item.name,
         quantity: item.quantity,
-        unit_price: item.price,
+        variation_id: item.variationId ?? null,
+        addon_ids: item.addonIds ?? [],
         notes: item.itemNotes || null,
       }));
 

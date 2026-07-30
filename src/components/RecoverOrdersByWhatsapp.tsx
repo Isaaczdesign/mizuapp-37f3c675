@@ -40,6 +40,7 @@ export default function RecoverOrdersByWhatsapp({
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Found[] | null>(null);
   const [recentCount, setRecentCount] = useState(0);
@@ -79,8 +80,12 @@ export default function RecoverOrdersByWhatsapp({
   }, [open]);
 
   async function search() {
-    if (phone.replace(/\D/g, "").length < 8) {
-      toast.error("Informe o WhatsApp usado no pedido");
+    if (phone.replace(/\D/g, "").length < 10) {
+      toast.error("Informe o WhatsApp com DDD usado no pedido");
+      return;
+    }
+    if (name.trim().length < 2) {
+      toast.error("Informe o nome usado no pedido");
       return;
     }
     setLoading(true);
@@ -88,6 +93,7 @@ export default function RecoverOrdersByWhatsapp({
       const { data, error } = await (supabase as any).rpc("get_active_orders_by_whatsapp", {
         _restaurant_id: restaurantId,
         _whatsapp: phone,
+        _name: name.trim(),
       });
       if (error) throw error;
       const rows = (data ?? []) as Found[];
@@ -180,18 +186,26 @@ export default function RecoverOrdersByWhatsapp({
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Informe o WhatsApp usado no pedido. Buscamos pedidos em andamento das últimas 24 horas.
+              Informe o nome e o WhatsApp usados no pedido. Buscamos pedidos em andamento das últimas 24 horas.
             </p>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Seu nome"
+              autoFocus
+              aria-label="Nome usado no pedido"
+              onKeyDown={(e) => e.key === "Enter" && search()}
+            />
             <div className="flex gap-2">
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(11) 99999-9999"
                 inputMode="tel"
-                autoFocus
                 aria-label="WhatsApp usado no pedido"
                 onKeyDown={(e) => e.key === "Enter" && search()}
               />
+
               <Button
                 onClick={search}
                 disabled={loading}
