@@ -943,7 +943,7 @@ const PublicMenu = () => {
                     <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                   </label>
                   <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-sm resize-none h-16 outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
+                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[15px] leading-snug resize-none min-h-[76px] outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
               </div>
@@ -1529,7 +1529,7 @@ const PublicMenu = () => {
                       <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                     </label>
                     <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-sm resize-none h-16 outline-none focus:border-white/20 transition-colors`}
+                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[15px] leading-snug resize-none min-h-[76px] outline-none focus:border-white/20 transition-colors`}
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
 
