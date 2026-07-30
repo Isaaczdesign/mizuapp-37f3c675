@@ -1131,19 +1131,19 @@ const PublicMenu = () => {
                     </div>
                   )}
                   <div>
-                    <label className="text-sm font-medium">Nome *</label>
+                    <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>Nome *</label>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
-                      required placeholder="Seu nome" className="mt-1" />
+                      required placeholder="Seu nome" className="mt-1.5 h-12" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">WhatsApp *</label>
+                    <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>WhatsApp *</label>
                     <Input value={customerWhatsapp} onChange={(e) => setCustomerWhatsapp(e.target.value)}
-                      required placeholder="(11) 99999-9999" className="mt-1" />
+                      required placeholder="(11) 99999-9999" className="mt-1.5 h-12" />
                   </div>
 
                   {orderType === "dine_in" && !tableId && (
                     <div>
-                      <label className="text-sm font-medium">Mesa *</label>
+                      <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>Mesa *</label>
                       {tables.length > 0 ? (
                         <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 mt-2">
                           {tables.map((t) => (
@@ -1177,7 +1177,7 @@ const PublicMenu = () => {
                     <div className="space-y-3">
                       {savedAddresses.length > 0 && (
                         <div>
-                          <label className="text-xs font-medium">Endereços salvos</label>
+                          <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Endereços salvos</label>
                           <div className="mt-2 space-y-2">
                             {savedAddresses.map((a) => {
                               const active = selectedAddressId === a.id;
@@ -1258,7 +1258,7 @@ const PublicMenu = () => {
                       )}
 
                       <div>
-                        <label className="text-xs font-medium">CEP *</label>
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>CEP *</label>
                         <Input
                           value={deliveryCep}
                           onChange={(e) => {
@@ -1279,7 +1279,7 @@ const PublicMenu = () => {
                           required
                           inputMode="numeric"
                           placeholder="00000-000"
-                          className="mt-1"
+                          className="mt-1.5 h-12"
                         />
                         {deliveryCep && deliveryCep.replace(/\D/g, "").length !== 8 && (
                           <p className="text-[11px] text-destructive mt-1">CEP deve ter 8 dígitos</p>
@@ -1287,25 +1287,25 @@ const PublicMenu = () => {
                       </div>
                       <div className="grid grid-cols-3 gap-2.5">
                         <div className="col-span-2">
-                          <label className="text-xs font-medium">Rua *</label>
-                          <Input value={deliveryStreet} onChange={(e) => setDeliveryStreet(e.target.value)} required placeholder="Rua" className="mt-1" />
+                          <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Rua *</label>
+                          <Input value={deliveryStreet} onChange={(e) => setDeliveryStreet(e.target.value)} required placeholder="Rua" className="mt-1.5 h-12" />
                         </div>
                         <div>
-                          <label className="text-xs font-medium">Nº *</label>
-                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required inputMode="numeric" placeholder="123" className="mt-1" />
+                          <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Nº *</label>
+                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required inputMode="numeric" placeholder="123" className="mt-1.5 h-12" />
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs font-medium">Bairro *</label>
-                        <Input value={deliveryNeighborhood} onChange={(e) => setDeliveryNeighborhood(e.target.value)} required placeholder="Bairro" className="mt-1" />
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Bairro *</label>
+                        <Input value={deliveryNeighborhood} onChange={(e) => setDeliveryNeighborhood(e.target.value)} required placeholder="Bairro" className="mt-1.5 h-12" />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">Cidade *</label>
-                        <Input value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} required placeholder="Cidade" className="mt-1" />
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Cidade *</label>
+                        <Input value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} required placeholder="Cidade" className="mt-1.5 h-12" />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">Complemento</label>
-                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência, ponto de apoio..." className="mt-1" />
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Complemento</label>
+                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência, ponto de apoio..." className="mt-1.5 h-12" />
                       </div>
                     </div>
                   )}
@@ -1380,9 +1380,9 @@ const PublicMenu = () => {
 
                   {paymentMethod === "cash" && (
                     <div>
-                      <label className="text-xs font-medium">Precisa de troco para quanto? (opcional)</label>
+                      <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Precisa de troco para quanto? (opcional)</label>
                       <Input value={changeFor} onChange={(e) => setChangeFor(e.target.value)}
-                        type="number" step="0.01" placeholder="Ex: 100.00" className="mt-1" />
+                        type="number" step="0.01" placeholder="Ex: 100.00" className="mt-1.5 h-12" />
                     </div>
                   )}
 
