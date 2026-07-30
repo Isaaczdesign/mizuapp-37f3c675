@@ -772,7 +772,7 @@ const PublicMenu = () => {
       </div>
 
       {/* ── Items by Category ── */}
-      <div className="max-w-3xl lg:max-w-none xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8">
+      <div className="max-w-3xl lg:max-w-none mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8">
         {categorizedItems.length === 0 && (
           <div className="py-16">
             {search ? (
