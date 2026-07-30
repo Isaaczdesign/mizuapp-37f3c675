@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
   AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search, ClipboardList,
+  QrCode, Banknote, Ticket, StickyNote,
 } from "lucide-react";
 import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
@@ -22,6 +23,12 @@ import MenuSidebar from "@/components/public-menu/MenuSidebar";
 import ProductDetailSheet from "@/components/public-menu/ProductDetailSheet";
 import EmptyState from "@/components/public-menu/EmptyState";
 import MenuSkeleton from "@/components/public-menu/MenuSkeletons";
+import OptionCard from "@/components/public-menu/OptionCard";
+import {
+  BG_CARD, BORDER, R_CARD_SM, R_FIELD, R_BUTTON, R_TILE, ICON_SM, ICON_STROKE,
+  TEXT_SECONDARY, TEXT_TERTIARY,
+} from "@/components/public-menu/menuTokens";
+
 
 
 
@@ -882,33 +889,34 @@ const PublicMenu = () => {
               </div>
               <div className="flex items-center justify-between px-4 pb-3 border-b border-white/[0.06]">
                 <h2 className="font-display text-lg font-bold">Seu Pedido</h2>
-                <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
-                  <X className="w-4 h-4" />
+                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-9 h-9 ${R_TILE} bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                  <X className={ICON_SM} strokeWidth={ICON_STROKE} />
                 </button>
               </div>
               <div className="overflow-y-auto flex-1 p-4 space-y-3">
                 {cart.map((item) => (
                   <div key={item.cartKey} className="flex items-center gap-3">
                     {item.image_url && (
-                      <img src={item.image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      <img src={item.image_url} alt="" className={`w-12 h-12 ${R_TILE} object-cover shrink-0`} />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.name}</p>
                       {item.selectedAddons.length > 0 && (
-                        <p className="text-[10px] text-muted-foreground">+ {item.selectedAddons.map((a) => a.name).join(", ")}</p>
+                        <p className={`text-[10px] ${TEXT_TERTIARY}`}>+ {item.selectedAddons.map((a) => a.name).join(", ")}</p>
                       )}
                       <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{fmt(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <button onClick={() => removeFromCart(item.cartKey)} className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center">
-                        <Minus className="w-3 h-3" />
+                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-8 h-8 rounded-xl bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                        <Minus className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} />
                       </button>
                       <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
                       <button
                         onClick={() => setCart((prev) => prev.map((i) => i.cartKey === item.cartKey ? { ...i, quantity: i.quantity + 1 } : i))}
-                        className="w-7 h-7 rounded-lg text-white flex items-center justify-center"
+                        aria-label="Adicionar uma unidade"
+                        className="w-8 h-8 rounded-xl text-[#080909] flex items-center justify-center transition-transform active:scale-95"
                         style={{ backgroundColor: accentColor }}>
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
                       </button>
                     </div>
                   </div>
@@ -917,12 +925,15 @@ const PublicMenu = () => {
 
                 {/* Order notes */}
                 <div className="pt-3 border-t border-white/[0.06]">
-                  <label className="text-xs font-medium text-muted-foreground">Observações</label>
+                  <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
+                    <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
+                  </label>
                   <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                    className="w-full mt-1 p-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm resize-none h-16 border-none outline-none placeholder:text-muted-foreground"
+                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-sm resize-none h-16 outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
               </div>
+
 
               <div className="p-4 border-t border-white/[0.06] space-y-3">
                 <div className="flex justify-between items-center">
@@ -1021,49 +1032,20 @@ const PublicMenu = () => {
                       desc: `Entrega em casa${restaurant.delivery_fee ? ` · Taxa ${fmt(Number(restaurant.delivery_fee))}` : ""}`,
                     },
                   ].filter(Boolean) as Array<{ key: "dine_in" | "pickup" | "delivery"; icon: typeof Truck; title: string; desc: string }>).map(
-                    (opt) => {
-                      const selected = orderType === opt.key;
-                      const Icon = opt.icon;
-                      return (
-                        <button
-                          key={opt.key}
-                          onClick={() => { setOrderType(opt.key); setCheckoutStep(2); }}
-                          className={`group w-full flex items-center gap-3.5 p-3.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99] ${
-                            selected
-                              ? ""
-                              : "border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.12]"
-                          }`}
-                          style={
-                            selected
-                              ? {
-                                  borderColor: accentColor,
-                                  backgroundColor: accentColor + "12",
-                                  boxShadow: `0 0 0 3px ${accentColor}1a`,
-                                }
-                              : {}
-                          }
-                        >
-                          <span
-                            className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center border transition-colors"
-                            style={{
-                              backgroundColor: selected ? accentColor + "1f" : "rgba(255,255,255,0.04)",
-                              borderColor: selected ? accentColor + "4d" : "rgba(255,255,255,0.07)",
-                            }}
-                          >
-                            <Icon className="w-5 h-5" style={{ color: selected ? accentColor : "rgba(255,255,255,0.65)" }} strokeWidth={1.75} />
-                          </span>
-                          <span className="flex-1 min-w-0">
-                            <span className="block font-semibold text-sm text-white">{opt.title}</span>
-                            <span className="block text-xs text-white/45 mt-0.5">{opt.desc}</span>
-                          </span>
-                          <ChevronRight
-                            className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-0.5"
-                            style={{ color: selected ? accentColor : "rgba(255,255,255,0.3)" }}
-                          />
-                        </button>
-                      );
-                    },
+                    (opt) => (
+                      <OptionCard
+                        key={opt.key}
+                        icon={opt.icon}
+                        title={opt.title}
+                        desc={opt.desc}
+                        selected={orderType === opt.key}
+                        accentColor={accentColor}
+                        trailing="chevron"
+                        onClick={() => { setOrderType(opt.key); setCheckoutStep(2); }}
+                      />
+                    ),
                   )}
+
                   {!restaurant.dine_in_enabled && !restaurant.pickup_enabled && !restaurant.delivery_enabled && (
                     <p className="text-sm text-white/45 text-center py-4">Nenhum tipo de atendimento disponível.</p>
                   )}
@@ -1075,7 +1057,7 @@ const PublicMenu = () => {
               {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
                   {hasSavedData && (
-                    <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs space-y-2">
+                    <div className={`${R_FIELD} bg-white/[0.03] ${BORDER} px-3 py-2.5 text-xs space-y-2`}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">
                           {autofillEnabled ? "✨ Dados salvos neste dispositivo" : "Preenchimento automático desativado"}
@@ -1141,25 +1123,29 @@ const PublicMenu = () => {
                           {tables.map((t) => (
                             <button key={t.id} type="button"
                               onClick={() => setSelectedTableId(t.id)}
-                              className={`py-2 rounded-lg text-sm font-medium border transition-all ${
-                                selectedTableId === t.id ? "text-white" : "bg-secondary border-border"
+                              className={`py-2.5 ${R_TILE} text-sm font-semibold border transition-all duration-200 active:scale-[0.97] ${
+                                selectedTableId === t.id
+                                  ? "text-[#080909]"
+                                  : `bg-white/[0.025] ${BORDER} text-white/70 hover:bg-white/[0.05] hover:border-white/[0.12]`
                               }`}
-                              style={selectedTableId === t.id ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+                              style={selectedTableId === t.id ? { backgroundColor: accentColor, borderColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}1a` } : {}}
                             >
                               {t.number}
                             </button>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground mt-1">Nenhuma mesa cadastrada.</p>
+                        <p className={`text-xs ${TEXT_TERTIARY} mt-1`}>Nenhuma mesa cadastrada.</p>
                       )}
                     </div>
                   )}
                   {orderType === "dine_in" && tableId && (
-                    <div className="p-3 rounded-xl bg-secondary/50 text-sm">
-                      🍽️ Mesa identificada via QR Code
+                    <div className={`flex items-center gap-2.5 p-3 ${R_FIELD} ${BG_CARD} ${BORDER} text-sm`}>
+                      <UtensilsCrossed className={ICON_SM} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                      <span className={TEXT_SECONDARY}>Mesa identificada via QR Code</span>
                     </div>
                   )}
+
 
                   {orderType === "delivery" && (
                     <div className="space-y-3">
@@ -1172,9 +1158,10 @@ const PublicMenu = () => {
                               return (
                                 <div
                                   key={a.id}
-                                  className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition ${
-                                    active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                                  className={`flex items-center gap-3 ${R_FIELD} border px-3 py-2.5 text-sm cursor-pointer transition-all duration-200 ${
+                                    active ? "" : `bg-white/[0.025] ${BORDER} hover:bg-white/[0.05] hover:border-white/[0.12]`
                                   }`}
+                                  style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12`, boxShadow: `0 0 0 3px ${accentColor}1a` } : {}}
                                   onClick={() => {
                                     setSelectedAddressId(a.id);
                                     setDeliveryCep(a.cep); setDeliveryStreet(a.street);
@@ -1182,13 +1169,19 @@ const PublicMenu = () => {
                                     setDeliveryCity(a.city); setDeliveryComplement(a.complement);
                                   }}
                                 >
-                                  <div className="min-w-0">
+                                  <MapPin
+                                    className={`${ICON_SM} shrink-0`}
+                                    strokeWidth={ICON_STROKE}
+                                    style={{ color: active ? accentColor : "rgba(255,255,255,0.45)" }}
+                                  />
+                                  <div className="min-w-0 flex-1">
                                     <p className="font-medium truncate">{a.label}</p>
-                                    <p className="text-xs text-muted-foreground truncate">
+                                    <p className={`text-xs ${TEXT_TERTIARY} truncate`}>
                                       {[a.neighborhood, a.city].filter(Boolean).join(" · ")}
                                       {a.complement ? ` · ${a.complement}` : ""}
                                     </p>
                                   </div>
+
                                   <button
                                     type="button"
                                     className="text-xs text-destructive hover:underline shrink-0"
@@ -1219,17 +1212,21 @@ const PublicMenu = () => {
                             })}
                             <button
                               type="button"
-                              className={`w-full text-left rounded-lg border border-dashed px-3 py-2 text-sm transition ${
-                                selectedAddressId === null ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                              className={`w-full flex items-center gap-2 ${R_FIELD} border border-dashed px-3 py-2.5 text-sm transition-all duration-200 ${
+                                selectedAddressId === null
+                                  ? ""
+                                  : "border-white/[0.12] text-white/60 hover:text-white hover:border-white/25"
                               }`}
+                              style={selectedAddressId === null ? { borderColor: accentColor, backgroundColor: `${accentColor}10`, color: accentColor } : {}}
                               onClick={() => {
                                 setSelectedAddressId(null);
                                 setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
                                 setDeliveryNeighborhood(""); setDeliveryCity(""); setDeliveryComplement("");
                               }}
                             >
-                              + Novo endereço
+                              <Plus className={ICON_SM} strokeWidth={ICON_STROKE} /> Novo endereço
                             </button>
+
                           </div>
                         </div>
                       )}
@@ -1328,33 +1325,31 @@ const PublicMenu = () => {
                     const pm = restaurant.payment_methods;
                     const mpOn = Boolean((restaurant as any).mp_enabled);
                     const canUseOnlinePayment = grandTotal >= onlinePaymentMinAmount;
-                    const available: { key: string; label: string; hint?: string }[] = [];
+                    const available: { key: string; label: string; hint?: string; icon: typeof CreditCard }[] = [];
                     const enabled = (k: string) =>
                       Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
-                    if (enabled("pix")) available.push({ key: "pix", label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
-                    if (mpOn) available.push({ key: "credit_card_online", label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
+                    if (enabled("pix")) available.push({ key: "pix", icon: QrCode, label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
+                    if (mpOn) available.push({ key: "credit_card_online", icon: CreditCard, label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
                     const isDelivery = orderType === "delivery";
-                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: isDelivery ? "Pagar na entrega" : "Cartão de Crédito (no local)", hint: isDelivery ? "Cartão na maquininha do entregador" : undefined });
-                    if (enabled("debit_card")) available.push({ key: "debit_card", label: isDelivery ? "Cartão de Débito (na entrega)" : "Cartão de Débito (no local)" });
-                    if (enabled("cash")) available.push({ key: "cash", label: "Dinheiro" });
+                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", icon: CreditCard, label: isDelivery ? "Pagar na entrega" : "Cartão de Crédito (no local)", hint: isDelivery ? "Cartão na maquininha do entregador" : undefined });
+                    if (enabled("debit_card")) available.push({ key: "debit_card", icon: CreditCard, label: isDelivery ? "Cartão de Débito (na entrega)" : "Cartão de Débito (no local)" });
+                    if (enabled("cash")) available.push({ key: "cash", icon: Banknote, label: "Dinheiro" });
                     if (available.length === 0) {
-                      available.push({ key: "pix", label: "PIX" }, { key: "cash", label: "Dinheiro" });
+                      available.push({ key: "pix", icon: QrCode, label: "PIX" }, { key: "cash", icon: Banknote, label: "Dinheiro" });
                     }
                     return available.map((p) => (
-                      <button key={p.key} type="button"
+                      <OptionCard
+                        key={p.key}
+                        icon={p.icon}
+                        title={p.label}
+                        desc={p.hint}
+                        selected={paymentMethod === p.key}
+                        accentColor={accentColor}
+                        trailing="check"
                         onClick={() => setPaymentMethod(p.key)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                          paymentMethod === p.key ? "" : "border-white/[0.08] bg-white/[0.03]"
-                        }`}
-                        style={paymentMethod === p.key ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
-                      >
-                        <CreditCard className="w-4 h-4" style={{ color: accentColor }} />
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-medium">{p.label}</p>
-                          {p.hint && <p className="text-[10px] text-muted-foreground">{p.hint}</p>}
-                        </div>
-                      </button>
+                      />
                     ));
+
                   })()}
 
                   {paymentMethod === "cash" && (
@@ -1394,11 +1389,14 @@ const PublicMenu = () => {
                   </div>
                   {/* Coupon */}
                   <div className="border-t border-white/[0.06] pt-3">
-                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-1.5">🎟️ Cupom de desconto</label>
+                    <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5 mb-1.5`}>
+                      <Ticket className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Cupom de desconto
+                    </label>
                     {appliedCoupon ? (
                       <motion.div
                         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                        className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10">
+                        className={`flex items-center justify-between p-3 ${R_FIELD} border border-emerald-500/40 bg-emerald-500/10`}>
+
                         <div className="flex items-center gap-2 min-w-0">
                           <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                           <div className="min-w-0">
@@ -1464,22 +1462,38 @@ const PublicMenu = () => {
                       <span className="font-display text-xl font-bold" style={{ color: accentColor }}>{fmt(grandTotal)}</span>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground space-y-1 border-t border-white/[0.06] pt-3">
-                    <p>👤 {customerName} · 📱 {customerWhatsapp}</p>
-                    <p>
-                      {orderType === "dine_in" && `🍽️ Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
-                      {orderType === "pickup" && `🛍️ Retirada`}
-                      {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
+                  <div className={`text-xs ${TEXT_SECONDARY} space-y-2 border-t border-white/[0.06] pt-3`}>
+                    <p className="flex items-center gap-2">
+                      <Phone className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                      <span className="truncate">{customerName} · {customerWhatsapp}</span>
                     </p>
-                    <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod, orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
+                    <p className="flex items-center gap-2">
+                      {orderType === "delivery"
+                        ? <Truck className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                        : orderType === "pickup"
+                          ? <ShoppingBag className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                          : <UtensilsCrossed className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />}
+                      <span className="truncate">
+                        {orderType === "dine_in" && `Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
+                        {orderType === "pickup" && `Retirada no balcão`}
+                        {orderType === "delivery" && `${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
+                      </span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <CreditCard className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                      <span className="truncate">{orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod, orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</span>
+                    </p>
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Observações</label>
+                    <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
+                      <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
+                    </label>
                     <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className="w-full mt-1 p-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm resize-none h-16 border-none outline-none"
+                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-sm resize-none h-16 outline-none focus:border-white/20 transition-colors`}
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
+
 
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
