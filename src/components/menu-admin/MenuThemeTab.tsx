@@ -727,3 +727,138 @@ function PhonePreview({
     </div>
   );
 }
+
+/* ————————————————— Prévia desktop ————————————————— */
+
+function MiniDesktop({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative w-[248px] h-[210px] rounded-xl border border-white/10 bg-[#0B0B0B] overflow-hidden shadow-[0_18px_40px_-24px_rgba(0,0,0,0.95)]">
+      <div className="h-4 flex items-center gap-1 px-2 border-b border-white/10 bg-white/5">
+        {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+          <span key={c} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: c }} />
+        ))}
+      </div>
+      <div className="h-[calc(100%-1rem)] overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+/** Miniatura do layout desktop: sidebar de categorias + grid de itens */
+function MiniMenuDesktop({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
+  return (
+    <div className="p-3">
+      <div className="h-16 rounded-xl mb-3 flex items-end p-3" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
+        <div className="h-2.5 w-32 rounded-full bg-white/40" />
+      </div>
+      <div className="flex gap-3">
+        <div className="w-32 shrink-0 space-y-1.5">
+          <div className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
+          {["Combos", "Temakis", "Bebidas"].map((c) => (
+            <div key={c} className="px-2.5 py-1.5 rounded-lg text-[11px] bg-secondary/50 text-muted-foreground">{c}</div>
+          ))}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
+          <div className={theme.listClass}>
+            {items.slice(0, 4).map((item, i) => (
+              <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DesktopFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative mx-auto w-full rounded-2xl p-2.5 bg-gradient-to-b from-[#232323] to-[#0d0d0d] border border-white/10 shadow-[0_50px_100px_-50px_rgba(0,0,0,1)]">
+      <div className="rounded-xl overflow-hidden bg-background border border-white/5">
+        <div className="h-8 flex items-center gap-1.5 px-3 border-b border-border/60 bg-secondary/30">
+          {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+            <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />
+          ))}
+          <div className="ml-3 h-4 flex-1 max-w-[240px] rounded-full bg-background/70 border border-border/60" />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DesktopPreview({
+  theme, color, items, restaurantName, loading, logoUrl, bannerUrl, description,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean; logoUrl?: string | null; bannerUrl?: string | null; description?: string }) {
+  return (
+    <div className="flex flex-col h-[620px]">
+      {/* hero */}
+      <div className="h-32 relative shrink-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
+        {bannerUrl && <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 px-6 pb-4 flex items-end gap-3">
+          {logoUrl && <img src={logoUrl} alt="" className="w-14 h-14 rounded-2xl object-cover border border-white/20 shrink-0" />}
+          <div className="min-w-0">
+            <div className="font-display font-bold text-2xl truncate">{restaurantName || "Seu restaurante"}</div>
+            <div className="text-xs text-muted-foreground truncate">{description?.trim() || "Aberto agora · Entrega 30-45 min"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 flex">
+        {/* sidebar de categorias */}
+        <aside className="w-44 shrink-0 border-r border-border/60 p-4 space-y-2">
+          <div className="flex items-center gap-2 h-9 rounded-xl bg-secondary/50 border border-border/60 px-2.5 mb-3">
+            <Search className="w-3.5 h-3.5" style={{ color }} />
+            <span className="text-[11px] text-muted-foreground">Buscar…</span>
+          </div>
+          <div className="px-3 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
+          {["Combos", "Temakis", "Sashimis", "Bebidas"].map((c) => (
+            <div key={c} className="px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-secondary/50">{c}</div>
+          ))}
+        </aside>
+
+        {/* grid de itens */}
+        <div className="flex-1 min-w-0 overflow-y-auto p-6">
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div key="sk" exit={{ opacity: 0 }} className="grid grid-cols-2 gap-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-28 rounded-2xl bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={theme.id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.28 }}
+              >
+                <div className={`${theme.categoryTitleClass} mb-4`} style={{ color }}>Mais pedidos</div>
+                <div className={theme.listClass}>
+                  {items.map((item, i) => (
+                    <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* carrinho lateral */}
+        <aside className="w-52 shrink-0 border-l border-border/60 p-4 flex flex-col">
+          <div className="text-xs font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="w-3.5 h-3.5" style={{ color }} /> Seu pedido</div>
+          <div className="flex-1 space-y-2">
+            {[0, 1].map((i) => <div key={i} className="h-12 rounded-xl bg-secondary/40" />)}
+          </div>
+          <div
+            className="w-full py-2.5 rounded-2xl flex items-center justify-center text-xs font-bold text-white"
+            style={{ backgroundColor: color, boxShadow: `0 14px 34px -18px ${color}` }}
+          >
+            Finalizar pedido
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
