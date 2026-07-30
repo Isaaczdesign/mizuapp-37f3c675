@@ -37,6 +37,103 @@ export function Surface({
   );
 }
 
+/* ---------- Page shell (ambient background + max width) ---------- */
+export function PageShell({
+  children,
+  className,
+  fullHeight = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  fullHeight?: boolean;
+}) {
+  return (
+    <div className={cn("relative min-h-screen", fullHeight && "lg:h-[100dvh] lg:overflow-hidden")}>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(60%_100%_at_50%_0%,hsl(var(--accent)/0.07),transparent_70%)]" />
+      <div className={cn("relative flex flex-col gap-4 p-4 md:p-5 max-w-[1600px] mx-auto", className)}>{children}</div>
+    </div>
+  );
+}
+
+/* ---------- Page header (title + subtitle + actions) ---------- */
+export function PageHeader({
+  title,
+  subtitle,
+  icon: Icon,
+  emoji,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: LucideIcon;
+  emoji?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={stagger}
+      className="shrink-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3"
+    >
+      <motion.div variants={fadeUp} className="flex items-center gap-3 min-w-0">
+        <span className="relative w-11 h-11 rounded-2xl border border-accent/20 bg-accent/10 flex items-center justify-center shrink-0">
+          <span className="pointer-events-none absolute inset-0 rounded-2xl bg-accent/15 blur-lg" />
+          {Icon ? <Icon className="relative w-5 h-5 text-accent" /> : <span className="relative text-lg leading-none">{emoji ?? "✨"}</span>}
+        </span>
+        <div className="min-w-0">
+          <h1 className="font-display text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
+          {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
+        </div>
+      </motion.div>
+      {actions && (
+        <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2">
+          {actions}
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ---------- Segmented control ---------- */
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  layoutId = "segmented-pill",
+  className,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { key: T; label: ReactNode }[];
+  layoutId?: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("inline-flex items-center p-1 rounded-2xl border border-border bg-card/60 backdrop-blur-xl", className)}>
+      {options.map((o) => (
+        <button
+          key={o.key}
+          onClick={() => onChange(o.key)}
+          className={cn(
+            "relative px-3.5 py-1.5 text-xs font-medium rounded-xl transition-colors whitespace-nowrap",
+            value === o.key ? "text-accent-foreground" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {value === o.key && (
+            <motion.span
+              layoutId={layoutId}
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              className="absolute inset-0 rounded-xl bg-accent shadow-[0_6px_20px_-8px_hsl(var(--accent)/0.7)]"
+            />
+          )}
+          <span className="relative">{o.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* ---------- Section header ---------- */
 export function SectionHeader({
   title,
