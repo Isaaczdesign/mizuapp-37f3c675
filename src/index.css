@@ -123,3 +123,10 @@
     line-height: 1.35;
   }
 }
+
+/* Sheets/dialogs: o scroll interno não deve "vazar" para o body (iOS) */
+[role="dialog"] .overflow-y-auto,
+[role="dialog"] .overflow-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
