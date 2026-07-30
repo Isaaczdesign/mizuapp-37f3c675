@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link, Palette, LayoutList } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link, Palette, LayoutList, Search, X } from "lucide-react";
 import UpsellBadges from "@/components/UpsellBadges";
 import MenuThemeTab from "@/components/menu-admin/MenuThemeTab";
 
