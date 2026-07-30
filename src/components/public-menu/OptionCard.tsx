@@ -7,6 +7,7 @@ import {
   R_TILE,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  TOUCH_ROW,
   SELECTABLE_BASE,
   SELECTABLE_IDLE,
   selectedSurface,
@@ -45,13 +46,13 @@ const OptionCard = ({
     disabled={disabled}
     onClick={onClick}
     aria-pressed={selected}
-    className={`group w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-5 ${R_CARD_SM} text-left ${SELECTABLE_BASE} disabled:opacity-45 disabled:pointer-events-none ${
+    className={`group w-full flex items-center gap-3.5 sm:gap-4 p-3.5 sm:p-4 ${TOUCH_ROW} ${R_CARD_SM} text-left ${SELECTABLE_BASE} disabled:opacity-45 disabled:pointer-events-none ${
       selected ? "" : SELECTABLE_IDLE
     }`}
     style={selected ? selectedSurface(accentColor) : {}}
   >
     <span
-      className={`w-12 h-12 shrink-0 ${R_TILE} flex items-center justify-center border transition-all duration-300 ease-out`}
+      className={`w-11 h-11 sm:w-12 sm:h-12 shrink-0 ${R_TILE} flex items-center justify-center border transition-all duration-300 ease-out`}
       style={selectedTileStyle(accentColor, selected)}
     >
       <Icon
@@ -63,19 +64,19 @@ const OptionCard = ({
 
     <span className="flex-1 min-w-0">
       <span
-        className={`block font-semibold text-sm transition-colors duration-300 ${
+        className={`block font-semibold text-[15px] leading-snug transition-colors duration-300 ${
           selected ? "" : TEXT_PRIMARY
         }`}
         style={{ color: selected ? accentColor : undefined }}
       >
         {title}
       </span>
-      {desc && <span className={`block text-xs ${TEXT_SECONDARY} mt-0.5`}>{desc}</span>}
+      {desc && <span className={`block text-xs leading-snug ${TEXT_SECONDARY} mt-1`}>{desc}</span>}
     </span>
 
     {trailing === "check" ? (
       <span
-        className="w-5 h-5 shrink-0 rounded-full border flex items-center justify-center transition-all duration-300 ease-out"
+        className="w-[22px] h-[22px] shrink-0 rounded-full border flex items-center justify-center transition-all duration-300 ease-out"
         style={{
           borderColor: selected ? accentColor : "rgba(255,255,255,0.18)",
           backgroundColor: selected ? accentColor : "transparent",
