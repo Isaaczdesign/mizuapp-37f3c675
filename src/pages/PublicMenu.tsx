@@ -885,11 +885,15 @@ const PublicMenu = () => {
       {/* ── Cart Drawer ── */}
       <AnimatePresence>
         {showCart && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          <div
             role="dialog" aria-modal="true" aria-label="Seu pedido"
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:flex-row lg:justify-end">
-            <div className="bg-black/70 backdrop-blur-md" style={sheetViewport} onClick={() => setShowCart(false)} />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="bg-black/60"
+              style={{ ...sheetViewport, backdropFilter: "blur(18px) saturate(120%)", WebkitBackdropFilter: "blur(18px) saturate(120%)" }}
+              onClick={() => setShowCart(false)} />
+
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
