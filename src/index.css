@@ -85,8 +85,8 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl;
-    box-shadow: var(--shadow-glass);
+    @apply bg-card/70 backdrop-blur-xl border border-border/70 rounded-[20px];
+    box-shadow: 0 1px 0 0 hsl(var(--foreground) / 0.04) inset, 0 12px 40px -24px hsl(0 0% 0% / 0.9);
   }
 
   .glass-card-hover {
@@ -94,8 +94,9 @@
   }
 
   .glass-card-hover:hover {
-    @apply border-white/[0.15] bg-card/80;
+    @apply border-accent/25 bg-card/90;
     transform: translateY(-2px);
+    box-shadow: 0 18px 50px -28px hsl(var(--accent) / 0.35);
   }
 
   .gradient-text {
