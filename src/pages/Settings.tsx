@@ -333,54 +333,20 @@ const Settings = () => {
                 Este é o endereço do seu cardápio. Escolha algo curto e memorável (ex: <span className="font-mono">sushi-do-isaac</span>).
               </p>
             </div>
-            <div>
-              <Label>Logomarca</Label>
-              <div className="flex items-center gap-4 mt-2">
-                {logoPreview && <img src={logoPreview} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-border" />}
-                <label className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors">
-                    <Upload className="w-4 h-4" /> Enviar logo
-                  </div>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                </label>
+            <div className="rounded-xl border border-border bg-secondary/30 p-4 flex items-start gap-3">
+              <Palette className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Personalização do cardápio público</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Logo, banner, descrição, cor principal e templates agora ficam em Cardápio → Personalizar.
+                </p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/menu-admin")}>
+                  Ir para Personalizar
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Public Page customization */}
-          <div className="glass-card p-6 space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <Globe className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Página Pública</h2>
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" rows={2} placeholder="Descrição do seu restaurante..." />
-            </div>
-            <div>
-              <Label>Nota de Retirada / Dine-in</Label>
-              <Input value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} className="mt-1" placeholder="Ex: Disponível para retirada e consumo no local" />
-            </div>
-            <div>
-              <Label className="flex items-center gap-2"><Palette className="w-4 h-4" /> Cor Principal</Label>
-              <div className="flex items-center gap-3 mt-1">
-                <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
-                <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-28 font-mono text-sm" />
-              </div>
-            </div>
-            <div>
-              <Label>Banner (Imagem de Capa)</Label>
-              <div className="mt-2">
-                {bannerPreview && <img src={bannerPreview} alt="Banner" className="w-full h-32 rounded-xl object-cover border border-border mb-2" />}
-                <label className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors w-fit">
-                    <Upload className="w-4 h-4" /> Enviar banner
-                  </div>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
-                </label>
-              </div>
-            </div>
-          </div>
 
           {/* Operating hours */}
           <div className="glass-card p-6 space-y-4">
