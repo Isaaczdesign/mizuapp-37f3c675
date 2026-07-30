@@ -595,35 +595,34 @@ function MiniPhone({ children }: { children: React.ReactNode }) {
 
 function ThumbSkeleton() {
   return (
-    <div className="p-3 space-y-2.5">
-      <div className="h-10 rounded-xl bg-muted/40 animate-pulse" />
+    <div className="p-2.5 space-y-2">
+      <div className="h-8 rounded-lg bg-muted/40 animate-pulse" />
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-12 rounded-xl bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
+        <div key={i} className="h-8 rounded-lg bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
       ))}
     </div>
   );
 }
 
-/** Cardápio miniatura — usa o mesmo renderizador do cardápio público */
-function MiniMenu({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
+/** Cardápio miniatura esquemático — colunas fixas, sempre legível */
+function MiniMenu({
+  theme, color, items, device,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; device: MenuDevice }) {
   return (
-    <div className="px-3 pb-3">
-      <div className="h-14 rounded-xl mb-3 flex items-end p-2" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
-        <div className="h-2 w-20 rounded-full bg-white/40" />
+    <div className="px-2 pb-2">
+      <div className="h-8 rounded-lg mb-2 flex items-end p-1.5" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
+        <div className="h-1.5 w-12 rounded-full bg-white/40" />
       </div>
-      <div className="flex gap-1.5 mb-3">
-        <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</span>
-        <span className="px-2.5 py-1 rounded-full text-[10px] bg-secondary/60">Combos</span>
+      <div className="flex gap-1 mb-2">
+        <span className="px-1.5 py-0.5 rounded-full text-[6px] font-semibold text-black" style={{ backgroundColor: color }}>Destaques</span>
+        <span className="px-1.5 py-0.5 rounded-full text-[6px] bg-white/10 text-muted-foreground">Combos</span>
       </div>
-      <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
-      <div className={theme.listClass}>
-        {items.slice(0, 3).map((item, i) => (
-          <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-        ))}
-      </div>
+      <div className="text-[7px] font-bold mb-1.5" style={{ color }}>Mais pedidos</div>
+      <MenuThemeMock theme={theme} color={color} items={items} device={device} variant="thumb" />
     </div>
   );
 }
+
 
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
