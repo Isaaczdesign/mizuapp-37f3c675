@@ -289,7 +289,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
 
       {/* Main */}
       <main
-        className={`flex-1 min-w-0 overflow-y-auto transition-[padding] duration-300 ${
+        className={`flex-1 min-w-0 transition-[padding] duration-300 ${
           collapsible ? "pt-12 md:pt-0" : "pb-24 md:pb-0"
         }`}
       >
