@@ -24,11 +24,12 @@ interface Props {
 const brl = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
-/** Quantidade de colunas de cada template por dispositivo */
+/** Quantidade de colunas de cada template por dispositivo (previews são estreitas: máx. 2) */
 function columnsFor(theme: MenuTheme, device: MenuDevice) {
   if (device === "mobile") return theme.layout === "tile" ? 2 : 1;
-  return theme.layout === "tile" ? 3 : 2;
+  return theme.layout === "tile" ? 2 : 1;
 }
+
 
 
 export default function MenuThemeMock({ theme, color, items, device, variant = "full" }: Props) {
