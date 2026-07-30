@@ -35,6 +35,7 @@ import {
 } from "@/components/public-menu/menuTokens";
 import { useSheetViewport, useKeyboardFocusScroll, useVisualViewport } from "@/hooks/useSheetViewport";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { AutoResizeTextarea } from "@/components/public-menu/AutoResizeTextarea";
 
 
 
