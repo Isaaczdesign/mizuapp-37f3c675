@@ -932,9 +932,8 @@ const PublicMenu = () => {
                     className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-sm resize-none h-16 outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
-
-                </div>
               </div>
+
 
               <div className="p-4 border-t border-white/[0.06] space-y-3">
                 <div className="flex justify-between items-center">
