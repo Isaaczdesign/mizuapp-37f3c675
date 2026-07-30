@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link, Palette, LayoutList } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Upload, FileText, ChevronDown, ChevronUp, UtensilsCrossed, ExternalLink, Copy, Link, Palette, LayoutList, Search, X } from "lucide-react";
 import UpsellBadges from "@/components/UpsellBadges";
 import MenuThemeTab from "@/components/menu-admin/MenuThemeTab";
 
@@ -645,7 +645,11 @@ const MenuAdmin = () => {
   const [catName, setCatName] = useState("");
   const [editingCat, setEditingCat] = useState<{ id: string; name: string } | null>(null);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [availFilter, setAvailFilter] = useState<"all" | "active" | "inactive">("all");
   const [itemDialog, setItemDialog] = useState<any>(null);
+
   const [itemForm, setItemForm] = useState({
     name: "", description: "", price: "", image: null as File | null,
     ingredients: "", allergens: "", cost_estimate: "", margin_percent: "", tags: [] as string[],
@@ -700,12 +704,15 @@ const MenuAdmin = () => {
 
   const { data: items } = useQuery({
     queryKey: ["menu-items", rid, selectedCat],
-    enabled: !!rid && !!selectedCat,
+    enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", rid!).eq("category_id", selectedCat!).order("sort_order");
+      let q = supabase.from("menu_items").select("*").eq("restaurant_id", rid!);
+      if (selectedCat) q = q.eq("category_id", selectedCat);
+      const { data } = await q.order("sort_order");
       return data ?? [];
     },
   });
+
 
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: string; sort_order: number; table: "menu_categories" | "menu_items" }[]) => {
@@ -838,8 +845,28 @@ const MenuAdmin = () => {
   const formMargin = itemForm.margin_percent ? parseFloat(itemForm.margin_percent) : null;
   const formProfit = formCost ? formPrice - formCost : formMargin ? formPrice * formMargin : null;
 
-  const totalItems = (items ?? []).length;
   const totalCats = (categories ?? []).length;
+  const allItems = items ?? [];
+  const catNameById = (id: string) => categories?.find((c) => c.id === id)?.name ?? "";
+
+  const q = search.trim().toLowerCase();
+  const filteredItems = allItems.filter((it: any) => {
+    if (q) {
+      const hay = `${it.name ?? ""} ${it.description ?? ""} ${it.ingredients ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (tagFilter.length && !tagFilter.every((t) => (it.tags ?? []).includes(t))) return false;
+    if (availFilter === "active" && !it.is_active) return false;
+    if (availFilter === "inactive" && it.is_active) return false;
+    return true;
+  });
+  const filtersActive = !!q || tagFilter.length > 0 || availFilter !== "all";
+  const canReorder = !!selectedCat && !filtersActive;
+  const totalItems = filteredItems.length;
+  const clearFilters = () => { setSearch(""); setTagFilter([]); setAvailFilter("all"); };
+  const toggleTagFilter = (t: string) =>
+    setTagFilter((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+
 
   return (
     <AdminLayout>
@@ -917,6 +944,15 @@ const MenuAdmin = () => {
                   <Input placeholder="Nova categoria" value={catName} onChange={(e) => setCatName(e.target.value)} className="bg-background/40 text-sm h-9" onKeyDown={(e) => e.key === "Enter" && catName.trim() && addCat.mutate(catName.trim())} />
                   <Button size="sm" className="h-9 px-3" onClick={() => catName.trim() && addCat.mutate(catName.trim())} disabled={addCat.isPending}><Plus className="w-4 h-4" /></Button>
                 </div>
+                <button
+                  onClick={() => setSelectedCat(null)}
+                  className={`w-full mb-1 flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
+                    selectedCat === null ? "bg-accent/15 border border-accent/25 text-foreground" : "border border-transparent text-muted-foreground hover:bg-card/80 hover:text-foreground"
+                  }`}
+                >
+                  <span className="flex items-center gap-2"><LayoutList className="w-4 h-4" /> Todos os itens</span>
+                  <span className="text-xs tabular-nums opacity-70">{allItems.length}</span>
+                </button>
                 {totalCats === 0 ? (
                   <div className="rounded-xl border border-dashed border-border/70 py-7 px-3 text-center">
                     <p className="text-sm text-foreground/80 mb-1">Nenhuma categoria ainda</p>
@@ -939,38 +975,106 @@ const MenuAdmin = () => {
 
               {/* Items panel */}
               <Surface className="p-4">
-                {!selectedCat ? (
-                  <div className="py-16 text-center text-muted-foreground">
-                    <UtensilsCrossed className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                    <p className="text-sm">Selecione uma categoria para gerenciar os itens.</p>
+                <SectionHeader
+                  title={selectedCat ? (categories?.find((c) => c.id === selectedCat)?.name ?? "Itens") : "Todos os itens"}
+                  subtitle={`${totalItems} de ${allItems.length} ${allItems.length === 1 ? "item" : "itens"}${filtersActive ? " • filtros ativos" : ""}`}
+                  icon={UtensilsCrossed}
+                  action={
+                    selectedCat ? (
+                      <Button size="sm" onClick={openCreateItem}><Plus className="w-4 h-4 mr-1.5" /> Novo item</Button>
+                    ) : undefined
+                  }
+                />
+
+                {/* Search & filters */}
+                <div className="mb-4 space-y-2.5">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Buscar por nome, descrição ou ingrediente..."
+                        className="pl-9 pr-9 h-10 bg-background/40 text-sm"
+                      />
+                      {search && (
+                        <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="inline-flex items-center p-1 rounded-xl border border-border bg-card/60 self-start">
+                      {([
+                        { k: "all", label: "Todos" },
+                        { k: "active", label: "Ativos" },
+                        { k: "inactive", label: "Inativos" },
+                      ] as const).map((o) => (
+                        <button
+                          key={o.k}
+                          onClick={() => setAvailFilter(o.k)}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                            availFilter === o.k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {TAG_OPTIONS.map((t) => {
+                      const on = tagFilter.includes(t.value);
+                      return (
+                        <button
+                          key={t.value}
+                          onClick={() => toggleTagFilter(t.value)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                            on ? "border-accent/40 bg-accent/15 text-foreground" : "border-border text-muted-foreground hover:text-foreground hover:bg-card/80"
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                    {filtersActive && (
+                      <button onClick={clearFilters} className="ml-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-muted-foreground hover:text-foreground underline underline-offset-2">
+                        Limpar filtros
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {allItems.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border/70 py-14 text-center">
+                    <p className="text-sm text-muted-foreground mb-3">Nenhum item cadastrado ainda.</p>
+                    {selectedCat && <Button onClick={openCreateItem} variant="outline" size="sm"><Plus className="w-4 h-4 mr-1.5" /> Criar primeiro item</Button>}
+                  </div>
+                ) : totalItems === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border/70 py-14 text-center">
+                    <Search className="w-8 h-8 mx-auto mb-3 opacity-40 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-3">Nenhum item encontrado com esses filtros.</p>
+                    <Button onClick={clearFilters} variant="outline" size="sm">Limpar filtros</Button>
                   </div>
                 ) : (
-                  <>
-                    <SectionHeader
-                      title={categories?.find((c) => c.id === selectedCat)?.name ?? "Itens"}
-                      subtitle={`${totalItems} ${totalItems === 1 ? "item" : "itens"} nesta categoria`}
-                      icon={UtensilsCrossed}
-                      action={<Button size="sm" onClick={openCreateItem}><Plus className="w-4 h-4 mr-1.5" /> Novo item</Button>}
-                    />
-                    {totalItems === 0 ? (
-                      <div className="rounded-xl border border-dashed border-border/70 py-14 text-center">
-                        <p className="text-sm text-muted-foreground mb-3">Nenhum item nesta categoria.</p>
-                        <Button onClick={openCreateItem} variant="outline" size="sm"><Plus className="w-4 h-4 mr-1.5" /> Criar primeiro item</Button>
-                      </div>
-                    ) : (
-                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleItemDragEnd}>
-                        <SortableContext items={(items ?? []).map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                            {(items ?? []).map((item) => (
-                              <SortableMenuItem key={item.id} item={item} fmt={fmt} openEditItem={openEditItem}
-                                deleteItem={(id: string) => deleteItemMut.mutate(id)} toggleItem={(v: any) => toggleItemMut.mutate(v)} />
-                            ))}
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleItemDragEnd}>
+                    <SortableContext items={filteredItems.map((i: any) => i.id)} strategy={verticalListSortingStrategy} disabled={!canReorder}>
+                      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {filteredItems.map((item: any) => (
+                          <div key={item.id} className="relative">
+                            {!selectedCat && (
+                              <span className="absolute -top-1.5 left-3 z-10 px-2 py-0.5 rounded-full bg-card border border-border text-[10px] text-muted-foreground">
+                                {catNameById(item.category_id)}
+                              </span>
+                            )}
+                            <SortableMenuItem item={item} fmt={fmt} openEditItem={openEditItem}
+                              deleteItem={(id: string) => deleteItemMut.mutate(id)} toggleItem={(v: any) => toggleItemMut.mutate(v)} />
                           </div>
-                        </SortableContext>
-                      </DndContext>
-                    )}
-                  </>
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
+
               </Surface>
             </div>
           </TabsContent>
