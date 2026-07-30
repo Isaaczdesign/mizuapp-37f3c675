@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
+import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 
 import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme, type MenuDevice } from "@/lib/menuThemes";
 import { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
@@ -44,6 +46,8 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
 
   /** Aba de dispositivo que está sendo editada */
   const [device, setDevice] = useState<MenuDevice>("mobile");
+  const [fullscreen, setFullscreen] = useState(false);
+
   const [themeMobile, setThemeMobile] = useState<MenuThemeId>(savedMobile);
   const [themeDesktop, setThemeDesktop] = useState<MenuThemeId>(savedDesktop);
   /** Quando ativo, escolher um template aplica nos dois dispositivos */
@@ -171,9 +175,16 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
 
 
   return (
-    <div className="grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start">
+    <div
+      className={
+        device === "desktop"
+          ? "flex flex-col gap-8"
+          : "grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start"
+      }
+    >
       {/* ————— Coluna esquerda ————— */}
-      <div className="space-y-8 min-w-0">
+      <div className={device === "desktop" ? "space-y-8 min-w-0 order-2" : "space-y-8 min-w-0"}>
+
         {/* Identidade visual */}
         <section>
           <SectionHeader
@@ -429,22 +440,34 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
         </div>
       </div>
 
-      {/* ————— Coluna direita: preview grande ————— */}
-      <div className="xl:sticky xl:top-6 h-fit">
-        <div className="flex items-center justify-between mb-3">
+      {/* ————— Preview ao vivo ————— */}
+      <div className={device === "desktop" ? "w-full order-1" : "xl:sticky xl:top-6 h-fit"}>
+        <div className="flex items-center justify-between mb-3 gap-3">
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">
             Prévia ao vivo · {device === "mobile" ? "Celular" : "Computador"}
           </p>
-          <motion.span
-            key={theme.id + device}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
-            style={{ borderColor: color + "55", color, backgroundColor: color + "12" }}
-          >
-            {theme.name}
-          </motion.span>
+          <div className="flex items-center gap-2">
+            <motion.span
+              key={theme.id + device}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
+              style={{ borderColor: color + "55", color, backgroundColor: color + "12" }}
+            >
+              {theme.name}
+            </motion.span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-7 px-3 text-[11px]"
+              onClick={() => setFullscreen(true)}
+            >
+              <Maximize2 className="w-3.5 h-3.5 mr-1.5" /> Tela cheia
+            </Button>
+          </div>
         </div>
+
 
         <div className="relative">
           <div
@@ -490,6 +513,46 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
           </AnimatePresence>
         </div>
       </div>
+
+      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
+        <DialogContent className="max-w-[96vw] w-[96vw] sm:max-w-[96vw] p-4 md:p-6 overflow-y-auto max-h-[94vh]">
+          <DialogHeader>
+            <DialogTitle className="text-sm">
+              Prévia ao vivo · {device === "mobile" ? "Celular" : "Computador"} · {theme.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className={device === "mobile" ? "mx-auto max-w-[380px]" : "w-full"}>
+            {device === "mobile" ? (
+              <PhoneFrame>
+                <PhonePreview
+                  theme={theme}
+                  color={color}
+                  items={items}
+                  restaurantName={restaurantName}
+                  logoUrl={logoPreview}
+                  bannerUrl={bannerPreview}
+                  description={description}
+                  loading={!ready}
+                />
+              </PhoneFrame>
+            ) : (
+              <DesktopFrame>
+                <DesktopPreview
+                  theme={theme}
+                  color={color}
+                  items={items}
+                  restaurantName={restaurantName}
+                  logoUrl={logoPreview}
+                  bannerUrl={bannerPreview}
+                  description={description}
+                  loading={!ready}
+                />
+              </DesktopFrame>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
     </div>
   );
