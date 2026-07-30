@@ -619,17 +619,48 @@ const PublicMenu = () => {
         const nextOpen = outsideHours ? nextOpenAt(operatingHours) : null;
         const countdown = nextOpen ? formatCountdown(nextOpen) : null;
         return (
-          <div className="mx-4 mt-4 p-4 rounded-2xl border border-red-500/30 bg-red-500/10 text-sm">
-            <div className="font-bold text-red-400 mb-1">Estabelecimento fechado</div>
-            <div className="text-muted-foreground">
-              {acceptingOff
-                ? ((restaurant as any)?.closed_message || "O estabelecimento encerrou o atendimento e não está aceitando novos pedidos no momento.")
-                : (countdown
-                    ? <>Fora do horário de funcionamento. Reabre em <span className="font-semibold text-red-300">{countdown}</span>{nextOpen ? ` (${nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })})` : ""}.</>
-                    : "Fora do horário de funcionamento. Novos pedidos serão aceitos no próximo horário de abertura.")}
-            </div>
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-5">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-[#141414]/80 backdrop-blur-xl p-4 sm:p-5 shadow-[0_22px_60px_-44px_rgba(0,0,0,1)]"
+            >
+              <span className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-amber-400/70 to-amber-400/10" aria-hidden />
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center bg-amber-400/10 border border-amber-400/20">
+                  <Clock className="w-[18px] h-[18px] text-amber-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-display text-[15px] font-bold tracking-tight">Estabelecimento fechado</h3>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] px-2 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                      Fora do horário
+                    </span>
+                  </div>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground mt-1.5">
+                    {acceptingOff
+                      ? ((restaurant as any)?.closed_message || "O estabelecimento encerrou o atendimento e não está aceitando novos pedidos no momento.")
+                      : (countdown
+                          ? <>Você pode navegar pelo cardápio, mas novos pedidos só serão aceitos na reabertura.</>
+                          : "Você pode navegar pelo cardápio. Novos pedidos serão aceitos no próximo horário de abertura.")}
+                  </p>
+                  {!acceptingOff && countdown && nextOpen && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
+                        Reabre em <span className="text-amber-300 tabular-nums">{countdown}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                        {nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           </div>
         );
+
       })()}
 
 
