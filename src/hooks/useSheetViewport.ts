@@ -245,13 +245,40 @@ export function useKeyboardFocusScroll(active: boolean) {
     const timers: number[] = [];
 
     const isField = (el: Element | null): el is HTMLElement =>
-      !!el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+      !!el &&
+      (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) ||
+        (el as HTMLElement).isContentEditable === true);
 
     const reveal = (smooth = true) => {
       if (!focused || !document.contains(focused)) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => revealFieldInScroller(focused, smooth));
     };
+
+    // Reposiciona quando o campo focado muda de tamanho (textarea auto-resize,
+    // mensagens de erro/animações que empurram o layout dentro do sheet).
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => reveal(false))
+        : null;
+
+    const observeFocused = () => {
+      if (!ro) return;
+      ro.disconnect();
+      if (focused) ro.observe(focused);
+    };
+
+    // Digitação/navegação com o caret: mantém o cursor visível em qualquer campo.
+    const onFieldActivity = (e: Event) => {
+      if (!isField(e.target as Element)) return;
+      focused = e.target as HTMLElement;
+      reveal(false);
+    };
+
+    // Ao final das transições/animações do sheet o campo pode ter se movido.
+    const onMotionEnd = () => reveal(false);
+
+
 
 
     const onFocusIn = (e: FocusEvent) => {
@@ -271,9 +298,11 @@ export function useKeyboardFocusScroll(active: boolean) {
         if (performance.now() - start < 600) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
+      observeFocused();
       // Espera o teclado terminar de abrir antes de reposicionar.
       [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(false), ms)));
     };
+
 
     // Durante as transições do sheet o elemento focado pode perder o foco
     // (re-render/animação). Se nenhum outro campo assumiu, devolvemos o foco.
@@ -292,10 +321,12 @@ export function useKeyboardFocusScroll(active: boolean) {
               try { (prev as HTMLTextAreaElement).setSelectionRange(start, end); } catch { /* noop */ }
             }
             focused = prev;
+            observeFocused();
             reveal(false);
             return;
           }
           focused = null;
+          ro?.disconnect();
         }, 0),
       );
     };
@@ -303,16 +334,26 @@ export function useKeyboardFocusScroll(active: boolean) {
 
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("input", onFieldActivity, true);
+    document.addEventListener("keyup", onFieldActivity, true);
+    document.addEventListener("transitionend", onMotionEnd, true);
+    document.addEventListener("animationend", onMotionEnd, true);
     window.visualViewport?.addEventListener("resize", onViewportChange);
     window.visualViewport?.addEventListener("scroll", onViewportChange);
 
     return () => {
       cancelAnimationFrame(raf);
       timers.forEach(clearTimeout);
+      ro?.disconnect();
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("input", onFieldActivity, true);
+      document.removeEventListener("keyup", onFieldActivity, true);
+      document.removeEventListener("transitionend", onMotionEnd, true);
+      document.removeEventListener("animationend", onMotionEnd, true);
       window.visualViewport?.removeEventListener("resize", onViewportChange);
       window.visualViewport?.removeEventListener("scroll", onViewportChange);
     };
   }, [active]);
 }
+
