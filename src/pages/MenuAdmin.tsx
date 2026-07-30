@@ -881,10 +881,10 @@ const MenuAdmin = () => {
         )}
 
         <Tabs defaultValue="items" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="items">Itens do Cardápio</TabsTrigger>
-            <TabsTrigger value="import">Importar Cardápio</TabsTrigger>
-            <TabsTrigger value="theme">Personalizar</TabsTrigger>
+          <TabsList className="mb-6 flex flex-col sm:flex-row sm:h-10 h-auto gap-2 sm:gap-1 p-2 sm:p-1">
+            <TabsTrigger value="items" className="w-full sm:w-auto justify-start sm:justify-center py-3 sm:py-1.5 text-sm">Itens do Cardápio</TabsTrigger>
+            <TabsTrigger value="import" className="w-full sm:w-auto justify-start sm:justify-center py-3 sm:py-1.5 text-sm">Importar Cardápio</TabsTrigger>
+            <TabsTrigger value="theme" className="w-full sm:w-auto justify-start sm:justify-center py-3 sm:py-1.5 text-sm">Personalizar</TabsTrigger>
           </TabsList>
 
 
