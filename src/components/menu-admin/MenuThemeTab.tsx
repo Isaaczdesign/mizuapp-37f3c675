@@ -789,14 +789,14 @@ function DesktopPreview({
 
       <div className="flex-1 min-h-0 flex">
         {/* sidebar de categorias */}
-        <aside className="w-24 shrink-0 border-r border-border/60 p-3 space-y-1.5">
-          <div className="flex items-center gap-1.5 h-8 rounded-lg bg-secondary/50 border border-border/60 px-2 mb-2">
-            <Search className="w-3 h-3" style={{ color }} />
-            <span className="text-[10px] text-muted-foreground">Buscar…</span>
+        <aside className="w-40 shrink-0 border-r border-border/60 p-3 space-y-1.5">
+          <div className="flex items-center gap-1.5 h-9 rounded-lg bg-secondary/50 border border-border/60 px-2.5 mb-2">
+            <Search className="w-3.5 h-3.5 shrink-0" style={{ color }} />
+            <span className="text-[11px] text-muted-foreground truncate">Buscar…</span>
           </div>
-          <div className="px-2 py-1.5 rounded-lg text-[11px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
+          <div className="px-2.5 py-2 rounded-lg text-[11px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
           {["Combos", "Temakis", "Sashimis", "Bebidas"].map((c) => (
-            <div key={c} className="px-2 py-1.5 rounded-lg text-[11px] text-muted-foreground truncate">{c}</div>
+            <div key={c} className="px-2.5 py-2 rounded-lg text-[11px] text-muted-foreground truncate">{c}</div>
           ))}
         </aside>
 
@@ -827,20 +827,23 @@ function DesktopPreview({
         </div>
 
         {/* carrinho lateral */}
-        <aside className="w-28 shrink-0 border-l border-border/60 p-3 flex flex-col">
-          <div className="text-[11px] font-semibold mb-2 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Pedido</div>
+        <aside className="w-52 shrink-0 border-l border-border/60 p-3.5 flex flex-col">
+          <div className="text-[12px] font-semibold mb-2.5 flex items-center gap-1.5 truncate">
+            <ShoppingBag className="w-3.5 h-3.5 shrink-0" style={{ color }} /> Seu pedido
+          </div>
 
           <div className="flex-1 space-y-2">
             {[0, 1].map((i) => <div key={i} className="h-12 rounded-xl bg-secondary/40" />)}
           </div>
           <div
-            className="w-full py-2.5 rounded-2xl flex items-center justify-center text-xs font-bold text-white"
+            className="w-full px-3 py-2.5 rounded-2xl flex items-center justify-center text-[12px] font-bold text-white whitespace-nowrap"
             style={{ backgroundColor: color, boxShadow: `0 14px 34px -18px ${color}` }}
           >
             Finalizar pedido
           </div>
         </aside>
       </div>
+
     </div>
   );
 }
