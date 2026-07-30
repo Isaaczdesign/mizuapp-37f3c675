@@ -300,16 +300,54 @@ const PublicMenu = () => {
   // status do hero acompanha o tick de relógio (30s)
   const openStatus = useMemo(() => getOpenStatus(operatingHours), [operatingHours, clockTick]);
 
+  // ── Sincronização com o painel (backend = fonte da verdade) ──
+  // Revalida configurações (horários, aceitar pedidos, tema, taxas...) sem recarregar o cardápio inteiro.
+  const refreshingRef = useRef(false);
+  const refreshSettings = useCallback(async () => {
+    if (!slug || refreshingRef.current) return;
+    refreshingRef.current = true;
+    try {
+      const { data } = await (supabase as any).rpc("get_public_restaurant_by_slug", { _slug: slug });
+      const rest = Array.isArray(data) ? data[0] : data;
+      if (!rest) return;
+      setRestaurant((prev) => (prev ? { ...prev, ...rest } : (rest as any)));
+      setOperatingHours((prev: any) =>
+        JSON.stringify(prev ?? null) === JSON.stringify(rest.operating_hours ?? null) ? prev : rest.operating_hours ?? null,
+      );
+      setClockTick((t) => t + 1);
+    } finally {
+      refreshingRef.current = false;
+    }
+  }, [slug]);
 
-  // chamado quando o horário de reabertura chega: recarrega o cardápio/estado
-  const reopenedRef = useRef(false);
-  const handleReopen = useCallback(() => {
-    if (reopenedRef.current) return;
-    reopenedRef.current = true;
-    setClockTick((t) => t + 1);
-    loadMenu();
+  // Revalida a cada 60s e sempre que a aba volta ao foco / reconecta
+  useEffect(() => {
+    if (!slug) return;
+    const id = setInterval(refreshSettings, 60_000);
+    const onFocus = () => { if (document.visibilityState === "visible") refreshSettings(); };
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("online", onFocus);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("online", onFocus);
+    };
+  }, [slug, refreshSettings]);
+
+  // chamado quando o horário de reabertura chega: confirma no backend antes de liberar pedidos
+  const reopenLockRef = useRef(false);
+  const handleReopen = useCallback(async () => {
+    if (reopenLockRef.current) return;
+    reopenLockRef.current = true;
+    await refreshSettings();
+    await loadMenu();
+    // libera novamente após um intervalo curto (caso o backend ainda indique fechado)
+    setTimeout(() => { reopenLockRef.current = false; }, 30_000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshSettings]);
+
 
 
 
