@@ -255,8 +255,55 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
           <SectionHeader
             icon={<Smartphone className="w-4 h-4" />}
             title="Templates de layout"
-            subtitle="Escolha como os itens aparecem para o cliente no cardápio público."
+            subtitle="O cardápio tem layouts diferentes no celular e no computador. Escolha um template para cada um."
           />
+
+          {/* Seletor de dispositivo */}
+          <div className="mb-5 flex flex-wrap items-center gap-3">
+            <div className="inline-flex p-1 rounded-2xl bg-secondary/50 border border-border/60">
+              {([
+                { id: "mobile" as const, label: "Celular", icon: Smartphone, saved: themeMobile },
+                { id: "desktop" as const, label: "Computador", icon: Monitor, saved: themeDesktop },
+              ]).map((d) => {
+                const active = device === d.id;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setDevice(d.id)}
+                    aria-pressed={active}
+                    className={`relative flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-medium transition-colors ${
+                      active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="device-pill"
+                        className="absolute inset-0 rounded-xl bg-card border border-border/70 shadow-sm"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <d.icon className="relative w-4 h-4" />
+                    <span className="relative">{d.label}</span>
+                    <span className="relative text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/80 text-muted-foreground hidden sm:inline">
+                      {resolveMenuTheme(d.saved).name.replace("Mizu ", "")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+              <Switch
+                checked={syncDevices}
+                onCheckedChange={(v) => {
+                  setSyncDevices(v);
+                  if (v) { const id = themeId; setThemeMobile(id); setThemeDesktop(id); }
+                }}
+              />
+              Usar o mesmo template nos dois
+            </label>
+          </div>
 
           <LayoutGroup>
             <div className="grid sm:grid-cols-2 2xl:grid-cols-3 gap-5">
@@ -267,6 +314,7 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
                   index={i}
                   color={color}
                   items={items}
+                  device={device}
                   active={t.id === themeId}
                   recommended={RECOMMENDED.includes(t.id)}
                   loading={!ready}
@@ -276,6 +324,7 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
             </div>
           </LayoutGroup>
         </section>
+
 
         {/* Cor principal */}
         <section>
