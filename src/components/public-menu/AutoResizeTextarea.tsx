@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { forwardRef, useCallback, useLayoutEffect, useRef } from "react";
 import { revealFieldInScroller } from "@/hooks/useSheetViewport";
 
 type Props = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
