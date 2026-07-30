@@ -63,6 +63,8 @@ interface Restaurant {
   owner_phone: string | null; upsell_item_ids: string[] | null;
   pickup_enabled: boolean; dine_in_enabled: boolean; delivery_enabled: boolean;
   delivery_fee: number | null; payment_methods: any; mp_enabled?: boolean; menu_theme?: string | null;
+  menu_theme_mobile?: string | null; menu_theme_desktop?: string | null;
+
 }
 type OrderType = "dine_in" | "pickup" | "delivery";
 
