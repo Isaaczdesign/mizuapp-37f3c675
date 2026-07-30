@@ -733,32 +733,8 @@ function MiniDesktop({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Miniatura do layout desktop: sidebar de categorias + grid de itens */
-function MiniMenuDesktop({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
-  return (
-    <div className="p-3">
-      <div className="h-16 rounded-xl mb-3 flex items-end p-3" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
-        <div className="h-2.5 w-32 rounded-full bg-white/40" />
-      </div>
-      <div className="flex gap-3">
-        <div className="w-32 shrink-0 space-y-1.5">
-          <div className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
-          {["Combos", "Temakis", "Bebidas"].map((c) => (
-            <div key={c} className="px-2.5 py-1.5 rounded-lg text-[11px] bg-secondary/50 text-muted-foreground">{c}</div>
-          ))}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
-          <div className={theme.listClass}>
-            {items.slice(0, 4).map((item, i) => (
-              <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+
+
 
 function DesktopFrame({ children }: { children: React.ReactNode }) {
   return (
