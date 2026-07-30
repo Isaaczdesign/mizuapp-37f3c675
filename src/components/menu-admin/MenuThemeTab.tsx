@@ -12,7 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
 
 import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme, type MenuDevice } from "@/lib/menuThemes";
-import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
+import { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
+import MenuThemeMock from "@/components/menu-admin/MenuThemeMock";
+
 
 interface Props {
   restaurantId: string | undefined;
