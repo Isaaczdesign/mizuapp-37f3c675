@@ -1154,9 +1154,10 @@ const PublicMenu = () => {
                               return (
                                 <div
                                   key={a.id}
-                                  className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition ${
-                                    active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                                  className={`flex items-center gap-3 ${R_FIELD} border px-3 py-2.5 text-sm cursor-pointer transition-all duration-200 ${
+                                    active ? "" : `bg-white/[0.025] ${BORDER} hover:bg-white/[0.05] hover:border-white/[0.12]`
                                   }`}
+                                  style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12`, boxShadow: `0 0 0 3px ${accentColor}1a` } : {}}
                                   onClick={() => {
                                     setSelectedAddressId(a.id);
                                     setDeliveryCep(a.cep); setDeliveryStreet(a.street);
@@ -1164,13 +1165,19 @@ const PublicMenu = () => {
                                     setDeliveryCity(a.city); setDeliveryComplement(a.complement);
                                   }}
                                 >
-                                  <div className="min-w-0">
+                                  <MapPin
+                                    className={`${ICON_SM} shrink-0`}
+                                    strokeWidth={ICON_STROKE}
+                                    style={{ color: active ? accentColor : "rgba(255,255,255,0.45)" }}
+                                  />
+                                  <div className="min-w-0 flex-1">
                                     <p className="font-medium truncate">{a.label}</p>
-                                    <p className="text-xs text-muted-foreground truncate">
+                                    <p className={`text-xs ${TEXT_TERTIARY} truncate`}>
                                       {[a.neighborhood, a.city].filter(Boolean).join(" · ")}
                                       {a.complement ? ` · ${a.complement}` : ""}
                                     </p>
                                   </div>
+
                                   <button
                                     type="button"
                                     className="text-xs text-destructive hover:underline shrink-0"
