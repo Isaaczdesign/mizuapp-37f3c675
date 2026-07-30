@@ -12,7 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
 
 import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme, type MenuDevice } from "@/lib/menuThemes";
-import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
+import { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
+import MenuThemeMock from "@/components/menu-admin/MenuThemeMock";
+
 
 interface Props {
   restaurantId: string | undefined;
@@ -561,30 +563,19 @@ function TemplateCard({
         )}
       </AnimatePresence>
 
-      {/* mockup real do layout */}
+      {/* mockup esquemático do layout (sem breakpoints da janela) */}
       <div className="relative z-10 flex justify-center pt-2">
         {device === "desktop" ? (
           <MiniDesktop>
-            {loading ? (
-              <ThumbSkeleton />
-            ) : (
-              <div className="origin-top-left" style={{ width: 620, transform: "scale(0.4)" }}>
-                <MiniMenuDesktop theme={theme} color={color} items={items} />
-              </div>
-            )}
+            {loading ? <ThumbSkeleton /> : <MiniMenu theme={theme} color={color} items={items} device="desktop" />}
           </MiniDesktop>
         ) : (
           <MiniPhone>
-            {loading ? (
-              <ThumbSkeleton />
-            ) : (
-              <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
-                <MiniMenu theme={theme} color={color} items={items} />
-              </div>
-            )}
+            {loading ? <ThumbSkeleton /> : <MiniMenu theme={theme} color={color} items={items} device="mobile" />}
           </MiniPhone>
         )}
       </div>
+
 
 
       <div className="relative z-10 mt-4">
@@ -606,35 +597,54 @@ function MiniPhone({ children }: { children: React.ReactNode }) {
 
 function ThumbSkeleton() {
   return (
-    <div className="p-3 space-y-2.5">
-      <div className="h-10 rounded-xl bg-muted/40 animate-pulse" />
+    <div className="p-2.5 space-y-2">
+      <div className="h-8 rounded-lg bg-muted/40 animate-pulse" />
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-12 rounded-xl bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
+        <div key={i} className="h-8 rounded-lg bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
       ))}
     </div>
   );
 }
 
-/** Cardápio miniatura — usa o mesmo renderizador do cardápio público */
-function MiniMenu({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
+/** Cardápio miniatura esquemático — colunas fixas, sempre legível */
+function MiniMenu({
+  theme, color, items, device,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; device: MenuDevice }) {
+  const desktop = device === "desktop";
   return (
-    <div className="px-3 pb-3">
-      <div className="h-14 rounded-xl mb-3 flex items-end p-2" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
-        <div className="h-2 w-20 rounded-full bg-white/40" />
+    <div className="px-2 pb-2 pt-1.5">
+      <div className={`${desktop ? "h-7" : "h-8"} rounded-lg mb-2 flex items-end p-1.5`} style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
+        <div className="h-1.5 w-12 rounded-full bg-white/40" />
       </div>
-      <div className="flex gap-1.5 mb-3">
-        <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</span>
-        <span className="px-2.5 py-1 rounded-full text-[10px] bg-secondary/60">Combos</span>
-      </div>
-      <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
-      <div className={theme.listClass}>
-        {items.slice(0, 3).map((item, i) => (
-          <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-        ))}
-      </div>
+
+      {desktop ? (
+        <div className="flex gap-2">
+          <div className="w-12 shrink-0 space-y-1">
+            <div className="px-1 py-0.5 rounded text-[6px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
+            {["Combos", "Temakis", "Bebidas"].map((c) => (
+              <div key={c} className="px-1 py-0.5 rounded text-[6px] bg-white/[0.06] text-muted-foreground truncate">{c}</div>
+            ))}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[7px] font-bold mb-1" style={{ color }}>Mais pedidos</div>
+            <MenuThemeMock theme={theme} color={color} items={items} device={device} variant="thumb" />
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex gap-1 mb-2">
+            <span className="px-1.5 py-0.5 rounded-full text-[6px] font-semibold text-black" style={{ backgroundColor: color }}>Destaques</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[6px] bg-white/10 text-muted-foreground">Combos</span>
+          </div>
+          <div className="text-[7px] font-bold mb-1.5" style={{ color }}>Mais pedidos</div>
+          <MenuThemeMock theme={theme} color={color} items={items} device={device} variant="thumb" />
+        </>
+      )}
     </div>
   );
+
 }
+
 
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
@@ -701,12 +711,9 @@ function PhonePreview({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.28 }}
             >
-              <div className={`${theme.categoryTitleClass} mb-3`} style={{ color }}>Mais pedidos</div>
-              <div className={theme.listClass}>
-                {items.map((item, i) => (
-                  <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-                ))}
-              </div>
+              <div className="font-display text-lg font-bold mb-3" style={{ color }}>Mais pedidos</div>
+              <MenuThemeMock theme={theme} color={color} items={items} device="mobile" />
+
             </motion.div>
           )}
         </AnimatePresence>
@@ -743,32 +750,8 @@ function MiniDesktop({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Miniatura do layout desktop: sidebar de categorias + grid de itens */
-function MiniMenuDesktop({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
-  return (
-    <div className="p-3">
-      <div className="h-16 rounded-xl mb-3 flex items-end p-3" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
-        <div className="h-2.5 w-32 rounded-full bg-white/40" />
-      </div>
-      <div className="flex gap-3">
-        <div className="w-32 shrink-0 space-y-1.5">
-          <div className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
-          {["Combos", "Temakis", "Bebidas"].map((c) => (
-            <div key={c} className="px-2.5 py-1.5 rounded-lg text-[11px] bg-secondary/50 text-muted-foreground">{c}</div>
-          ))}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
-          <div className={theme.listClass}>
-            {items.slice(0, 4).map((item, i) => (
-              <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+
+
 
 function DesktopFrame({ children }: { children: React.ReactNode }) {
   return (
@@ -806,19 +789,20 @@ function DesktopPreview({
 
       <div className="flex-1 min-h-0 flex">
         {/* sidebar de categorias */}
-        <aside className="w-44 shrink-0 border-r border-border/60 p-4 space-y-2">
-          <div className="flex items-center gap-2 h-9 rounded-xl bg-secondary/50 border border-border/60 px-2.5 mb-3">
-            <Search className="w-3.5 h-3.5" style={{ color }} />
-            <span className="text-[11px] text-muted-foreground">Buscar…</span>
+        <aside className="w-24 shrink-0 border-r border-border/60 p-3 space-y-1.5">
+          <div className="flex items-center gap-1.5 h-8 rounded-lg bg-secondary/50 border border-border/60 px-2 mb-2">
+            <Search className="w-3 h-3" style={{ color }} />
+            <span className="text-[10px] text-muted-foreground">Buscar…</span>
           </div>
-          <div className="px-3 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
+          <div className="px-2 py-1.5 rounded-lg text-[11px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
           {["Combos", "Temakis", "Sashimis", "Bebidas"].map((c) => (
-            <div key={c} className="px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-secondary/50">{c}</div>
+            <div key={c} className="px-2 py-1.5 rounded-lg text-[11px] text-muted-foreground truncate">{c}</div>
           ))}
         </aside>
 
         {/* grid de itens */}
-        <div className="flex-1 min-w-0 overflow-y-auto p-6">
+        <div className="flex-1 min-w-0 overflow-y-auto p-4">
+
           <AnimatePresence mode="wait">
             {loading ? (
               <motion.div key="sk" exit={{ opacity: 0 }} className="grid grid-cols-2 gap-4">
@@ -834,20 +818,18 @@ function DesktopPreview({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.28 }}
               >
-                <div className={`${theme.categoryTitleClass} mb-4`} style={{ color }}>Mais pedidos</div>
-                <div className={theme.listClass}>
-                  {items.map((item, i) => (
-                    <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-                  ))}
-                </div>
+                <div className="font-display text-base font-bold mb-3" style={{ color }}>Mais pedidos</div>
+                <MenuThemeMock theme={theme} color={color} items={items} device="desktop" />
+
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* carrinho lateral */}
-        <aside className="w-52 shrink-0 border-l border-border/60 p-4 flex flex-col">
-          <div className="text-xs font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="w-3.5 h-3.5" style={{ color }} /> Seu pedido</div>
+        <aside className="w-28 shrink-0 border-l border-border/60 p-3 flex flex-col">
+          <div className="text-[11px] font-semibold mb-2 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Pedido</div>
+
           <div className="flex-1 space-y-2">
             {[0, 1].map((i) => <div key={i} className="h-12 rounded-xl bg-secondary/40" />)}
           </div>
