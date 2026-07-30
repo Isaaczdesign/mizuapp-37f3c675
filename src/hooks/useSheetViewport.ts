@@ -16,12 +16,22 @@ export function useVisualViewport() {
     const vv = window.visualViewport;
     const update = () => {
       const height = Math.round(vv ? vv.height : window.innerHeight);
-      const offsetTop = Math.round(vv ? vv.offsetTop : 0);
+      // Com o body travado (overlay aberto) o iOS ainda desloca o viewport
+      // ao focar um campo — isso causava o "salto" do sheet. Desfazemos o
+      // deslocamento e ignoramos o offset transitório.
+      const locked = isBodyLocked();
+      if (locked && window.scrollY !== 0) window.scrollTo(0, 0);
+      const offsetTop = locked ? 0 : Math.round(vv ? vv.offsetTop : 0);
       // Espaço ocupado pelo teclado (ou barras) abaixo da área visível.
       const keyboardInset = Math.max(0, Math.round(window.innerHeight - height - offsetTop));
-      setVp({ height, offsetTop, keyboardInset });
+      setVp((prev) =>
+        prev.height === height && prev.offsetTop === offsetTop && prev.keyboardInset === keyboardInset
+          ? prev
+          : { height, offsetTop, keyboardInset },
+      );
     };
     update();
+
 
     // Ao girar o iPhone (principalmente com teclado aberto) as medidas
     // chegam desatualizadas: remedimos algumas vezes após a rotação.
@@ -51,6 +61,11 @@ export function useVisualViewport() {
 
 
 let lockCount = 0;
+/** Há algum overlay travando o scroll do body? */
+function isBodyLocked() {
+  return lockCount > 0;
+}
+
 let savedScrollY = 0;
 let savedStyles: Partial<CSSStyleDeclaration> | null = null;
 
@@ -243,9 +258,23 @@ export function useKeyboardFocusScroll(active: boolean) {
       const target = e.target as Element | null;
       if (!isField(target)) return;
       focused = target;
+      // O iOS rola o "layout viewport" ao focar dentro de um elemento fixo:
+      // desfazemos esse deslocamento em cada frame do primeiro meio segundo,
+      // eliminando o salto visual do sheet.
+      const undoPageScroll = () => {
+        if (window.scrollY !== 0) window.scrollTo(0, 0);
+      };
+      undoPageScroll();
+      const start = performance.now();
+      const tick = () => {
+        undoPageScroll();
+        if (performance.now() - start < 600) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
       // Espera o teclado terminar de abrir antes de reposicionar.
-      [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(), ms)));
+      [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(false), ms)));
     };
+
     // Durante as transições do sheet o elemento focado pode perder o foco
     // (re-render/animação). Se nenhum outro campo assumiu, devolvemos o foco.
     const onFocusOut = (e: FocusEvent) => {
