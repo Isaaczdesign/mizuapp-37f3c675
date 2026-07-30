@@ -140,7 +140,10 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
       const { error } = await supabase
         .from("restaurants")
         .update({
-          menu_theme: themeId,
+          menu_theme: themeMobile,
+          menu_theme_mobile: themeMobile,
+          menu_theme_desktop: themeDesktop,
+
           primary_color: color,
           logo_url,
           banner_url,
