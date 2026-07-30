@@ -33,6 +33,7 @@ import {
   TOUCH_ICON,
   SHEET_PAD,
 } from "@/components/public-menu/menuTokens";
+import { useSheetViewport } from "@/hooks/useSheetViewport";
 
 
 
@@ -110,6 +111,7 @@ const PublicMenu = () => {
 
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const sheetViewport = useSheetViewport(showCart || checkoutStep > 0);
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<null | { token: string }>(null);
   const [operatingHours, setOperatingHours] = useState<any>(null);
@@ -882,12 +884,13 @@ const PublicMenu = () => {
         {showCart && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             role="dialog" aria-modal="true" aria-label="Seu pedido"
-            className="fixed inset-x-0 top-0 h-[100dvh] z-50 flex flex-col lg:flex-row lg:justify-end">
+            style={sheetViewport}
+            className="z-50 flex flex-col overflow-hidden lg:flex-row lg:justify-end">
             <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowCart(false)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none max-h-[88dvh] lg:max-h-none lg:h-[100dvh] lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
+              className="mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none max-h-[88%] lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
@@ -972,12 +975,13 @@ const PublicMenu = () => {
         {checkoutStep > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             role="dialog" aria-modal="true" aria-label="Finalizar pedido"
-            className="fixed inset-x-0 top-0 h-[100dvh] z-50 flex flex-col lg:items-center lg:justify-center lg:p-8">
+            style={sheetViewport}
+            className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8">
             <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setCheckoutStep(0)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="mt-auto lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl max-h-[90dvh] lg:max-h-[86dvh] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
+              className="mt-auto lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl max-h-[92%] lg:max-h-[86%] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
