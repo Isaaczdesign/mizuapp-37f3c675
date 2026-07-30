@@ -853,22 +853,15 @@ const PublicMenu = () => {
       {/* ── Floating Cart Bar ── */}
       <AnimatePresence>
         {cartCount > 0 && !showCart && !showItemDetail && checkoutStep === 0 && (
-          <motion.button
-            initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+          <FloatingCartBar
+            count={cartCount}
+            total={cartTotal}
+            accentColor={accentColor}
             onClick={() => setShowCart(true)}
-            className="fixed bottom-4 left-4 right-4 text-white rounded-2xl py-4 px-5 flex items-center justify-between z-50 transition-transform active:scale-[0.98]"
-            style={{ backgroundColor: accentColor, boxShadow: `0 8px 32px -4px ${accentColor}60` }}
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4" />
-              </div>
-              <span className="font-bold">{cartCount} {cartCount === 1 ? "item" : "itens"}</span>
-            </div>
-            <span className="font-display font-bold text-lg">{fmt(cartTotal)}</span>
-          </motion.button>
+          />
         )}
       </AnimatePresence>
+
 
       {/* ── Cart Drawer ── */}
       <AnimatePresence>
