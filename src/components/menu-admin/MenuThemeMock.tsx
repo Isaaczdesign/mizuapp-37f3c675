@@ -27,13 +27,9 @@ const brl = (v: number) =>
 /** Quantidade de colunas de cada template por dispositivo */
 function columnsFor(theme: MenuTheme, device: MenuDevice) {
   if (device === "mobile") return theme.layout === "tile" ? 2 : 1;
-  switch (theme.layout) {
-    case "tile": return 3;
-    case "express": return 2;
-    case "showcase" as never: return 2;
-    default: return 2;
-  }
+  return theme.layout === "tile" ? 3 : 2;
 }
+
 
 export default function MenuThemeMock({ theme, color, items, device, variant = "full" }: Props) {
   const thumb = variant === "thumb";
