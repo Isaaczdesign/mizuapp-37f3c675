@@ -667,7 +667,8 @@ const KDS = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
+
   );
 
   return prefs.tvMode ? content : <AdminLayout collapsible>{content}</AdminLayout>;
