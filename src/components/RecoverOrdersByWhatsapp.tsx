@@ -31,7 +31,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function RecoverOrdersByWhatsapp({
   restaurantId,
   restaurantSlug,
-  accentColor = "#FF6B35",
+  accentColor = "#E84310",
 }: {
   restaurantId: string;
   restaurantSlug?: string | null;

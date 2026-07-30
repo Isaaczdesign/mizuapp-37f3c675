@@ -26,14 +26,14 @@ const FALLBACK_ITEMS: MenuCardItem[] = [
 export default function MenuThemeTab({ restaurantId, currentTheme, currentColor, restaurantName, publicMenuUrl, previewItems }: Props) {
   const queryClient = useQueryClient();
   const [themeId, setThemeId] = useState<MenuThemeId>(resolveMenuTheme(currentTheme).id);
-  const [color, setColor] = useState(currentColor || "#FF6B35");
+  const [color, setColor] = useState(currentColor || "#E84310");
 
   useEffect(() => { setThemeId(resolveMenuTheme(currentTheme).id); }, [currentTheme]);
-  useEffect(() => { setColor(currentColor || "#FF6B35"); }, [currentColor]);
+  useEffect(() => { setColor(currentColor || "#E84310"); }, [currentColor]);
 
   const theme = useMemo(() => resolveMenuTheme(themeId), [themeId]);
   const items = previewItems && previewItems.length > 0 ? previewItems.slice(0, 3) : FALLBACK_ITEMS;
-  const dirty = themeId !== resolveMenuTheme(currentTheme).id || color !== (currentColor || "#FF6B35");
+  const dirty = themeId !== resolveMenuTheme(currentTheme).id || color !== (currentColor || "#E84310");
 
   const save = useMutation({
     mutationFn: async () => {

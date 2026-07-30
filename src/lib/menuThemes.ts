@@ -128,7 +128,7 @@ export function resolveMenuTheme(id?: string | null): MenuTheme {
 }
 
 export const ACCENT_PRESETS: { name: string; value: string }[] = [
-  { name: "Laranja Kōban", value: "#FF6B35" },
+  { name: "Laranja Mizu", value: "#E84310" },
   { name: "Vermelho Sakura", value: "#E5383B" },
   { name: "Dourado Umami", value: "#D4AF37" },
   { name: "Verde Matcha", value: "#4C956C" },

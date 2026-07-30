@@ -47,7 +47,7 @@ export const buildRecoveryEmailHtml = ({
     <main style="max-width:560px;margin:0 auto;padding:32px 20px;">
       <h1 style="font-size:24px;line-height:32px;margin:0 0 16px;">Redefinir sua senha</h1>
       <p style="font-size:16px;line-height:24px;margin:0 0 24px;color:#4b5563;">Recebemos uma solicitação para redefinir a senha da sua conta ${safeSiteName}.</p>
-      <a href="${safeHref}" target="_blank" rel="noopener noreferrer" data-testid="recovery-email-button" style="display:inline-block;background:#f97316;color:#ffffff;text-decoration:none;font-weight:700;border-radius:8px;padding:14px 20px;">Redefinir senha</a>
+      <a href="${safeHref}" target="_blank" rel="noopener noreferrer" data-testid="recovery-email-button" style="display:inline-block;background:#E84310;color:#FFFFFF;text-decoration:none;font-weight:700;border-radius:8px;padding:14px 20px;">Redefinir senha</a>
       <p style="font-size:13px;line-height:20px;margin:24px 0 0;color:#6b7280;">Se o botão não abrir, copie e cole este link no navegador:<br /><a href="${safeHref}" target="_blank" rel="noopener noreferrer">${safeHref}</a></p>
     </main>
   </body>

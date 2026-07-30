@@ -290,7 +290,7 @@ const PublicMenu = () => {
   const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
-  const accentColor = restaurant?.primary_color ?? "#FF6B35";
+  const accentColor = restaurant?.primary_color ?? "#E84310";
   const menuTheme = resolveMenuTheme(restaurant?.menu_theme);
   const openStatus = getOpenStatus(operatingHours);
 
