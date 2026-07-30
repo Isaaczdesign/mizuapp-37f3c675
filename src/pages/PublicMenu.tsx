@@ -1385,11 +1385,14 @@ const PublicMenu = () => {
                   </div>
                   {/* Coupon */}
                   <div className="border-t border-white/[0.06] pt-3">
-                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-1.5">🎟️ Cupom de desconto</label>
+                    <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5 mb-1.5`}>
+                      <Ticket className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Cupom de desconto
+                    </label>
                     {appliedCoupon ? (
                       <motion.div
                         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                        className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10">
+                        className={`flex items-center justify-between p-3 ${R_FIELD} border border-emerald-500/40 bg-emerald-500/10`}>
+
                         <div className="flex items-center gap-2 min-w-0">
                           <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                           <div className="min-w-0">
