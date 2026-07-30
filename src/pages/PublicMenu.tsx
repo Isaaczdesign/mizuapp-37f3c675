@@ -17,6 +17,8 @@ import MenuItemCard from "@/components/public-menu/MenuItemCard";
 import { resolveMenuTheme } from "@/lib/menuThemes";
 import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
 import { ClosedNotice } from "@/components/public-menu/ClosedNotice";
+import { subscribeMenuUpdates } from "@/lib/menuRealtime";
+
 
 
 
