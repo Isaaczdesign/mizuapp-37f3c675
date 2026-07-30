@@ -8,18 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Check, ExternalLink, Palette, Sparkles, Smartphone, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
-import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme } from "@/lib/menuThemes";
+import { Switch } from "@/components/ui/switch";
+import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
+
+import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme, type MenuDevice } from "@/lib/menuThemes";
 import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
 
 interface Props {
   restaurantId: string | undefined;
   currentTheme: string | null | undefined;
+  currentThemeMobile?: string | null;
+  currentThemeDesktop?: string | null;
   currentColor: string | null | undefined;
   restaurantName?: string | null;
   publicMenuUrl?: string | null;
   previewItems?: MenuCardItem[];
 }
+
 
 const FALLBACK_ITEMS: MenuCardItem[] = [
   { id: "p1", name: "Combo Sushi 20 peças", description: "Seleção do chef com salmão, atum e kani.", price: 89.9, image_url: null, tags: ["best_seller", "combo"] },
@@ -30,11 +35,26 @@ const FALLBACK_ITEMS: MenuCardItem[] = [
 /** Templates sugeridos pela equipe Mizu */
 const RECOMMENDED: MenuThemeId[] = ["classic", "showcase"];
 
-export default function MenuThemeTab({ restaurantId, currentTheme, currentColor, restaurantName, publicMenuUrl, previewItems }: Props) {
+export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeMobile, currentThemeDesktop, currentColor, restaurantName, publicMenuUrl, previewItems }: Props) {
   const queryClient = useQueryClient();
-  const [themeId, setThemeId] = useState<MenuThemeId>(resolveMenuTheme(currentTheme).id);
+  const savedMobile = resolveMenuTheme(currentThemeMobile ?? currentTheme).id;
+  const savedDesktop = resolveMenuTheme(currentThemeDesktop ?? currentTheme).id;
+
+  /** Aba de dispositivo que está sendo editada */
+  const [device, setDevice] = useState<MenuDevice>("mobile");
+  const [themeMobile, setThemeMobile] = useState<MenuThemeId>(savedMobile);
+  const [themeDesktop, setThemeDesktop] = useState<MenuThemeId>(savedDesktop);
+  /** Quando ativo, escolher um template aplica nos dois dispositivos */
+  const [syncDevices, setSyncDevices] = useState(savedMobile === savedDesktop);
   const [color, setColor] = useState(currentColor || "#E84310");
   const [ready, setReady] = useState(false);
+
+  const themeId = device === "mobile" ? themeMobile : themeDesktop;
+  const setThemeId = (id: MenuThemeId) => {
+    if (syncDevices) { setThemeMobile(id); setThemeDesktop(id); return; }
+    if (device === "mobile") setThemeMobile(id); else setThemeDesktop(id);
+  };
+
 
   // ——— Identidade visual do cardápio público ———
   const { data: identity } = useQuery({
@@ -68,7 +88,11 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
     setLogoFile(null); setBannerFile(null); setLogoRemoved(false); setBannerRemoved(false);
   }, [identity]);
 
-  useEffect(() => { setThemeId(resolveMenuTheme(currentTheme).id); }, [currentTheme]);
+  useEffect(() => {
+    setThemeMobile(savedMobile);
+    setThemeDesktop(savedDesktop);
+    setSyncDevices(savedMobile === savedDesktop);
+  }, [savedMobile, savedDesktop]);
   useEffect(() => { setColor(currentColor || "#E84310"); }, [currentColor]);
   useEffect(() => { const t = setTimeout(() => setReady(true), 350); return () => clearTimeout(t); }, []);
 
@@ -79,9 +103,11 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
     description !== (((identity as any)?.description ?? "")) ||
     pickupNote !== (((identity as any)?.pickup_dine_in_note ?? ""));
   const dirty =
-    themeId !== resolveMenuTheme(currentTheme).id ||
+    themeMobile !== savedMobile ||
+    themeDesktop !== savedDesktop ||
     color !== (currentColor || "#E84310") ||
     identityDirty;
+
 
   const pickLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,7 +142,10 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
       const { error } = await supabase
         .from("restaurants")
         .update({
-          menu_theme: themeId,
+          menu_theme: themeMobile,
+          menu_theme_mobile: themeMobile,
+          menu_theme_desktop: themeDesktop,
+
           primary_color: color,
           logo_url,
           banner_url,
@@ -228,8 +257,55 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
           <SectionHeader
             icon={<Smartphone className="w-4 h-4" />}
             title="Templates de layout"
-            subtitle="Escolha como os itens aparecem para o cliente no cardápio público."
+            subtitle="O cardápio tem layouts diferentes no celular e no computador. Escolha um template para cada um."
           />
+
+          {/* Seletor de dispositivo */}
+          <div className="mb-5 flex flex-wrap items-center gap-3">
+            <div className="inline-flex p-1 rounded-2xl bg-secondary/50 border border-border/60">
+              {([
+                { id: "mobile" as const, label: "Celular", icon: Smartphone, saved: themeMobile },
+                { id: "desktop" as const, label: "Computador", icon: Monitor, saved: themeDesktop },
+              ]).map((d) => {
+                const active = device === d.id;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setDevice(d.id)}
+                    aria-pressed={active}
+                    className={`relative flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-medium transition-colors ${
+                      active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="device-pill"
+                        className="absolute inset-0 rounded-xl bg-card border border-border/70 shadow-sm"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <d.icon className="relative w-4 h-4" />
+                    <span className="relative">{d.label}</span>
+                    <span className="relative text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/80 text-muted-foreground hidden sm:inline">
+                      {resolveMenuTheme(d.saved).name.replace("Mizu ", "")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+              <Switch
+                checked={syncDevices}
+                onCheckedChange={(v) => {
+                  setSyncDevices(v);
+                  if (v) { const id = themeId; setThemeMobile(id); setThemeDesktop(id); }
+                }}
+              />
+              Usar o mesmo template nos dois
+            </label>
+          </div>
 
           <LayoutGroup>
             <div className="grid sm:grid-cols-2 2xl:grid-cols-3 gap-5">
@@ -240,6 +316,7 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
                   index={i}
                   color={color}
                   items={items}
+                  device={device}
                   active={t.id === themeId}
                   recommended={RECOMMENDED.includes(t.id)}
                   loading={!ready}
@@ -249,6 +326,7 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
             </div>
           </LayoutGroup>
         </section>
+
 
         {/* Cor principal */}
         <section>
@@ -352,9 +430,11 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
       {/* ————— Coluna direita: preview grande ————— */}
       <div className="xl:sticky xl:top-6 h-fit">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">Prévia ao vivo</p>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">
+            Prévia ao vivo · {device === "mobile" ? "Celular" : "Computador"}
+          </p>
           <motion.span
-            key={theme.id}
+            key={theme.id + device}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
@@ -369,21 +449,46 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
             className="absolute -inset-10 rounded-[4rem] blur-3xl opacity-25 pointer-events-none"
             style={{ background: `radial-gradient(circle at 50% 20%, ${color}, transparent 70%)` }}
           />
-          <PhoneFrame>
-            <PhonePreview
-              theme={theme}
-              color={color}
-              items={items}
-              restaurantName={restaurantName}
-              logoUrl={logoPreview}
-              bannerUrl={bannerPreview}
-              description={description}
-
-              loading={!ready}
-            />
-          </PhoneFrame>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={device}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
+            >
+              {device === "mobile" ? (
+                <PhoneFrame>
+                  <PhonePreview
+                    theme={theme}
+                    color={color}
+                    items={items}
+                    restaurantName={restaurantName}
+                    logoUrl={logoPreview}
+                    bannerUrl={bannerPreview}
+                    description={description}
+                    loading={!ready}
+                  />
+                </PhoneFrame>
+              ) : (
+                <DesktopFrame>
+                  <DesktopPreview
+                    theme={theme}
+                    color={color}
+                    items={items}
+                    restaurantName={restaurantName}
+                    logoUrl={logoPreview}
+                    bannerUrl={bannerPreview}
+                    description={description}
+                    loading={!ready}
+                  />
+                </DesktopFrame>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
+
     </div>
   );
 }
@@ -405,11 +510,12 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
 }
 
 function TemplateCard({
-  theme, index, color, items, active, recommended, loading, onSelect,
+  theme, index, color, items, active, recommended, loading, onSelect, device = "mobile",
 }: {
   theme: MenuTheme; index: number; color: string; items: MenuCardItem[];
-  active: boolean; recommended: boolean; loading: boolean; onSelect: () => void;
+  active: boolean; recommended: boolean; loading: boolean; onSelect: () => void; device?: MenuDevice;
 }) {
+
   return (
     <motion.button
       type="button"
@@ -457,17 +563,29 @@ function TemplateCard({
 
       {/* mockup real do layout */}
       <div className="relative z-10 flex justify-center pt-2">
-        <MiniPhone>
-          {loading ? (
-            <ThumbSkeleton />
-          ) : (
-            <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
-              <MiniMenu theme={theme} color={color} items={items} />
-            </div>
-
-          )}
-        </MiniPhone>
+        {device === "desktop" ? (
+          <MiniDesktop>
+            {loading ? (
+              <ThumbSkeleton />
+            ) : (
+              <div className="origin-top-left" style={{ width: 620, transform: "scale(0.4)" }}>
+                <MiniMenuDesktop theme={theme} color={color} items={items} />
+              </div>
+            )}
+          </MiniDesktop>
+        ) : (
+          <MiniPhone>
+            {loading ? (
+              <ThumbSkeleton />
+            ) : (
+              <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
+                <MiniMenu theme={theme} color={color} items={items} />
+              </div>
+            )}
+          </MiniPhone>
+        )}
       </div>
+
 
       <div className="relative z-10 mt-4">
         <div className="font-semibold text-sm">{theme.name}</div>
@@ -605,6 +723,141 @@ function PhonePreview({
         >
           <ShoppingBag className="w-4 h-4" /> Ver carrinho
         </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/* ————————————————— Prévia desktop ————————————————— */
+
+function MiniDesktop({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative w-[248px] h-[210px] rounded-xl border border-white/10 bg-[#0B0B0B] overflow-hidden shadow-[0_18px_40px_-24px_rgba(0,0,0,0.95)]">
+      <div className="h-4 flex items-center gap-1 px-2 border-b border-white/10 bg-white/5">
+        {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+          <span key={c} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: c }} />
+        ))}
+      </div>
+      <div className="h-[calc(100%-1rem)] overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+/** Miniatura do layout desktop: sidebar de categorias + grid de itens */
+function MiniMenuDesktop({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
+  return (
+    <div className="p-3">
+      <div className="h-16 rounded-xl mb-3 flex items-end p-3" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
+        <div className="h-2.5 w-32 rounded-full bg-white/40" />
+      </div>
+      <div className="flex gap-3">
+        <div className="w-32 shrink-0 space-y-1.5">
+          <div className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
+          {["Combos", "Temakis", "Bebidas"].map((c) => (
+            <div key={c} className="px-2.5 py-1.5 rounded-lg text-[11px] bg-secondary/50 text-muted-foreground">{c}</div>
+          ))}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
+          <div className={theme.listClass}>
+            {items.slice(0, 4).map((item, i) => (
+              <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DesktopFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative mx-auto w-full rounded-2xl p-2.5 bg-gradient-to-b from-[#232323] to-[#0d0d0d] border border-white/10 shadow-[0_50px_100px_-50px_rgba(0,0,0,1)]">
+      <div className="rounded-xl overflow-hidden bg-background border border-white/5">
+        <div className="h-8 flex items-center gap-1.5 px-3 border-b border-border/60 bg-secondary/30">
+          {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+            <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />
+          ))}
+          <div className="ml-3 h-4 flex-1 max-w-[240px] rounded-full bg-background/70 border border-border/60" />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DesktopPreview({
+  theme, color, items, restaurantName, loading, logoUrl, bannerUrl, description,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean; logoUrl?: string | null; bannerUrl?: string | null; description?: string }) {
+  return (
+    <div className="flex flex-col h-[620px]">
+      {/* hero */}
+      <div className="h-32 relative shrink-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
+        {bannerUrl && <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 px-6 pb-4 flex items-end gap-3">
+          {logoUrl && <img src={logoUrl} alt="" className="w-14 h-14 rounded-2xl object-cover border border-white/20 shrink-0" />}
+          <div className="min-w-0">
+            <div className="font-display font-bold text-2xl truncate">{restaurantName || "Seu restaurante"}</div>
+            <div className="text-xs text-muted-foreground truncate">{description?.trim() || "Aberto agora · Entrega 30-45 min"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 flex">
+        {/* sidebar de categorias */}
+        <aside className="w-44 shrink-0 border-r border-border/60 p-4 space-y-2">
+          <div className="flex items-center gap-2 h-9 rounded-xl bg-secondary/50 border border-border/60 px-2.5 mb-3">
+            <Search className="w-3.5 h-3.5" style={{ color }} />
+            <span className="text-[11px] text-muted-foreground">Buscar…</span>
+          </div>
+          <div className="px-3 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: color }}>Destaques</div>
+          {["Combos", "Temakis", "Sashimis", "Bebidas"].map((c) => (
+            <div key={c} className="px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-secondary/50">{c}</div>
+          ))}
+        </aside>
+
+        {/* grid de itens */}
+        <div className="flex-1 min-w-0 overflow-y-auto p-6">
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div key="sk" exit={{ opacity: 0 }} className="grid grid-cols-2 gap-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-28 rounded-2xl bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={theme.id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.28 }}
+              >
+                <div className={`${theme.categoryTitleClass} mb-4`} style={{ color }}>Mais pedidos</div>
+                <div className={theme.listClass}>
+                  {items.map((item, i) => (
+                    <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* carrinho lateral */}
+        <aside className="w-52 shrink-0 border-l border-border/60 p-4 flex flex-col">
+          <div className="text-xs font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="w-3.5 h-3.5" style={{ color }} /> Seu pedido</div>
+          <div className="flex-1 space-y-2">
+            {[0, 1].map((i) => <div key={i} className="h-12 rounded-xl bg-secondary/40" />)}
+          </div>
+          <div
+            className="w-full py-2.5 rounded-2xl flex items-center justify-center text-xs font-bold text-white"
+            style={{ backgroundColor: color, boxShadow: `0 14px 34px -18px ${color}` }}
+          >
+            Finalizar pedido
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -15,7 +15,9 @@ import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
 import MenuItemCard from "@/components/public-menu/MenuItemCard";
-import { resolveMenuTheme } from "@/lib/menuThemes";
+import { resolveDeviceTheme } from "@/lib/menuThemes";
+import { useMenuDevice } from "@/hooks/useMenuDevice";
+
 import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
 import { ClosedNotice } from "@/components/public-menu/ClosedNotice";
 import { subscribeMenuUpdates } from "@/lib/menuRealtime";
@@ -63,6 +65,8 @@ interface Restaurant {
   owner_phone: string | null; upsell_item_ids: string[] | null;
   pickup_enabled: boolean; dine_in_enabled: boolean; delivery_enabled: boolean;
   delivery_fee: number | null; payment_methods: any; mp_enabled?: boolean; menu_theme?: string | null;
+  menu_theme_mobile?: string | null; menu_theme_desktop?: string | null;
+
 }
 type OrderType = "dine_in" | "pickup" | "delivery";
 
@@ -301,7 +305,9 @@ const PublicMenu = () => {
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
   const accentColor = restaurant?.primary_color ?? "#E84310";
-  const menuTheme = resolveMenuTheme(restaurant?.menu_theme);
+  const menuDevice = useMenuDevice();
+  const menuTheme = resolveDeviceTheme(menuDevice, restaurant);
+
   // status do hero acompanha o tick de relógio (30s)
   const openStatus = useMemo(() => getOpenStatus(operatingHours), [operatingHours, clockTick]);
 
