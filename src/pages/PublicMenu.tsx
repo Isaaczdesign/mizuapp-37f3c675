@@ -768,39 +768,43 @@ const PublicMenu = () => {
 
 
                   {showItemDetail.ingredients && (
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Ingredientes</p>
-                      <p className="text-sm">{showItemDetail.ingredients}</p>
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4">
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-1.5">Ingredientes</p>
+                      <p className="text-[13px] leading-relaxed">{showItemDetail.ingredients}</p>
                     </div>
                   )}
 
                   {showItemDetail.allergens && (
-                    <div className="flex items-start gap-2 p-3 rounded-xl bg-yellow-500/10">
+                    <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
                       <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-yellow-500">{showItemDetail.allergens}</p>
+                      <p className="text-xs text-yellow-500/90 leading-relaxed">{showItemDetail.allergens}</p>
                     </div>
                   )}
 
                   {/* Variations */}
                   {(showItemDetail.variations?.length ?? 0) > 0 && (
                     <div>
-                      <p className="text-sm font-semibold mb-2">Variação</p>
-                      <div className="space-y-1.5">
-                        {showItemDetail.variations!.map((v) => (
-                          <button key={v.id}
-                            onClick={() => setSelectedVariation(selectedVariation?.id === v.id ? null : v)}
-                            className={`w-full flex items-center justify-between p-3 rounded-xl text-sm transition-all ${
-                              selectedVariation?.id === v.id ? "" : "bg-secondary"
-                            }`}
-                            style={selectedVariation?.id === v.id ? { outlineColor: accentColor, backgroundColor: accentColor + "08", outline: `2px solid ${accentColor}` } : {}}
-                          >
-                            <span>{v.name}</span>
-                            <span className="font-medium" style={{ color: accentColor }}>
-                              {v.absolute_price != null ? fmt(Number(v.absolute_price)) :
-                                v.price_delta > 0 ? `+${fmt(Number(v.price_delta))}` : "incluso"}
-                            </span>
-                          </button>
-                        ))}
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-2.5">Variação</p>
+                      <div className="space-y-2">
+                        {showItemDetail.variations!.map((v) => {
+                          const isSelected = selectedVariation?.id === v.id;
+                          return (
+                            <motion.button key={v.id}
+                              whileTap={{ scale: 0.985 }}
+                              onClick={() => setSelectedVariation(isSelected ? null : v)}
+                              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl text-[13.5px] border transition-all"
+                              style={isSelected
+                                ? { borderColor: accentColor, backgroundColor: accentColor + "12", boxShadow: `0 10px 30px -22px ${accentColor}` }
+                                : { borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)" }}
+                            >
+                              <span className="font-medium">{v.name}</span>
+                              <span className="font-semibold tabular-nums" style={{ color: accentColor }}>
+                                {v.absolute_price != null ? fmt(Number(v.absolute_price)) :
+                                  v.price_delta > 0 ? `+${fmt(Number(v.price_delta))}` : "incluso"}
+                              </span>
+                            </motion.button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -808,23 +812,24 @@ const PublicMenu = () => {
                   {/* Addons */}
                   {(showItemDetail.addons?.length ?? 0) > 0 && (
                     <div>
-                      <p className="text-sm font-semibold mb-2">Adicionais</p>
-                      <div className="space-y-1.5">
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-2.5">Adicionais</p>
+                      <div className="space-y-2">
                         {showItemDetail.addons!.map((a) => {
                           const isSelected = selectedAddons.find((sa) => sa.id === a.id);
                           return (
-                            <button key={a.id}
+                            <motion.button key={a.id}
+                              whileTap={{ scale: 0.985 }}
                               onClick={() => setSelectedAddons(isSelected
                                 ? selectedAddons.filter((sa) => sa.id !== a.id) : [...selectedAddons, a]
                               )}
-                              className={`w-full flex items-center justify-between p-3 rounded-xl text-sm transition-all ${
-                                isSelected ? "" : "bg-secondary"
-                              }`}
-                              style={isSelected ? { outlineColor: accentColor, backgroundColor: accentColor + "08", outline: `2px solid ${accentColor}` } : {}}
+                              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl text-[13.5px] border transition-all"
+                              style={isSelected
+                                ? { borderColor: accentColor, backgroundColor: accentColor + "12", boxShadow: `0 10px 30px -22px ${accentColor}` }
+                                : { borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)" }}
                             >
-                              <span>{a.name}</span>
-                              <span className="font-medium" style={{ color: accentColor }}>+{fmt(Number(a.price))}</span>
-                            </button>
+                              <span className="font-medium">{a.name}</span>
+                              <span className="font-semibold tabular-nums" style={{ color: accentColor }}>+{fmt(Number(a.price))}</span>
+                            </motion.button>
                           );
                         })}
                       </div>
@@ -832,23 +837,38 @@ const PublicMenu = () => {
                   )}
 
                   {/* Quantity */}
-                  <div className="flex items-center justify-center gap-6 py-2">
-                    <button onClick={() => setDetailQty(Math.max(1, detailQty - 1))}
-                      className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center transition-transform active:scale-90">
+                  <div className="flex items-center justify-center gap-5 py-1">
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => setDetailQty(Math.max(1, detailQty - 1))}
+                      aria-label="Diminuir"
+                      className="w-11 h-11 rounded-full border border-white/[0.08] bg-white/[0.04] flex items-center justify-center">
                       <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="font-display text-2xl font-bold w-8 text-center">{detailQty}</span>
-                    <button onClick={() => setDetailQty(detailQty + 1)}
-                      className="w-10 h-10 rounded-xl text-white flex items-center justify-center transition-transform active:scale-90"
-                      style={{ backgroundColor: accentColor }}>
+                    </motion.button>
+                    <AnimatePresence mode="popLayout">
+                      <motion.span
+                        key={detailQty}
+                        initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}
+                        transition={{ duration: 0.16 }}
+                        className="font-display text-2xl font-bold w-10 text-center tabular-nums"
+                      >
+                        {detailQty}
+                      </motion.span>
+                    </AnimatePresence>
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => setDetailQty(detailQty + 1)}
+                      aria-label="Aumentar"
+                      className="w-11 h-11 rounded-full text-white flex items-center justify-center"
+                      style={{ backgroundColor: accentColor, boxShadow: `0 12px 30px -16px ${accentColor}` }}>
                       <Plus className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 border-t border-border">
-                <Button className="w-full py-6 text-base rounded-2xl font-bold" style={{ backgroundColor: accentColor }}
+              <div
+                className="p-4 border-t border-white/[0.06] bg-[#141414]/90 backdrop-blur-xl"
+                style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
+              >
+                <Button className="w-full py-6 text-base rounded-2xl font-bold text-white transition-transform active:scale-[0.985]"
+                  style={{ backgroundColor: accentColor, boxShadow: `0 18px 40px -22px ${accentColor}` }}
                   onClick={addToCartFromDetail}>
                   Adicionar • {fmt(
                     ((selectedVariation?.absolute_price != null ? Number(selectedVariation.absolute_price) :
@@ -857,6 +877,7 @@ const PublicMenu = () => {
                   )}
                 </Button>
               </div>
+
             </motion.div>
           </motion.div>
         )}
