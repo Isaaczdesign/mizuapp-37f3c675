@@ -767,8 +767,8 @@ const PublicMenu = () => {
         </div>
       )}
 
-      <div className="lg:hidden">
       <MenuStickyBar
+        className="lg:hidden"
         search={search}
         onSearch={setSearch}
         categories={categories}
@@ -776,7 +776,7 @@ const PublicMenu = () => {
         onCategory={scrollToCategory}
         accentColor={accentColor}
       />
-      </div>
+
 
       {/* ── Items by Category ── */}
       <div className="max-w-3xl lg:max-w-none mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8">
