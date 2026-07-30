@@ -594,64 +594,21 @@ const PublicMenu = () => {
   })).filter((c) => c.items.length > 0);
 
   return (
-    <div className="min-h-screen bg-background pb-28">
-      {/* ── Banner ── */}
-      <div className="relative">
-        {restaurant.banner_url ? (
-          <div className="h-48 md:h-56 relative">
-            <img src={restaurant.banner_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          </div>
-        ) : (
-          <div className="h-32 relative" style={{ background: `linear-gradient(135deg, ${accentColor}30, ${accentColor}05)` }}>
-            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
-          </div>
-        )}
+    <div className="min-h-screen bg-background pb-32">
+      {/* ── Hero premium ── */}
+      <RestaurantHero
+        name={restaurant.name}
+        description={restaurant.description}
+        logoUrl={restaurant.logo_url}
+        bannerUrl={restaurant.banner_url}
+        accentColor={accentColor}
+        isOpen={openStatus.isOpen}
+        statusLabel={openStatus.label}
+        deliveryEnabled={restaurant.delivery_enabled}
+        deliveryFee={restaurant.delivery_fee}
+        ownerPhone={restaurant.owner_phone}
+      />
 
-        {/* Restaurant info overlaying banner */}
-        <div className="relative -mt-16 px-4 z-10">
-          <div className="flex items-end gap-3">
-            {restaurant.logo_url ? (
-              <img src={restaurant.logo_url} alt="" className="w-16 h-16 rounded-2xl object-cover border-2 border-background shadow-lg shrink-0" />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl border-2 border-background shadow-lg flex items-center justify-center shrink-0"
-                style={{ backgroundColor: accentColor + "20" }}>
-                <UtensilsCrossed className="w-7 h-7" style={{ color: accentColor }} />
-              </div>
-            )}
-            <div className="flex-1 min-w-0 pb-1">
-              <h1 className="font-display text-xl font-bold truncate">{restaurant.name}</h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                  openStatus.isOpen ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${openStatus.isOpen ? "bg-green-400" : "bg-red-400"}`} />
-                  {openStatus.label}
-                </span>
-              </div>
-            </div>
-            {restaurant.owner_phone && (
-              <a href={`https://wa.me/${restaurant.owner_phone.replace(/\D/g, "")}`}
-                target="_blank" rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-                style={{ backgroundColor: accentColor + "15" }}>
-                <Phone className="w-4 h-4" style={{ color: accentColor }} />
-              </a>
-            )}
-          </div>
-
-          {restaurant.description && (
-            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{restaurant.description}</p>
-          )}
-
-          {/* Badge */}
-          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-            style={{ backgroundColor: accentColor + "10", color: accentColor }}>
-            <Star className="w-3 h-3" />
-            Peça direto sem taxas de app
-          </div>
-        </div>
-      </div>
 
       {(() => {
         const acceptingOff = (restaurant as any)?.accepting_orders === false;
