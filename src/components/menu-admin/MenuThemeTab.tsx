@@ -375,6 +375,10 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
               color={color}
               items={items}
               restaurantName={restaurantName}
+              logoUrl={logoPreview}
+              bannerUrl={bannerPreview}
+              description={description}
+
               loading={!ready}
             />
           </PhoneFrame>
