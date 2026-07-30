@@ -890,8 +890,8 @@ const PublicMenu = () => {
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:flex-row lg:justify-end">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="bg-black/60"
-              style={{ ...sheetViewport, backdropFilter: "blur(18px) saturate(120%)", WebkitBackdropFilter: "blur(18px) saturate(120%)" }}
+              className="fixed inset-0 bg-black/80"
+              style={{ height: "100lvh", minHeight: "100vh", backdropFilter: "blur(20px) saturate(120%)", WebkitBackdropFilter: "blur(20px) saturate(120%)" }}
               onClick={() => setShowCart(false)} />
 
             <motion.div
@@ -985,8 +985,8 @@ const PublicMenu = () => {
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="bg-black/60"
-              style={{ ...sheetViewport, backdropFilter: "blur(18px) saturate(120%)", WebkitBackdropFilter: "blur(18px) saturate(120%)" }}
+              className="fixed inset-0 bg-black/80"
+              style={{ height: "100lvh", minHeight: "100vh", backdropFilter: "blur(20px) saturate(120%)", WebkitBackdropFilter: "blur(20px) saturate(120%)" }}
               onClick={() => setCheckoutStep(0)} />
 
             <motion.div
