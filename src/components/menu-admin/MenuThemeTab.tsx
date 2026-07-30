@@ -527,20 +527,26 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
 }
 
 function PhonePreview({
-  theme, color, items, restaurantName, loading,
-}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean }) {
+  theme, color, items, restaurantName, loading, logoUrl, bannerUrl, description,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean; logoUrl?: string | null; bannerUrl?: string | null; description?: string }) {
   return (
     <div className="flex flex-col h-[660px]">
       {/* status bar */}
       <div className="h-10 shrink-0" />
 
       {/* header */}
-      <div className="h-28 relative shrink-0" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
-        <div className="absolute inset-x-0 bottom-0 px-4 pb-3">
-          <div className="font-display font-bold text-lg truncate">{restaurantName || "Seu restaurante"}</div>
-          <div className="text-[11px] text-muted-foreground">Aberto agora · Entrega 30-45 min</div>
+      <div className="h-28 relative shrink-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
+        {bannerUrl && <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-3 flex items-end gap-2.5">
+          {logoUrl && <img src={logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-white/20 shrink-0" />}
+          <div className="min-w-0">
+            <div className="font-display font-bold text-lg truncate">{restaurantName || "Seu restaurante"}</div>
+            <div className="text-[11px] text-muted-foreground truncate">{description?.trim() || "Aberto agora · Entrega 30-45 min"}</div>
+          </div>
         </div>
       </div>
+
 
       {/* busca */}
       <div className="px-4 py-3 shrink-0">
