@@ -361,7 +361,7 @@ const Orders = () => {
 
   return (
     <AdminLayout collapsible>
-    <PageShell>
+    <PageShell fullHeight className="lg:h-full lg:overflow-hidden gap-3">
       <PageHeader
         icon={FileText}
         title="Pedidos"
