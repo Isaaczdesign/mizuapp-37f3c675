@@ -304,7 +304,7 @@ const Auth = () => {
 
             <motion.button
               type="submit"
-              disabled={loading}
+              disabled={loading || googleLoading}
               whileHover={{ scale: loading ? 1 : 1.015 }}
               whileTap={{ scale: loading ? 1 : 0.985 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
