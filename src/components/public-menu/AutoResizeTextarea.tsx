@@ -31,16 +31,11 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, Props>(
       el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
     }, [minRowsHeight, maxHeight]);
 
-    const ensureVisible = useCallback(() => {
-      const el = innerRef.current;
-      if (!el) return;
-      const vv = window.visualViewport;
-      const bottomLimit = (vv?.height ?? window.innerHeight) - 16;
-      const rect = el.getBoundingClientRect();
-      if (rect.bottom > bottomLimit || rect.top < 8) {
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
+    const ensureVisible = useCallback((smooth = true) => {
+      // Rola apenas o container do sheet (nunca a página) para evitar "pulos".
+      revealFieldInScroller(innerRef.current, smooth);
     }, []);
+
 
     useLayoutEffect(() => {
       resize();
