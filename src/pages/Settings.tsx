@@ -220,7 +220,7 @@ const Settings = () => {
   return (
     <AdminLayout>
       <PageShell className="max-w-2xl">
-        <PageHeader emoji="⚙️" title="Configurações" subtitle="Identidade, horários, pagamentos e integrações do restaurante." />
+        <PageHeader emoji="⚙️" title="Configurações" subtitle="Dados do restaurante, horários, pagamentos e integrações." />
 
         <div className="space-y-8">
           {/* Plan Status */}
