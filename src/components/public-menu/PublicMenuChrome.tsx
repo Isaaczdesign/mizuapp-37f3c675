@@ -293,7 +293,7 @@ export function MenuStickyBar({
           ref={railRef}
           role="tablist"
           aria-label="Categorias"
-          className="max-w-3xl mx-auto flex gap-2 px-4 sm:px-6 pb-3 overflow-x-auto scrollbar-hide"
+          className="max-w-3xl mx-auto flex gap-2 px-4 sm:px-6 pb-3 overflow-x-auto overscroll-x-contain scrollbar-hide"
         >
           {categories.map((cat) => {
             const active = activeCategory === cat.id;
