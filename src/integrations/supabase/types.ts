@@ -986,6 +986,8 @@ export type Database = {
           is_active: boolean
           logo_url: string | null
           menu_theme: string
+          menu_theme_desktop: string | null
+          menu_theme_mobile: string | null
           mp_access_token: string | null
           mp_enabled: boolean
           mp_public_key: string | null
@@ -1015,6 +1017,8 @@ export type Database = {
           is_active?: boolean
           logo_url?: string | null
           menu_theme?: string
+          menu_theme_desktop?: string | null
+          menu_theme_mobile?: string | null
           mp_access_token?: string | null
           mp_enabled?: boolean
           mp_public_key?: string | null
@@ -1044,6 +1048,8 @@ export type Database = {
           is_active?: boolean
           logo_url?: string | null
           menu_theme?: string
+          menu_theme_desktop?: string | null
+          menu_theme_mobile?: string | null
           mp_access_token?: string | null
           mp_enabled?: boolean
           mp_public_key?: string | null
@@ -1656,6 +1662,8 @@ export type Database = {
           is_active: boolean
           logo_url: string
           menu_theme: string
+          menu_theme_desktop: string
+          menu_theme_mobile: string
           mp_enabled: boolean
           name: string
           operating_hours: Json
