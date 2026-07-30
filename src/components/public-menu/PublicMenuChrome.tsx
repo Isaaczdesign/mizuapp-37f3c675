@@ -8,6 +8,8 @@ import {
   BORDER, GLASS, GLASS_SOFT, R_BANNER, R_CHIP, SHADOW_CARD,
   TEXT_SECONDARY, accentFaint, accentGlow, brl as fmt, D_MICRO, EASE,
 } from "./menuTokens";
+import { useVisualViewport } from "@/hooks/useSheetViewport";
+
 
 /* ════════════════════════════════════════════════════════
    HERO (mobile + tablet) — capa, identidade, status
