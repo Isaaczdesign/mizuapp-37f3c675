@@ -1,0 +1,21 @@
+REVOKE EXECUTE ON FUNCTION public.check_slug_available(text, uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.create_public_order(uuid, uuid, numeric, text, text, text, numeric, uuid, numeric, jsonb, jsonb, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.find_or_create_customer(uuid, text, text, boolean) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_order_payment_status(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_public_order(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_public_restaurant_by_slug(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_public_tables(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.is_restaurant_open_now(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.resolve_short_code(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.validate_public_coupon(uuid, text) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.check_slug_available(text, uuid) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.create_public_order(uuid, uuid, numeric, text, text, text, numeric, uuid, numeric, jsonb, jsonb, text) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.find_or_create_customer(uuid, text, text, boolean) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_order_payment_status(uuid) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_public_order(uuid) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_public_restaurant_by_slug(text) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_public_tables(uuid) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_restaurant_open_now(uuid) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.resolve_short_code(text) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.validate_public_coupon(uuid, text) TO anon, authenticated, service_role;
