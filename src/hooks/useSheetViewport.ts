@@ -16,12 +16,22 @@ export function useVisualViewport() {
     const vv = window.visualViewport;
     const update = () => {
       const height = Math.round(vv ? vv.height : window.innerHeight);
-      const offsetTop = Math.round(vv ? vv.offsetTop : 0);
+      // Com o body travado (overlay aberto) o iOS ainda desloca o viewport
+      // ao focar um campo — isso causava o "salto" do sheet. Desfazemos o
+      // deslocamento e ignoramos o offset transitório.
+      const locked = isBodyLocked();
+      if (locked && window.scrollY !== 0) window.scrollTo(0, 0);
+      const offsetTop = locked ? 0 : Math.round(vv ? vv.offsetTop : 0);
       // Espaço ocupado pelo teclado (ou barras) abaixo da área visível.
       const keyboardInset = Math.max(0, Math.round(window.innerHeight - height - offsetTop));
-      setVp({ height, offsetTop, keyboardInset });
+      setVp((prev) =>
+        prev.height === height && prev.offsetTop === offsetTop && prev.keyboardInset === keyboardInset
+          ? prev
+          : { height, offsetTop, keyboardInset },
+      );
     };
     update();
+
 
     // Ao girar o iPhone (principalmente com teclado aberto) as medidas
     // chegam desatualizadas: remedimos algumas vezes após a rotação.
