@@ -15,6 +15,15 @@ const POSITIONS: { id: PopupPosition; label: string }[] = [
   { id: "bottom-right", label: "Inferior direita" },
 ];
 
+const SONNER_POSITION: Record<PopupPosition, "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-right"> = {
+  "top-left": "top-left",
+  "top-center": "top-center",
+  "top-right": "top-right",
+  "bottom-left": "bottom-left",
+  "bottom-right": "bottom-right",
+};
+
+
 export default function NotificationSettings() {
   const { prefs, save, loading } = useNotificationPrefs();
   const [permission, setPermission] = useState<NotificationPermission>("default");
