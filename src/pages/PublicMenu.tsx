@@ -33,7 +33,7 @@ import {
   TOUCH_ICON,
   SHEET_PAD,
 } from "@/components/public-menu/menuTokens";
-import { useSheetViewport, useKeyboardFocusScroll } from "@/hooks/useSheetViewport";
+import { useSheetViewport, useKeyboardFocusScroll, useVisualViewport } from "@/hooks/useSheetViewport";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 
