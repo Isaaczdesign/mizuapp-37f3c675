@@ -516,7 +516,7 @@ const Orders = () => {
           const colOrders = filtered.filter((o) => o.status === col.status);
           return (
             <div key={col.status} className="min-w-[280px] w-[280px] flex-shrink-0 flex flex-col">
-              <div className={`${col.color} text-primary-foreground rounded-t-xl px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
+              <div className={`${col.color} text-primary-foreground rounded-t-[20px] px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
                 <span>{col.label}</span>
                 <span className="bg-background/20 rounded-full px-2 py-0.5 text-xs">{colOrders.length}</span>
               </div>
