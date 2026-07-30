@@ -320,10 +320,10 @@ const PublicMenu = () => {
     }
   }, [slug]);
 
-  // Revalida a cada 60s e sempre que a aba volta ao foco / reconecta
+  // Fallback: revalida a cada 5 min e sempre que a aba volta ao foco / reconecta
   useEffect(() => {
     if (!slug) return;
-    const id = setInterval(refreshSettings, 60_000);
+    const id = setInterval(refreshSettings, 300_000);
     const onFocus = () => { if (document.visibilityState === "visible") refreshSettings(); };
     document.addEventListener("visibilitychange", onFocus);
     window.addEventListener("focus", onFocus);
@@ -335,6 +335,33 @@ const PublicMenu = () => {
       window.removeEventListener("online", onFocus);
     };
   }, [slug, refreshSettings]);
+
+  // Tempo real: o painel avisa (broadcast via WebSocket) assim que muda horário,
+  // status de "aceitando pedidos" ou expediente — revalida na hora.
+  useEffect(() => {
+    const rid = restaurant?.id;
+    if (!rid) return;
+    let cancelled = false;
+    const unsubscribe = subscribeMenuUpdates(rid, (reason) => {
+      if (cancelled) return;
+      if (reason === "menu") { loadMenu(); return; }
+      refreshSettings();
+    });
+    return () => { cancelled = true; unsubscribe(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurant?.id, refreshSettings]);
+
+  // Agenda uma revalidação exata no instante da próxima abertura/fechamento
+  useEffect(() => {
+    if (!operatingHours) return;
+    const next = nextOpenAt(operatingHours as any, new Date());
+    if (!next) return;
+    const ms = next.getTime() - Date.now();
+    if (ms <= 0 || ms > 24 * 60 * 60 * 1000) return;
+    const t = setTimeout(() => { refreshSettings(); }, ms + 1500);
+    return () => clearTimeout(t);
+  }, [operatingHours, clockTick, refreshSettings]);
+
 
   // chamado quando o horário de reabertura chega: confirma no backend antes de liberar pedidos
   const reopenLockRef = useRef(false);
