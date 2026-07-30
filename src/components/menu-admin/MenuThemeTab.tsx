@@ -83,8 +83,8 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
                     </span>
                   )}
                   <ThemeWireframe id={t.id} color={color} />
-                  <div className="mt-3 font-semibold text-sm">{t.name}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t.description}</div>
+                  <div className={`font-semibold text-sm ${t.id === "vibrant" ? "mt-5" : "mt-3"}`}>{t.name}</div>
+                  <div className={`text-xs text-muted-foreground ${t.id === "vibrant" ? "mt-2" : "mt-0.5"}`}>{t.description}</div>
                 </button>
               );
             })}
