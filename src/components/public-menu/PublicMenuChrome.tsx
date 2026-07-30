@@ -81,75 +81,83 @@ export function RestaurantHero({
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="rounded-[26px] border border-white/[0.07] bg-[#141414]/85 backdrop-blur-2xl p-4 sm:p-5 shadow-[0_28px_70px_-40px_rgba(0,0,0,0.95)]"
         >
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt=""
-                className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[20px] object-cover shrink-0 border border-white/10 shadow-lg"
+                className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-[18px] sm:rounded-[20px] object-cover shrink-0 border border-white/10 shadow-lg"
               />
             ) : (
               <div
-                className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[20px] shrink-0 flex items-center justify-center border border-white/10"
+                className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-[18px] sm:rounded-[20px] shrink-0 flex items-center justify-center border border-white/10"
                 style={{ background: `linear-gradient(140deg, ${accentColor}33, ${accentColor}0d)` }}
               >
-                <UtensilsCrossed className="w-7 h-7" style={{ color: accentColor }} />
+                <UtensilsCrossed className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: accentColor }} />
               </div>
             )}
 
             <div className="flex-1 min-w-0">
-              <h1 className="font-display text-[20px] sm:text-2xl font-bold tracking-tight leading-tight truncate">
-                {name}
-              </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <span
-                  className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
-                    isOpen
-                      ? "text-emerald-300 border-emerald-400/25 bg-emerald-400/10"
-                      : "text-red-300 border-red-400/25 bg-red-400/10"
-                  }`}
-                >
-                  <span className={`relative flex w-1.5 h-1.5`}>
-                    {isOpen && <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-70 animate-ping" />}
-                    <span className={`relative w-1.5 h-1.5 rounded-full ${isOpen ? "bg-emerald-400" : "bg-red-400"}`} />
-                  </span>
-                  {statusLabel}
-                </span>
+              <div className="flex items-start gap-2">
+                <h1 className="flex-1 font-display text-[18px] sm:text-2xl font-bold tracking-tight leading-tight line-clamp-2 sm:truncate">
+                  {name}
+                </h1>
 
-                {deliveryEnabled && (
-                  <InfoChip icon={<Bike className="w-3 h-3" />}>
-                    {deliveryFee && Number(deliveryFee) > 0 ? fmt(Number(deliveryFee)) : "Entrega grátis"}
-                  </InfoChip>
+                {ownerPhone && (
+                  <a
+                    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Falar com o restaurante"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 transition-transform active:scale-95"
+                    style={{ backgroundColor: accentColor + "1a" }}
+                  >
+                    <Phone className="w-4 h-4" style={{ color: accentColor }} />
+                  </a>
                 )}
-                <InfoChip icon={<Clock className="w-3 h-3" />}>Pedido direto</InfoChip>
               </div>
+
+              {description && (
+                <p className="text-[12.5px] sm:text-[13px] leading-relaxed text-muted-foreground/90 mt-1.5 line-clamp-2">
+                  {description}
+                </p>
+              )}
             </div>
+          </div>
 
-            {ownerPhone && (
-              <a
-                href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Falar com o restaurante"
-                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 transition-transform active:scale-95"
-                style={{ backgroundColor: accentColor + "1a" }}
-              >
-                <Phone className="w-4 h-4" style={{ color: accentColor }} />
-              </a>
+          {/* Informações: status, entrega e selo — organizadas em grade fluida no mobile */}
+          <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
+            <span
+              className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
+                isOpen
+                  ? "text-emerald-300 border-emerald-400/25 bg-emerald-400/10"
+                  : "text-red-300 border-red-400/25 bg-red-400/10"
+              }`}
+            >
+              <span className="relative flex w-1.5 h-1.5">
+                {isOpen && <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-70 animate-ping" />}
+                <span className={`relative w-1.5 h-1.5 rounded-full ${isOpen ? "bg-emerald-400" : "bg-red-400"}`} />
+              </span>
+              {statusLabel}
+            </span>
+
+            {deliveryEnabled && (
+              <InfoChip icon={<Bike className="w-3 h-3" />}>
+                {deliveryFee && Number(deliveryFee) > 0 ? `Entrega ${fmt(Number(deliveryFee))}` : "Entrega grátis"}
+              </InfoChip>
             )}
+            <InfoChip icon={<Clock className="w-3 h-3" />}>Pedido direto</InfoChip>
+
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+              style={{ color: accentColor, borderColor: accentColor + "33", backgroundColor: accentColor + "12" }}
+            >
+              <BadgeCheck className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline sm:inline">Sem taxas de aplicativo</span>
+              <span className="xs:hidden sm:hidden">Sem taxas</span>
+            </span>
           </div>
 
-          {description && (
-            <p className="text-[13px] leading-relaxed text-muted-foreground/90 mt-3.5 line-clamp-2">{description}</p>
-          )}
-
-          <div
-            className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border"
-            style={{ color: accentColor, borderColor: accentColor + "33", backgroundColor: accentColor + "12" }}
-          >
-            <BadgeCheck className="w-3.5 h-3.5" />
-            Peça direto, sem taxas de aplicativo
-          </div>
         </motion.div>
       </div>
     </header>
