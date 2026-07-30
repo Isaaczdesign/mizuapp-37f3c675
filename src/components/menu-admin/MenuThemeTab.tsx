@@ -436,22 +436,34 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
         </div>
       </div>
 
-      {/* ————— Coluna direita: preview grande ————— */}
-      <div className="xl:sticky xl:top-6 h-fit">
-        <div className="flex items-center justify-between mb-3">
+      {/* ————— Preview ao vivo ————— */}
+      <div className={device === "desktop" ? "w-full order-1" : "xl:sticky xl:top-6 h-fit"}>
+        <div className="flex items-center justify-between mb-3 gap-3">
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">
             Prévia ao vivo · {device === "mobile" ? "Celular" : "Computador"}
           </p>
-          <motion.span
-            key={theme.id + device}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
-            style={{ borderColor: color + "55", color, backgroundColor: color + "12" }}
-          >
-            {theme.name}
-          </motion.span>
+          <div className="flex items-center gap-2">
+            <motion.span
+              key={theme.id + device}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
+              style={{ borderColor: color + "55", color, backgroundColor: color + "12" }}
+            >
+              {theme.name}
+            </motion.span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-7 px-3 text-[11px]"
+              onClick={() => setFullscreen(true)}
+            >
+              <Maximize2 className="w-3.5 h-3.5 mr-1.5" /> Tela cheia
+            </Button>
+          </div>
         </div>
+
 
         <div className="relative">
           <div
