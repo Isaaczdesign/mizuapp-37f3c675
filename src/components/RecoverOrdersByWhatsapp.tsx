@@ -79,8 +79,12 @@ export default function RecoverOrdersByWhatsapp({
   }, [open]);
 
   async function search() {
-    if (phone.replace(/\D/g, "").length < 8) {
-      toast.error("Informe o WhatsApp usado no pedido");
+    if (phone.replace(/\D/g, "").length < 10) {
+      toast.error("Informe o WhatsApp com DDD usado no pedido");
+      return;
+    }
+    if (name.trim().length < 2) {
+      toast.error("Informe o nome usado no pedido");
       return;
     }
     setLoading(true);
@@ -88,6 +92,7 @@ export default function RecoverOrdersByWhatsapp({
       const { data, error } = await (supabase as any).rpc("get_active_orders_by_whatsapp", {
         _restaurant_id: restaurantId,
         _whatsapp: phone,
+        _name: name.trim(),
       });
       if (error) throw error;
       const rows = (data ?? []) as Found[];
