@@ -33,7 +33,7 @@ import {
   TOUCH_ICON,
   SHEET_PAD,
 } from "@/components/public-menu/menuTokens";
-import { useSheetViewport, useKeyboardFocusScroll } from "@/hooks/useSheetViewport";
+import { useSheetViewport, useKeyboardFocusScroll, useVisualViewport } from "@/hooks/useSheetViewport";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 
@@ -114,6 +114,8 @@ const PublicMenu = () => {
   const [loading, setLoading] = useState(true);
   const sheetViewport = useSheetViewport(showCart || checkoutStep > 0);
   useKeyboardFocusScroll(showCart || checkoutStep > 0);
+  const { keyboardInset } = useVisualViewport();
+  const keyboardOpen = keyboardInset > 120;
   const closeCheckout = useCallback(() => setCheckoutStep(0), []);
   const closeCart = useCallback(() => setShowCart(false), []);
   const checkoutTrapRef = useFocusTrap<HTMLDivElement>(checkoutStep > 0, closeCheckout);
@@ -904,7 +906,7 @@ const PublicMenu = () => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
               ref={cartTrapRef}
-              className="mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none max-h-[88%] lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
+              className={`mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none ${keyboardOpen ? "max-h-full" : "max-h-[88%]"} lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
@@ -949,7 +951,8 @@ const PublicMenu = () => {
 
 
                 {/* Order notes */}
-                <div className="pt-3 border-t border-white/[0.06]">
+                <div className="pt-3 border-t border-white/[0.06] scroll-mb-24">
+
                   <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
                     <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                   </label>
