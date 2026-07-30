@@ -645,7 +645,11 @@ const MenuAdmin = () => {
   const [catName, setCatName] = useState("");
   const [editingCat, setEditingCat] = useState<{ id: string; name: string } | null>(null);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [availFilter, setAvailFilter] = useState<"all" | "active" | "inactive">("all");
   const [itemDialog, setItemDialog] = useState<any>(null);
+
   const [itemForm, setItemForm] = useState({
     name: "", description: "", price: "", image: null as File | null,
     ingredients: "", allergens: "", cost_estimate: "", margin_percent: "", tags: [] as string[],
