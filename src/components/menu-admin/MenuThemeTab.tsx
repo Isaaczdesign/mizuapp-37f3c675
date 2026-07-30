@@ -86,7 +86,11 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
     setLogoFile(null); setBannerFile(null); setLogoRemoved(false); setBannerRemoved(false);
   }, [identity]);
 
-  useEffect(() => { setThemeId(resolveMenuTheme(currentTheme).id); }, [currentTheme]);
+  useEffect(() => {
+    setThemeMobile(savedMobile);
+    setThemeDesktop(savedDesktop);
+    setSyncDevices(savedMobile === savedDesktop);
+  }, [savedMobile, savedDesktop]);
   useEffect(() => { setColor(currentColor || "#E84310"); }, [currentColor]);
   useEffect(() => { const t = setTimeout(() => setReady(true), 350); return () => clearTimeout(t); }, []);
 
@@ -97,9 +101,11 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
     description !== (((identity as any)?.description ?? "")) ||
     pickupNote !== (((identity as any)?.pickup_dine_in_note ?? ""));
   const dirty =
-    themeId !== resolveMenuTheme(currentTheme).id ||
+    themeMobile !== savedMobile ||
+    themeDesktop !== savedDesktop ||
     color !== (currentColor || "#E84310") ||
     identityDirty;
+
 
   const pickLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
