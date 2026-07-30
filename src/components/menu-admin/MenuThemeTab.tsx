@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
+import { Check, ExternalLink, Palette, Sparkles, Smartphone, Monitor, Search, ShoppingBag, Upload, ImageIcon, Trash2, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 
 import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme, type MenuDevice } from "@/lib/menuThemes";
 import { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
