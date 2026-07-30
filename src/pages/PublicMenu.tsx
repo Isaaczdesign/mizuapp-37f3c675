@@ -27,6 +27,7 @@ import OptionCard from "@/components/public-menu/OptionCard";
 import {
   BG_CARD, BORDER, R_CARD_SM, R_FIELD, R_BUTTON, R_TILE, ICON_SM, ICON_STROKE,
   TEXT_SECONDARY, TEXT_TERTIARY,
+  SELECTABLE_BASE, SELECTABLE_IDLE, selectedSurface, selectedTileStyle,
 } from "@/components/public-menu/menuTokens";
 
 
@@ -895,7 +896,10 @@ const PublicMenu = () => {
               </div>
               <div className="overflow-y-auto flex-1 p-4 space-y-3">
                 {cart.map((item) => (
-                  <div key={item.cartKey} className="flex items-center gap-3">
+                  <div
+                    key={item.cartKey}
+                    className={`flex items-center gap-3 p-2.5 ${R_CARD_SM} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}
+                  >
                     {item.image_url && (
                       <img src={item.image_url} alt="" className={`w-12 h-12 ${R_TILE} object-cover shrink-0`} />
                     )}
@@ -1141,12 +1145,12 @@ const PublicMenu = () => {
                           {tables.map((t) => (
                             <button key={t.id} type="button"
                               onClick={() => setSelectedTableId(t.id)}
-                              className={`py-2.5 ${R_TILE} text-sm font-semibold border transition-all duration-200 active:scale-[0.97] ${
+                              className={`py-2.5 ${R_TILE} text-sm font-semibold ${SELECTABLE_BASE} ${
                                 selectedTableId === t.id
-                                  ? "text-[#080909]"
-                                  : `bg-white/[0.025] ${BORDER} text-white/70 hover:bg-white/[0.05] hover:border-white/[0.12]`
+                                  ? "font-bold"
+                                  : `${SELECTABLE_IDLE} text-white/70`
                               }`}
-                              style={selectedTableId === t.id ? { backgroundColor: accentColor, borderColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}1a` } : {}}
+                              style={selectedTableId === t.id ? { ...selectedSurface(accentColor), color: accentColor } : {}}
                             >
                               {t.number}
                             </button>
@@ -1176,10 +1180,10 @@ const PublicMenu = () => {
                               return (
                                 <div
                                   key={a.id}
-                                  className={`flex items-center gap-3 ${R_FIELD} border px-3 py-2.5 text-sm cursor-pointer transition-all duration-200 ${
-                                    active ? "" : `bg-white/[0.025] ${BORDER} hover:bg-white/[0.05] hover:border-white/[0.12]`
+                                  className={`group flex items-center gap-3 ${R_FIELD} px-3 py-2.5 text-sm cursor-pointer ${SELECTABLE_BASE} ${
+                                    active ? "" : SELECTABLE_IDLE
                                   }`}
-                                  style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12`, boxShadow: `0 0 0 3px ${accentColor}1a` } : {}}
+                                  style={active ? selectedSurface(accentColor) : {}}
                                   onClick={() => {
                                     setSelectedAddressId(a.id);
                                     setDeliveryCep(a.cep); setDeliveryStreet(a.street);
@@ -1230,12 +1234,12 @@ const PublicMenu = () => {
                             })}
                             <button
                               type="button"
-                              className={`w-full flex items-center gap-2 ${R_FIELD} border border-dashed px-3 py-2.5 text-sm transition-all duration-200 ${
+                              className={`w-full flex items-center gap-2 ${R_FIELD} border-dashed px-3 py-2.5 text-sm ${SELECTABLE_BASE} ${
                                 selectedAddressId === null
                                   ? ""
-                                  : "border-white/[0.12] text-white/60 hover:text-white hover:border-white/25"
+                                  : `${SELECTABLE_IDLE} text-white/60 hover:text-white`
                               }`}
-                              style={selectedAddressId === null ? { borderColor: accentColor, backgroundColor: `${accentColor}10`, color: accentColor } : {}}
+                              style={selectedAddressId === null ? { ...selectedSurface(accentColor), color: accentColor } : {}}
                               onClick={() => {
                                 setSelectedAddressId(null);
                                 setDeliveryCep(""); setDeliveryStreet(""); setDeliveryNumber("");
@@ -1399,7 +1403,7 @@ const PublicMenu = () => {
                 <form onSubmit={handleCheckout} className="p-4 space-y-4 overflow-y-auto flex-1">
                   <div className="space-y-2">
                     {cart.map((item) => (
-                      <div key={item.cartKey} className="flex justify-between text-sm">
+                      <div key={item.cartKey} className={`flex justify-between gap-3 text-sm px-3 py-2 ${R_FIELD} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}>
                         <span className="text-muted-foreground">{item.quantity}× {item.name}</span>
                         <span className="font-medium">{fmt(item.price * item.quantity)}</span>
                       </div>
@@ -1413,10 +1417,16 @@ const PublicMenu = () => {
                     {appliedCoupon ? (
                       <motion.div
                         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                        className={`flex items-center justify-between p-3 ${R_FIELD} border border-emerald-500/40 bg-emerald-500/10`}>
+                        className={`flex items-center justify-between gap-3 p-3 ${R_FIELD} ${SELECTABLE_BASE}`}
+                        style={selectedSurface("#10b981")}>
 
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={`w-9 h-9 shrink-0 ${R_TILE} flex items-center justify-center border`}
+                            style={selectedTileStyle("#10b981", true)}
+                          >
+                            <Check className="w-4 h-4 text-emerald-400" strokeWidth={ICON_STROKE} />
+                          </span>
                           <div className="min-w-0">
                             <div className="font-mono font-bold text-sm truncate">{appliedCoupon.code}</div>
                             <div className="text-[11px] text-muted-foreground truncate">
