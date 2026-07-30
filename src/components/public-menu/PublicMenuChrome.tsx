@@ -99,27 +99,12 @@ export function RestaurantHero({
             )}
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2">
-                <h1 className="flex-1 font-display text-[19px] sm:text-2xl font-bold tracking-tight leading-[1.1] line-clamp-2">
-                  {name}
-                </h1>
-
-                {ownerPhone && (
-                  <a
-                    href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Falar com o restaurante"
-                    className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${BORDER} transition-transform active:scale-95`}
-                    style={{ backgroundColor: accentFaint(accentColor) }}
-                  >
-                    <Phone className="w-4 h-4" style={{ color: accentColor }} />
-                  </a>
-                )}
-              </div>
+              <h1 className="font-display text-[19px] sm:text-2xl font-bold tracking-tight leading-[1.15] line-clamp-2">
+                {name}
+              </h1>
 
               <span
-                className={`mt-0.5 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                className={`mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-[3px] rounded-full border align-middle ${
                   isOpen
                     ? "text-emerald-300 border-emerald-400/25 bg-emerald-400/10"
                     : "text-red-300 border-red-400/25 bg-red-400/10"
@@ -134,6 +119,20 @@ export function RestaurantHero({
                 {statusLabel}
               </span>
             </div>
+
+            {ownerPhone && (
+              <a
+                href={`https://wa.me/${ownerPhone.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Falar com o restaurante"
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${BORDER} transition-transform active:scale-95`}
+                style={{ backgroundColor: accentFaint(accentColor) }}
+              >
+                <Phone className="w-4 h-4" style={{ color: accentColor }} />
+              </a>
+            )}
+
           </div>
 
           {description && (
