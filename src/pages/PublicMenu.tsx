@@ -807,9 +807,10 @@ const PublicMenu = () => {
             key={cat.id}
             ref={(el) => { categoryRefs.current[cat.id] = el; }}
             data-cat-id={cat.id}
-            className="mb-10 lg:mb-12 scroll-mt-[72px] lg:scroll-mt-6"
+            className="mb-10 lg:mb-12 scroll-mt-[calc(var(--menu-sticky-h,112px)+12px)] lg:scroll-mt-6"
           >
-            <div className="sticky top-[56px] lg:top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-3 pb-2.5 lg:pt-5 lg:pb-3 mb-4 bg-[#080909] border-b border-white/[0.05]">
+            <div className="sticky top-[var(--menu-sticky-h,112px)] lg:top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-3 pb-2.5 lg:pt-5 lg:pb-3 mb-4 bg-[#080909] border-b border-white/[0.05]">
+
               <div className="flex items-baseline gap-3">
                 <h2 className={menuTheme.categoryTitleClass}>{cat.name}</h2>
                 <span className="text-[11.5px] tabular-nums text-[#74746F]">
