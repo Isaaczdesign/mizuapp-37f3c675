@@ -32,7 +32,7 @@ export type MenuTheme = {
 
 /** Base compartilhada: mesmas bordas, sombras e vidro em todos os templates */
 const SURFACE =
-  "bg-card/50 backdrop-blur-xl border border-white/[0.06] shadow-[0_18px_50px_-40px_rgba(0,0,0,0.95)] hover:border-white/[0.14] hover:bg-card/70";
+  "bg-[#141414]/80 backdrop-blur-xl border border-white/[0.06] shadow-[0_22px_60px_-44px_rgba(0,0,0,1)] transition-all duration-300 hover:border-white/[0.14] hover:bg-[#141414] hover:shadow-[0_28px_70px_-40px_rgba(0,0,0,1)] hover:-translate-y-[2px]";
 
 export const MENU_THEMES: MenuTheme[] = [
   {
