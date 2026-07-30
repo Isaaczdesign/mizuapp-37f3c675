@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { broadcastMenuUpdate } from "@/lib/menuRealtime";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,6 +210,9 @@ const Settings = () => {
         const { error } = await supabase.from("settings").insert({ restaurant_id: rid, ...settingsPayload });
         if (error) throw error;
       }
+
+      // avisa o cardápio público em tempo real
+      await broadcastMenuUpdate(rid, "settings");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["restaurant", rid] });

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/AdminLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { broadcastMenuUpdate } from "@/lib/menuRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -124,6 +125,7 @@ export default function Expediente() {
     const { error } = await supabase.from("restaurants").update({ accepting_orders: next }).eq("id", rid);
     if (error) return toast.error("Erro ao atualizar status");
     setRestaurant((r) => (r ? { ...r, accepting_orders: next } : r));
+    await broadcastMenuUpdate(rid, "accepting_orders");
     if (shift) {
       await supabase.from("shift_audit_logs").insert({
         restaurant_id: rid, shift_id: shift.id, user_id: user?.id,

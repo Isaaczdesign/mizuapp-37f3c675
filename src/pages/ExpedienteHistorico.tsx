@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { broadcastMenuUpdate } from "@/lib/menuRealtime";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
@@ -45,6 +46,7 @@ export default function ExpedienteHistorico() {
       restaurant_id: rid, shift_id: s.id, user_id: user?.id, action: "reopened", metadata: { reason },
     });
     await supabase.from("restaurants").update({ accepting_orders: true }).eq("id", rid);
+    await broadcastMenuUpdate(rid, "shift");
     toast.success("Expediente reaberto");
     load();
   }
