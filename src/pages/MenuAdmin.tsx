@@ -262,19 +262,16 @@ function MenuImportTab({ rid }: { rid: string }) {
     };
 
     fetchJob();
+    // Progresso via polling: a tabela de jobs contém dados internos
+    // (URL do arquivo, logs e erros) e por isso não é transmitida via Realtime.
     const interval = setInterval(fetchJob, 3000);
-    const channel = supabase
-      .channel(`import-job-${activeJobId}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "menu_import_jobs", filter: `id=eq.${activeJobId}` },
-        (payload) => apply(payload.new))
-      .subscribe();
 
     return () => {
       stopped = true;
       clearInterval(interval);
-      supabase.removeChannel(channel);
     };
   }, [activeJobId, rid, qc]);
+
 
   const startJob = async (jobId: string) => {
     setParsedResult(null);
