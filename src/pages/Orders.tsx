@@ -586,12 +586,25 @@ const Orders = () => {
                         ))}
                         {order.order_items.length > 3 && <li className="text-muted-foreground">+{order.order_items.length - 3} itens</li>}
                       </ul>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="font-display font-bold text-sm text-primary">R${Number(order.total).toFixed(2)}</span>
-                        <div className="flex gap-1">
-                          <button onClick={() => setSelectedOrder(order)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
+                      <div className="pt-2 mt-1 border-t border-border/60 space-y-2">
+                        <span className="block font-display font-bold text-sm text-primary">R${Number(order.total).toFixed(2)}</span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            title="Ver detalhes"
+                            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+                          >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (order.status as string) !== "delivered" && (
+                            <button
+                              onClick={() => updateStatus(order.id, "canceled")}
+                              title="Cancelar pedido"
+                              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition-colors"
+                            >
+                              <XIcon className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           {isOfflinePayment(order) && !isPaid(order) && order.status !== "canceled" && (
                             <button
                               onClick={() => confirmPayment(order.id)}
@@ -602,14 +615,14 @@ const Orders = () => {
                             </button>
                           )}
                           {next && (
-                            <Button variant="hero" size="sm" className="text-xs h-7" onClick={() => updateStatus(order.id, next)}>
+                            <Button
+                              variant="hero"
+                              size="sm"
+                              className="text-xs h-7 px-3 rounded-lg flex-1 min-w-[84px]"
+                              onClick={() => updateStatus(order.id, next)}
+                            >
                               {getNextLabel(order.status, order.order_type)}
                             </Button>
-                          )}
-                          {canCancel && order.status !== "canceled" && order.status !== "completed" && (order.status as string) !== "delivered" && (
-                            <button onClick={() => updateStatus(order.id, "canceled")} className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition-colors">
-                              <XIcon className="w-3.5 h-3.5" />
-                            </button>
                           )}
                         </div>
                       </div>
