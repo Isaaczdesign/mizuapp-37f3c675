@@ -889,7 +889,7 @@ const PublicMenu = () => {
             role="dialog" aria-modal="true" aria-label="Seu pedido"
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:flex-row lg:justify-end">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowCart(false)} />
+            <div className="fixed inset-0 h-[100lvh] bg-black/70 backdrop-blur-md" onClick={() => setShowCart(false)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
@@ -980,7 +980,7 @@ const PublicMenu = () => {
             role="dialog" aria-modal="true" aria-label="Finalizar pedido"
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setCheckoutStep(0)} />
+            <div className="fixed inset-0 h-[100lvh] bg-black/70 backdrop-blur-md" onClick={() => setCheckoutStep(0)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
