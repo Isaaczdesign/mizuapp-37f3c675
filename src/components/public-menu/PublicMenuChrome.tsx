@@ -189,7 +189,7 @@ function InfoChip({ icon, children }: { icon: React.ReactNode; children: React.R
    BUSCA + CATEGORIAS (sticky, mobile e tablet)
    ════════════════════════════════════════════════════════ */
 export function MenuStickyBar({
-  search, onSearch, categories, activeCategory, onCategory, accentColor,
+  search, onSearch, categories, activeCategory, onCategory, accentColor, className = "",
 }: {
   search: string;
   onSearch: (v: string) => void;
@@ -197,9 +197,11 @@ export function MenuStickyBar({
   activeCategory: string | null;
   onCategory: (id: string) => void;
   accentColor: string;
+  className?: string;
 }) {
   const [focused, setFocused] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!activeCategory || !railRef.current) return;
@@ -207,8 +209,31 @@ export function MenuStickyBar({
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeCategory]);
 
+  // Mede a altura real da barra sticky (busca + categorias) e expõe como CSS var,
+  // para que os cabeçalhos de categoria grudem exatamente abaixo dela.
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    const apply = () => {
+      document.documentElement.style.setProperty(
+        "--menu-sticky-h",
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener("resize", apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", apply);
+      document.documentElement.style.removeProperty("--menu-sticky-h");
+    };
+  }, [categories.length, search]);
+
   return (
-    <div className={`sticky top-0 z-40 mt-5 ${GLASS_SOFT}`}>
+    <div ref={barRef} className={`sticky top-0 z-40 mt-5 ${GLASS_SOFT} ${className}`}>
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-2">
         <div
           className={`relative ${R_CHIP} bg-white/[0.05] transition-shadow duration-150`}

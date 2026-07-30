@@ -27,7 +27,7 @@ export const GLASS =
   SHADOW_FLOAT;
 
 export const GLASS_SOFT =
-  "bg-[#0D0E0E]/80 backdrop-blur-xl backdrop-saturate-150 border-b border-white/[0.06]";
+  "bg-[#080909] supports-[backdrop-filter]:bg-[#080909]/95 backdrop-blur-xl backdrop-saturate-150 border-b border-white/[0.06]";
 
 /** Superfície padrão de card, com interação de hover no desktop */
 export const CARD_SURFACE = `${BG_CARD} ${BORDER} ${SHADOW_CARD} transition-[transform,border-color,background-color,box-shadow] duration-200 ease-out hover:border-white/[0.14] hover:bg-[#171818] lg:hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0`;
