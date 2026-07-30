@@ -66,10 +66,10 @@ export default function MenuSidebar({
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-[15px] font-bold tracking-tight leading-tight line-clamp-2">
+            <h1 className="font-display text-[15px] font-bold tracking-tight leading-[1.1] line-clamp-2">
               {name}
             </h1>
-            <span className={`mt-1 inline-flex items-center gap-1.5 text-[11px] font-semibold ${isOpen ? "text-emerald-300" : "text-red-300"}`}>
+            <span className={`mt-0.5 inline-flex items-center gap-1.5 text-[11px] font-semibold ${isOpen ? "text-emerald-300" : "text-red-300"}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${isOpen ? "bg-emerald-400" : "bg-red-400"}`} />
               {statusLabel}
             </span>
