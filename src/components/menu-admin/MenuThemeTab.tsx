@@ -827,8 +827,9 @@ function DesktopPreview({
         </div>
 
         {/* carrinho lateral */}
-        <aside className="w-52 shrink-0 border-l border-border/60 p-4 flex flex-col">
-          <div className="text-xs font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="w-3.5 h-3.5" style={{ color }} /> Seu pedido</div>
+        <aside className="w-40 shrink-0 border-l border-border/60 p-3 flex flex-col">
+          <div className="text-[11px] font-semibold mb-2 flex items-center gap-1.5"><ShoppingBag className="w-3 h-3" style={{ color }} /> Seu pedido</div>
+
           <div className="flex-1 space-y-2">
             {[0, 1].map((i) => <div key={i} className="h-12 rounded-xl bg-secondary/40" />)}
           </div>
