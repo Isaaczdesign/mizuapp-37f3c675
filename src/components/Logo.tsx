@@ -1,4 +1,4 @@
-import logoFull from "@/assets/mizu-logo-full.png";
+import logoFull from "@/assets/mizu-logo-wordmark.png";
 import logoMark from "@/assets/mizu-logo-mark.png";
 import { cn } from "@/lib/utils";
 
