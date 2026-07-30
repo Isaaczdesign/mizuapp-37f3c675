@@ -62,7 +62,7 @@ const Index = () => {
       <nav className="fixed top-0 w-full z-50 bg-background/70 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <a href="/" aria-label="Mizu — Gestão de Restaurantes" className="flex items-center">
-            <Logo className="h-8" />
+            <Logo className="h-9" />
           </a>
           <div className="flex gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -270,7 +270,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <Logo className="h-7" />
+          <Logo className="h-8" />
           <p>© 2026 Mizu — Gestão de Restaurantes. Todos os direitos reservados.</p>
         </div>
       </footer>

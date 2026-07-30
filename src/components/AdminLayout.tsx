@@ -152,7 +152,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         }`}
       >
         <div className="p-4 border-b border-border flex items-center justify-between gap-2 min-w-[14rem]">
-          <a href="/" aria-label="Mizu"><Logo className="h-7" /></a>
+          <a href="/" aria-label="Mizu"><Logo className="h-8" /></a>
           {collapsible && (
             <button
               onClick={() => setHidden(true)}
@@ -193,7 +193,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           >
             <Menu className="w-5 h-5" />
           </button>
-          <a href="/" aria-label="Mizu"><Logo className="h-6" /></a>
+          <a href="/" aria-label="Mizu"><Logo className="h-7" /></a>
           <div className="w-9" />
         </div>
       )}
@@ -218,7 +218,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           aria-label="Menu de navegação"
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <a href="/" aria-label="Mizu" onClick={() => setMobileOpen(false)}><Logo className="h-7" /></a>
+            <a href="/" aria-label="Mizu" onClick={() => setMobileOpen(false)}><Logo className="h-8" /></a>
             <button
               onClick={() => setMobileOpen(false)}
               className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
