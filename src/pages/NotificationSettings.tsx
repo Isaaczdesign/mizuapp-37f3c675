@@ -104,15 +104,21 @@ export default function NotificationSettings() {
             </div>
             {permission !== "granted" && (
               <Button size="sm" variant="hero" onClick={requestPermission}>
-                Ativar
+                {inIframe ? "Abrir em nova aba" : "Ativar"}
               </Button>
             )}
           </div>
-          {permission === "denied" && (
-            <p className="text-xs text-destructive">
-              As notificações foram bloqueadas. Abra as configurações do site no navegador e permita notificações.
+          {inIframe && permission !== "granted" && (
+            <p className="text-xs text-muted-foreground">
+              Você está vendo o app dentro do editor. O navegador só permite ativar notificações em uma aba própria — clique no botão para abrir o app e ativar por lá.
             </p>
           )}
+          {permission === "denied" && !inIframe && (
+            <p className="text-xs text-destructive">
+              As notificações estão bloqueadas para este site. Clique no cadeado 🔒 ao lado do endereço, escolha "Notificações" → "Permitir" e recarregue a página.
+            </p>
+          )}
+
         </div>
 
         {/* Preferences */}
