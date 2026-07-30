@@ -32,6 +32,24 @@ const Auth = () => {
   const [cooldown, setCooldown] = useState(0);
   const navigate = useNavigate();
 
+  // Se já existe sessão (ex.: retorno do OAuth do Google), encaminha uma única
+  // vez para a rota protegida — o guard decide entre onboarding e dashboard.
+  useEffect(() => {
+    let redirected = false;
+    const go = () => {
+      if (redirected) return;
+      redirected = true;
+      navigate("/dashboard", { replace: true });
+    };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) go();
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) go();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
   // Hydrate cooldown from localStorage so refreshes don't bypass the limit
   useEffect(() => {
     try {
