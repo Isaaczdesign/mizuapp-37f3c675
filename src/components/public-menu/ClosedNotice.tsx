@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock } from "lucide-react";
-import { isOpenNow, nextOpenAt, type OperatingHours } from "@/lib/operatingHours";
+import { isOpenNow, nextOpenAt, DEFAULT_TZ, type OperatingHours } from "@/lib/operatingHours";
 
 type Parts = { days: number; hours: number; minutes: number; seconds: number; total: number };
 
@@ -47,11 +47,13 @@ export function ClosedNotice({
   acceptingOff,
   closedMessage,
   onReopen,
+  timezone = DEFAULT_TZ,
 }: {
   operatingHours: OperatingHours | null | undefined;
   acceptingOff: boolean;
   closedMessage?: string | null;
   onReopen?: () => void;
+  timezone?: string;
 }) {
   const [now, setNow] = useState(() => new Date());
 
@@ -60,12 +62,12 @@ export function ClosedNotice({
     return () => clearInterval(id);
   }, []);
 
-  const outsideHours = !!operatingHours && !isOpenNow(operatingHours, now);
+  const outsideHours = !!operatingHours && !isOpenNow(operatingHours, now, timezone);
   const nextOpen = useMemo(
-    () => (outsideHours ? nextOpenAt(operatingHours, now) : null),
+    () => (outsideHours ? nextOpenAt(operatingHours, now, timezone) : null),
     // recalcula a cada minuto para não recriar o objeto a cada segundo
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [operatingHours, outsideHours, Math.floor(now.getTime() / 60_000)],
+    [operatingHours, outsideHours, timezone, Math.floor(now.getTime() / 60_000)],
   );
 
   // Reabriu enquanto a página estava aberta → avisa o pai para recarregar o estado
@@ -79,7 +81,7 @@ export function ClosedNotice({
   const showDays = !!parts && parts.days > 0;
   const openLabel = nextOpen
     ? nextOpen.toLocaleString("pt-BR", {
-        timeZone: "America/Sao_Paulo",
+        timeZone: timezone,
         weekday: "long",
         hour: "2-digit",
         minute: "2-digit",

@@ -2,26 +2,86 @@ export type OperatingHours = Record<string, { open: string; close: string; close
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
+/** Fuso padrão do restaurante (pode ser sobrescrito por parâmetro). */
+export const DEFAULT_TZ = "America/Sao_Paulo";
+
 const toMin = (s: string) => {
   const [h, m] = (s || "0:0").split(":").map((n) => parseInt(n, 10) || 0);
   return h * 60 + m;
 };
 
-/** Returns true if restaurant is currently open per operating_hours (America/Sao_Paulo). */
-export function isOpenNow(hours: OperatingHours | null | undefined, now: Date = new Date()): boolean {
-  if (!hours || typeof hours !== "object") return true; // no config = always open
-  const fmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Sao_Paulo",
+type ZonedNow = { wd: string; idx: number; minutes: number; year: number; month: number; day: number };
+
+/** Data/hora local ("wall clock") no fuso do restaurante. */
+function zonedNow(now: Date, tz: string): ZonedNow {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
     weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  });
-  const parts = fmt.formatToParts(now);
-  const wd = parts.find((p) => p.type === "weekday")?.value.toLowerCase().slice(0, 3) || "";
-  const hh = parseInt(parts.find((p) => p.type === "hour")?.value || "0", 10);
-  const mm = parseInt(parts.find((p) => p.type === "minute")?.value || "0", 10);
-  const cur = hh * 60 + mm;
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value || "";
+  const wd = get("weekday").toLowerCase().slice(0, 3);
+  const hour = parseInt(get("hour"), 10) % 24; // "24" em alguns runtimes
+  return {
+    wd,
+    idx: DAY_KEYS.indexOf(wd),
+    minutes: hour * 60 + (parseInt(get("minute"), 10) || 0),
+    year: parseInt(get("year"), 10),
+    month: parseInt(get("month"), 10),
+    day: parseInt(get("day"), 10),
+  };
+}
+
+/** Offset (em minutos) do fuso em um instante específico — respeita horário de verão. */
+function tzOffsetMinutes(date: Date, tz: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const get = (t: string) => parseInt(parts.find((p) => p.type === t)?.value || "0", 10);
+  const asUTC = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"), get("second"));
+  return (asUTC - Math.floor(date.getTime() / 1000) * 1000) / 60_000;
+}
+
+/**
+ * Converte um horário local do fuso do restaurante (y/m/d hh:mm) para o instante real (UTC).
+ * DST-safe: resolve o offset iterativamente.
+ */
+function zonedWallClockToUtc(
+  year: number,
+  month: number,
+  day: number,
+  minutesOfDay: number,
+  tz: string,
+): Date {
+  const hour = Math.floor(minutesOfDay / 60);
+  const minute = minutesOfDay % 60;
+  const naive = Date.UTC(year, month - 1, day, hour, minute, 0);
+  let ts = naive - tzOffsetMinutes(new Date(naive), tz) * 60_000;
+  // segunda passada corrige transições de horário de verão
+  ts = naive - tzOffsetMinutes(new Date(ts), tz) * 60_000;
+  return new Date(ts);
+}
+
+/** Returns true if restaurant is currently open per operating_hours (no fuso do restaurante). */
+export function isOpenNow(
+  hours: OperatingHours | null | undefined,
+  now: Date = new Date(),
+  tz: string = DEFAULT_TZ,
+): boolean {
+  if (!hours || typeof hours !== "object") return true; // no config = always open
+  const { wd, idx, minutes: cur } = zonedNow(now, tz);
 
   const check = (key: string) => {
     const d = hours[key];
@@ -35,7 +95,6 @@ export function isOpenNow(hours: OperatingHours | null | undefined, now: Date = 
 
   if (check(wd)) return true;
   // check if previous day's overnight window still applies
-  const idx = DAY_KEYS.indexOf(wd);
   if (idx >= 0) {
     const prev = DAY_KEYS[(idx + 6) % 7];
     const d = hours[prev];
@@ -49,26 +108,19 @@ export function isOpenNow(hours: OperatingHours | null | undefined, now: Date = 
 }
 
 /**
- * Returns the next opening Date (in real time) or null if never/always open.
- * Uses America/Sao_Paulo semantics for the weekly schedule.
+ * Returns the next opening Date (instante real) or null if never/always open.
+ * O horário semanal é interpretado no fuso do restaurante e convertido para UTC
+ * respeitando horário de verão.
  */
-export function nextOpenAt(hours: OperatingHours | null | undefined, now: Date = new Date()): Date | null {
+export function nextOpenAt(
+  hours: OperatingHours | null | undefined,
+  now: Date = new Date(),
+  tz: string = DEFAULT_TZ,
+): Date | null {
   if (!hours || typeof hours !== "object") return null;
-  if (isOpenNow(hours, now)) return null;
+  if (isOpenNow(hours, now, tz)) return null;
 
-  const fmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Sao_Paulo",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = fmt.formatToParts(now);
-  const wd = parts.find((p) => p.type === "weekday")?.value.toLowerCase().slice(0, 3) || "";
-  const hh = parseInt(parts.find((p) => p.type === "hour")?.value || "0", 10);
-  const mm = parseInt(parts.find((p) => p.type === "minute")?.value || "0", 10);
-  const cur = hh * 60 + mm;
-  const idx = DAY_KEYS.indexOf(wd);
+  const { idx, minutes: cur, year, month, day } = zonedNow(now, tz);
   if (idx < 0) return null;
 
   for (let offset = 0; offset < 8; offset++) {
@@ -77,9 +129,10 @@ export function nextOpenAt(hours: OperatingHours | null | undefined, now: Date =
     if (!d || d.closed) continue;
     const o = toMin(d.open);
     if (offset === 0 && cur >= o) continue; // today's opening already passed
-    const diffMin = offset * 24 * 60 + o - cur;
-    if (diffMin <= 0) continue;
-    return new Date(now.getTime() + diffMin * 60_000);
+    // dia-calendário local do restaurante + offset de dias
+    const target = zonedWallClockToUtc(year, month, day + offset, o, tz);
+    if (target.getTime() <= now.getTime()) continue;
+    return target;
   }
   return null;
 }
