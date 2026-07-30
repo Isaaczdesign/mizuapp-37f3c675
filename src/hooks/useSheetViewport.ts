@@ -61,6 +61,11 @@ export function useVisualViewport() {
 
 
 let lockCount = 0;
+/** Há algum overlay travando o scroll do body? */
+function isBodyLocked() {
+  return lockCount > 0;
+}
+
 let savedScrollY = 0;
 let savedStyles: Partial<CSSStyleDeclaration> | null = null;
 
