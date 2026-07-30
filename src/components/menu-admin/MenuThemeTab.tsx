@@ -510,11 +510,12 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
 }
 
 function TemplateCard({
-  theme, index, color, items, active, recommended, loading, onSelect,
+  theme, index, color, items, active, recommended, loading, onSelect, device = "mobile",
 }: {
   theme: MenuTheme; index: number; color: string; items: MenuCardItem[];
-  active: boolean; recommended: boolean; loading: boolean; onSelect: () => void;
+  active: boolean; recommended: boolean; loading: boolean; onSelect: () => void; device?: MenuDevice;
 }) {
+
   return (
     <motion.button
       type="button"
