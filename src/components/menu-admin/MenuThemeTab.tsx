@@ -510,6 +510,46 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
         </div>
       </div>
 
+      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
+        <DialogContent className="max-w-[96vw] w-[96vw] sm:max-w-[96vw] p-4 md:p-6 overflow-y-auto max-h-[94vh]">
+          <DialogHeader>
+            <DialogTitle className="text-sm">
+              Prévia ao vivo · {device === "mobile" ? "Celular" : "Computador"} · {theme.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className={device === "mobile" ? "mx-auto max-w-[380px]" : "w-full"}>
+            {device === "mobile" ? (
+              <PhoneFrame>
+                <PhonePreview
+                  theme={theme}
+                  color={color}
+                  items={items}
+                  restaurantName={restaurantName}
+                  logoUrl={logoPreview}
+                  bannerUrl={bannerPreview}
+                  description={description}
+                  loading={!ready}
+                />
+              </PhoneFrame>
+            ) : (
+              <DesktopFrame>
+                <DesktopPreview
+                  theme={theme}
+                  color={color}
+                  items={items}
+                  restaurantName={restaurantName}
+                  logoUrl={logoPreview}
+                  bannerUrl={bannerPreview}
+                  description={description}
+                  loading={!ready}
+                />
+              </DesktopFrame>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
     </div>
   );
 }
