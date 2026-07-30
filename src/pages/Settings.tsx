@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Save, Upload, Crown, User, Globe, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -246,8 +247,8 @@ const Settings = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-2xl">
-        <h1 className="font-display text-2xl md:text-3xl font-bold mb-6">⚙️ <span className="gradient-text">Configurações</span></h1>
+      <PageShell className="max-w-2xl">
+        <PageHeader emoji="⚙️" title="Configurações" subtitle="Identidade, horários, pagamentos e integrações do restaurante." />
 
         <div className="space-y-8">
           {/* Plan Status */}
@@ -615,7 +616,7 @@ const Settings = () => {
             {saveMutation.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
         </div>
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 };

@@ -11,6 +11,7 @@ import { Download, FileText, RefreshCw, ListOrdered, ArrowLeft } from "lucide-re
 import { fmtBRL, PAYMENT_LABEL, type ShiftRow } from "@/lib/shiftUtils";
 import { generateShiftReportPDF } from "@/lib/shiftReport";
 import { toast } from "sonner";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 export default function ExpedienteHistorico() {
   const { profile, user, roles } = useAuth();
@@ -69,11 +70,11 @@ export default function ExpedienteHistorico() {
 
   return (
     <AdminLayout>
-      <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4">
-        <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
+      <PageShell className="max-w-5xl">
+        <Button variant="ghost" size="sm" asChild className="w-fit -ml-2 rounded-xl">
           <Link to="/expediente"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link>
         </Button>
-        <h1 className="font-display text-2xl md:text-3xl font-bold">📚 <span className="gradient-text">Histórico de expedientes</span></h1>
+        <PageHeader emoji="📚" title="Histórico de expedientes" subtitle="Consulte fechamentos anteriores e seus resultados." />
 
         <div className="glass-card overflow-x-auto">
           <table className="w-full text-sm">

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Zap, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 const TRIGGERS = [
   { value: "post_purchase_d1", label: "Pós-compra (D+1)", desc: "Enviado 1 dia após a compra" },
@@ -87,13 +88,17 @@ const Automations = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-3xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold">⚡ <span className="gradient-text">Automações</span></h1>
-          <Button size="sm" onClick={() => setShowForm(!showForm)}>
-            <Plus className="w-4 h-4 mr-1" /> Nova Regra
-          </Button>
-        </div>
+      <PageShell className="max-w-3xl">
+        <PageHeader
+          emoji="⚡"
+          title="Automações"
+          subtitle="Mensagens automáticas de pós-venda e reativação via WhatsApp."
+          actions={
+            <Button size="sm" className="rounded-xl" onClick={() => setShowForm(!showForm)}>
+              <Plus className="w-4 h-4 mr-1" /> Nova Regra
+            </Button>
+          }
+        />
 
         {showForm && (
           <div className="glass-card p-6 mb-6 space-y-4">
@@ -194,7 +199,7 @@ const Automations = () => {
             </div>
           )}
         </div>
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 };
