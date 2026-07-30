@@ -89,14 +89,10 @@ const Settings = () => {
   useEffect(() => {
     if (restaurant) {
       setName(restaurant.name);
-      setLogoPreview(restaurant.logo_url);
       setOwnerName((restaurant as any).owner_name ?? "");
       setOwnerPhone((restaurant as any).owner_phone ?? "");
       setOwnerEmail((restaurant as any).owner_email ?? "");
-      setPrimaryColor((restaurant as any).primary_color ?? "#E84310");
-      setBannerPreview((restaurant as any).banner_url ?? null);
-      setDescription((restaurant as any).description ?? "");
-      setPickupNote((restaurant as any).pickup_dine_in_note ?? "");
+
       const pm = (restaurant as any).payment_methods;
       if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
       setDineInEnabled(((restaurant as any).dine_in_enabled ?? true) as boolean);
