@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Calendar as CalIcon } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 const Agenda = () => {
   const { profile } = useAuth();
@@ -74,9 +75,9 @@ const Agenda = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold">📅 <span className="gradient-text">Agenda</span></h1>
+      <PageShell className="max-w-4xl">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <PageHeader emoji="📅" title="Agenda" subtitle="Compromissos, reservas e lembretes do restaurante." />
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Novo Compromisso</Button>
@@ -145,7 +146,7 @@ const Agenda = () => {
             )}
           </div>
         </div>
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 };
