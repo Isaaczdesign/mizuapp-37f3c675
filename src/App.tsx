@@ -52,6 +52,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <MotionConfig reducedMotion="user">
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -84,6 +85,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </MotionConfig>
   </QueryClientProvider>
 );
 
