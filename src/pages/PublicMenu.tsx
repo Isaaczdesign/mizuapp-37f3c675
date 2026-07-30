@@ -111,8 +111,9 @@ const PublicMenu = () => {
   const [search, setSearch] = useState("");
   const [showCart, setShowCart] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(0); // 0=closed, 1=tipo, 2=infos, 3=pagamento, 4=revisão
-  const [, setClockTick] = useState(0);
-  useEffect(() => { const t = setInterval(() => setClockTick((n) => n + 1), 60_000); return () => clearInterval(t); }, []);
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setClockTick((n) => n + 1), 30_000); return () => clearInterval(t); }, []);
+
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
