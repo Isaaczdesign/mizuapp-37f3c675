@@ -245,13 +245,40 @@ export function useKeyboardFocusScroll(active: boolean) {
     const timers: number[] = [];
 
     const isField = (el: Element | null): el is HTMLElement =>
-      !!el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+      !!el &&
+      (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) ||
+        (el as HTMLElement).isContentEditable === true);
 
     const reveal = (smooth = true) => {
       if (!focused || !document.contains(focused)) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => revealFieldInScroller(focused, smooth));
     };
+
+    // Reposiciona quando o campo focado muda de tamanho (textarea auto-resize,
+    // mensagens de erro/animações que empurram o layout dentro do sheet).
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => reveal(false))
+        : null;
+
+    const observeFocused = () => {
+      if (!ro) return;
+      ro.disconnect();
+      if (focused) ro.observe(focused);
+    };
+
+    // Digitação/navegação com o caret: mantém o cursor visível em qualquer campo.
+    const onFieldActivity = (e: Event) => {
+      if (!isField(e.target as Element)) return;
+      focused = e.target as HTMLElement;
+      reveal(false);
+    };
+
+    // Ao final das transições/animações do sheet o campo pode ter se movido.
+    const onMotionEnd = () => reveal(false);
+
+
 
 
     const onFocusIn = (e: FocusEvent) => {
