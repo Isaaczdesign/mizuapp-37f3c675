@@ -228,9 +228,9 @@ function ThemeWireframe({ id, color }: { id: MenuThemeId; color: string }) {
   }
   if (id === "vibrant") {
     return (
-      <div className="h-24 rounded-xl bg-secondary/40 p-2 space-y-2">
+      <div className="h-28 rounded-xl bg-secondary/40 p-3 space-y-3">
         {[0, 1].map((i) => (
-          <div key={i} className="flex items-center gap-2 p-1.5 rounded-2xl border-2" style={{ borderColor: color + "66", backgroundColor: color + "14" }}>
+          <div key={i} className="flex items-center gap-3 p-2 rounded-2xl border-2" style={{ borderColor: color + "66", backgroundColor: color + "14" }}>
             <div className="flex-1 space-y-1">{bar("60%")}<div className="h-3 w-10 rounded-full" style={{ backgroundColor: color }} /></div>
             <div className="w-8 h-8 rounded-xl bg-muted-foreground/25" />
           </div>
