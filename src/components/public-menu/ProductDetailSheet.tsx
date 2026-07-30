@@ -194,18 +194,23 @@ export default function ProductDetailSheet({
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: D_MICRO }}
+    <div
       style={sheetViewport}
       className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-title"
     >
-      <div className="bg-black/70 backdrop-blur-md" style={sheetViewport} onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: D_MICRO }}
+        className="bg-black/60"
+        style={{ ...sheetViewport, backdropFilter: "blur(18px) saturate(120%)", WebkitBackdropFilter: "blur(18px) saturate(120%)" }}
+        onClick={onClose}
+      />
+
 
       <motion.div
         initial={{ y: "100%", opacity: 1 }}
