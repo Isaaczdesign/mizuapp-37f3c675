@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useLayoutEffect, useRef } from "react";
-import { revealFieldInScroller } from "@/hooks/useSheetViewport";
+import { revealFieldInScroller, prefersReducedMotion } from "@/hooks/useSheetViewport";
 
 type Props = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   minRowsHeight?: number;
@@ -34,7 +34,7 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, Props>(
 
     const ensureVisible = useCallback((smooth = true) => {
       // Rola apenas o container do sheet (nunca a página) para evitar "pulos".
-      revealFieldInScroller(innerRef.current, smooth);
+      revealFieldInScroller(innerRef.current, smooth && !prefersReducedMotion());
     }, []);
 
 
@@ -60,7 +60,16 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, Props>(
         }}
         onFocus={(e) => {
           resize();
+          // As transições do sheet podem mover o campo depois do foco:
+          // reposicionamos em alguns momentos, sem roubar o foco.
+          requestAnimationFrame(() => ensureVisible(false));
+          [140, 340].forEach((ms) => window.setTimeout(() => ensureVisible(false), ms));
           onFocus?.(e);
+        }}
+        onKeyUp={(e) => {
+          // Mantém o cursor visível ao navegar/escrever em textos longos.
+          ensureVisible(false);
+          rest.onKeyUp?.(e);
         }}
       />
     );

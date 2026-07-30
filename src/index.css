@@ -130,3 +130,20 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Acessibilidade: usuários com "reduzir animações" (iOS/Android/desktop).
+   Transições do formulário/sheets ficam instantâneas — sem sensação de salto. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html:focus-within {
+    scroll-behavior: auto !important;
+  }
+}

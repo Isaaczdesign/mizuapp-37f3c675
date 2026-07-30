@@ -170,6 +170,24 @@ function closestScroller(el: HTMLElement | null): HTMLElement | null {
  * `scrollIntoView` (que rola ancestrais/página e causa o "pulo").
  * Só rola quando o campo está realmente fora da área visível.
  */
+/** Usuário pediu "reduzir animações" no sistema operacional. */
+export function prefersReducedMotion() {
+  return typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Hook reativo para `prefers-reduced-motion`. */
+export function useReducedMotionPreference() {
+  const [reduced, setReduced] = useState(prefersReducedMotion);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return reduced;
+}
+
 export function revealFieldInScroller(el: HTMLElement | null, smooth = true) {
   if (!el || !document.contains(el)) return;
   const scroller = closestScroller(el);
@@ -193,7 +211,9 @@ export function revealFieldInScroller(el: HTMLElement | null, smooth = true) {
 
   if (Math.abs(delta) < 2) return;
 
-  scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: smooth ? "smooth" : "auto" });
+  // Com "reduzir animações" o reposicionamento é instantâneo (sem sensação de salto).
+  const behavior: ScrollBehavior = smooth && !prefersReducedMotion() ? "smooth" : "auto";
+  scroller.scrollTo({ top: scroller.scrollTop + delta, behavior });
 }
 
 /**
@@ -226,7 +246,30 @@ export function useKeyboardFocusScroll(active: boolean) {
       // Espera o teclado terminar de abrir antes de reposicionar.
       [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(), ms)));
     };
-    const onFocusOut = () => { focused = null; };
+    // Durante as transições do sheet o elemento focado pode perder o foco
+    // (re-render/animação). Se nenhum outro campo assumiu, devolvemos o foco.
+    const onFocusOut = (e: FocusEvent) => {
+      const prev = e.target as HTMLElement | null;
+      timers.push(
+        window.setTimeout(() => {
+          const active = document.activeElement;
+          if (isField(active)) return; // outro campo assumiu o foco
+          if (active && active !== document.body) return; // botão/link recebeu o foco
+          if (prev && isField(prev) && document.contains(prev)) {
+            const start = (prev as HTMLTextAreaElement).selectionStart;
+            const end = (prev as HTMLTextAreaElement).selectionEnd;
+            prev.focus({ preventScroll: true });
+            if (typeof start === "number" && typeof end === "number") {
+              try { (prev as HTMLTextAreaElement).setSelectionRange(start, end); } catch { /* noop */ }
+            }
+            focused = prev;
+            reveal(false);
+            return;
+          }
+          focused = null;
+        }, 0),
+      );
+    };
     const onViewportChange = () => reveal(false);
 
     document.addEventListener("focusin", onFocusIn);

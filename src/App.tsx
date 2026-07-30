@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { MotionConfig } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Onboarding from "@/components/Onboarding";
 import Index from "./pages/Index";
@@ -51,6 +52,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <MotionConfig reducedMotion="user">
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -83,6 +85,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </MotionConfig>
   </QueryClientProvider>
 );
 
