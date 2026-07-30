@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { broadcastMenuUpdate } from "@/lib/menuRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Check, ExternalLink, Palette, Sparkles, Smartphone, Search, ShoppingBag } from "lucide-react";
+import { Check, ExternalLink, Palette, Sparkles, Smartphone, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
 import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme } from "@/lib/menuThemes";
 import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
 
@@ -33,31 +36,108 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
   const [color, setColor] = useState(currentColor || "#E84310");
   const [ready, setReady] = useState(false);
 
+  // ——— Identidade visual do cardápio público ———
+  const { data: identity } = useQuery({
+    queryKey: ["menu-identity", restaurantId],
+    enabled: !!restaurantId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("restaurants")
+        .select("logo_url, banner_url, description, pickup_dine_in_note")
+        .eq("id", restaurantId!)
+        .single();
+      return data;
+    },
+  });
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoRemoved, setLogoRemoved] = useState(false);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [bannerRemoved, setBannerRemoved] = useState(false);
+  const [description, setDescription] = useState("");
+  const [pickupNote, setPickupNote] = useState("");
+
+  useEffect(() => {
+    if (!identity) return;
+    setLogoPreview((identity as any).logo_url ?? null);
+    setBannerPreview((identity as any).banner_url ?? null);
+    setDescription((identity as any).description ?? "");
+    setPickupNote((identity as any).pickup_dine_in_note ?? "");
+    setLogoFile(null); setBannerFile(null); setLogoRemoved(false); setBannerRemoved(false);
+  }, [identity]);
+
   useEffect(() => { setThemeId(resolveMenuTheme(currentTheme).id); }, [currentTheme]);
   useEffect(() => { setColor(currentColor || "#E84310"); }, [currentColor]);
   useEffect(() => { const t = setTimeout(() => setReady(true), 350); return () => clearTimeout(t); }, []);
 
   const theme = useMemo(() => resolveMenuTheme(themeId), [themeId]);
   const items = previewItems && previewItems.length > 0 ? previewItems.slice(0, 3) : FALLBACK_ITEMS;
-  const dirty = themeId !== resolveMenuTheme(currentTheme).id || color !== (currentColor || "#E84310");
+  const identityDirty =
+    !!logoFile || !!bannerFile || logoRemoved || bannerRemoved ||
+    description !== (((identity as any)?.description ?? "")) ||
+    pickupNote !== (((identity as any)?.pickup_dine_in_note ?? ""));
+  const dirty =
+    themeId !== resolveMenuTheme(currentTheme).id ||
+    color !== (currentColor || "#E84310") ||
+    identityDirty;
+
+  const pickLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setLogoFile(file); setLogoRemoved(false); setLogoPreview(URL.createObjectURL(file)); }
+    e.target.value = "";
+  };
+  const pickBanner = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setBannerFile(file); setBannerRemoved(false); setBannerPreview(URL.createObjectURL(file)); }
+    e.target.value = "";
+  };
 
   const save = useMutation({
     mutationFn: async () => {
       if (!restaurantId) throw new Error("Restaurante não encontrado");
+
+      const uploadViaEdge = async (file: File, kind: "logo" | "banner") => {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("kind", kind);
+        const { data, error } = await supabase.functions.invoke("upload-restaurant-image", { body: fd });
+        if (error) throw new Error(`Falha ao enviar ${kind}: ${error.message}`);
+        if (!data?.url) throw new Error(`Falha ao enviar ${kind}`);
+        return data.url as string;
+      };
+
+      let logo_url = logoRemoved ? null : ((identity as any)?.logo_url ?? null);
+      let banner_url = bannerRemoved ? null : ((identity as any)?.banner_url ?? null);
+      if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
+      if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
+
       const { error } = await supabase
         .from("restaurants")
-        .update({ menu_theme: themeId, primary_color: color })
+        .update({
+          menu_theme: themeId,
+          primary_color: color,
+          logo_url,
+          banner_url,
+          description: description.trim() || null,
+          pickup_dine_in_note: pickupNote.trim() || null,
+        })
         .eq("id", restaurantId);
       if (error) throw error;
+
+      await broadcastMenuUpdate(restaurantId, "settings");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["restaurant"] });
+      queryClient.invalidateQueries({ queryKey: ["menu-identity", restaurantId] });
       queryClient.invalidateQueries({ queryKey: ["menu-restaurant"] });
       queryClient.invalidateQueries({ queryKey: ["settings-restaurant"] });
-      toast.success("Layout do cardápio atualizado!");
+      toast.success("Personalização do cardápio atualizada!");
     },
     onError: (e: any) => toast.error(e.message || "Não foi possível salvar"),
   });
+
 
   return (
     <div className="grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start">
