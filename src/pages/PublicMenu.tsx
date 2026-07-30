@@ -1004,7 +1004,7 @@ const PublicMenu = () => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
               ref={checkoutTrapRef}
-              className={`${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[92%]"} lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl lg:max-h-[86%] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
+              className={`transition-[max-height,height,margin,border-radius] duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[92%]"} lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl lg:max-h-[86%] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
