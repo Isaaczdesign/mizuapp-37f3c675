@@ -1021,49 +1021,20 @@ const PublicMenu = () => {
                       desc: `Entrega em casa${restaurant.delivery_fee ? ` · Taxa ${fmt(Number(restaurant.delivery_fee))}` : ""}`,
                     },
                   ].filter(Boolean) as Array<{ key: "dine_in" | "pickup" | "delivery"; icon: typeof Truck; title: string; desc: string }>).map(
-                    (opt) => {
-                      const selected = orderType === opt.key;
-                      const Icon = opt.icon;
-                      return (
-                        <button
-                          key={opt.key}
-                          onClick={() => { setOrderType(opt.key); setCheckoutStep(2); }}
-                          className={`group w-full flex items-center gap-3.5 p-3.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99] ${
-                            selected
-                              ? ""
-                              : "border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.12]"
-                          }`}
-                          style={
-                            selected
-                              ? {
-                                  borderColor: accentColor,
-                                  backgroundColor: accentColor + "12",
-                                  boxShadow: `0 0 0 3px ${accentColor}1a`,
-                                }
-                              : {}
-                          }
-                        >
-                          <span
-                            className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center border transition-colors"
-                            style={{
-                              backgroundColor: selected ? accentColor + "1f" : "rgba(255,255,255,0.04)",
-                              borderColor: selected ? accentColor + "4d" : "rgba(255,255,255,0.07)",
-                            }}
-                          >
-                            <Icon className="w-5 h-5" style={{ color: selected ? accentColor : "rgba(255,255,255,0.65)" }} strokeWidth={1.75} />
-                          </span>
-                          <span className="flex-1 min-w-0">
-                            <span className="block font-semibold text-sm text-white">{opt.title}</span>
-                            <span className="block text-xs text-white/45 mt-0.5">{opt.desc}</span>
-                          </span>
-                          <ChevronRight
-                            className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-0.5"
-                            style={{ color: selected ? accentColor : "rgba(255,255,255,0.3)" }}
-                          />
-                        </button>
-                      );
-                    },
+                    (opt) => (
+                      <OptionCard
+                        key={opt.key}
+                        icon={opt.icon}
+                        title={opt.title}
+                        desc={opt.desc}
+                        selected={orderType === opt.key}
+                        accentColor={accentColor}
+                        trailing="chevron"
+                        onClick={() => { setOrderType(opt.key); setCheckoutStep(2); }}
+                      />
+                    ),
                   )}
+
                   {!restaurant.dine_in_enabled && !restaurant.pickup_enabled && !restaurant.delivery_enabled && (
                     <p className="text-sm text-white/45 text-center py-4">Nenhum tipo de atendimento disponível.</p>
                   )}
