@@ -1299,33 +1299,31 @@ const PublicMenu = () => {
                     const pm = restaurant.payment_methods;
                     const mpOn = Boolean((restaurant as any).mp_enabled);
                     const canUseOnlinePayment = grandTotal >= onlinePaymentMinAmount;
-                    const available: { key: string; label: string; hint?: string }[] = [];
+                    const available: { key: string; label: string; hint?: string; icon: typeof CreditCard }[] = [];
                     const enabled = (k: string) =>
                       Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
-                    if (enabled("pix")) available.push({ key: "pix", label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
-                    if (mpOn) available.push({ key: "credit_card_online", label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
+                    if (enabled("pix")) available.push({ key: "pix", icon: QrCode, label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
+                    if (mpOn) available.push({ key: "credit_card_online", icon: CreditCard, label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
                     const isDelivery = orderType === "delivery";
-                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", label: isDelivery ? "Pagar na entrega" : "Cartão de Crédito (no local)", hint: isDelivery ? "Cartão na maquininha do entregador" : undefined });
-                    if (enabled("debit_card")) available.push({ key: "debit_card", label: isDelivery ? "Cartão de Débito (na entrega)" : "Cartão de Débito (no local)" });
-                    if (enabled("cash")) available.push({ key: "cash", label: "Dinheiro" });
+                    if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", icon: CreditCard, label: isDelivery ? "Pagar na entrega" : "Cartão de Crédito (no local)", hint: isDelivery ? "Cartão na maquininha do entregador" : undefined });
+                    if (enabled("debit_card")) available.push({ key: "debit_card", icon: CreditCard, label: isDelivery ? "Cartão de Débito (na entrega)" : "Cartão de Débito (no local)" });
+                    if (enabled("cash")) available.push({ key: "cash", icon: Banknote, label: "Dinheiro" });
                     if (available.length === 0) {
-                      available.push({ key: "pix", label: "PIX" }, { key: "cash", label: "Dinheiro" });
+                      available.push({ key: "pix", icon: QrCode, label: "PIX" }, { key: "cash", icon: Banknote, label: "Dinheiro" });
                     }
                     return available.map((p) => (
-                      <button key={p.key} type="button"
+                      <OptionCard
+                        key={p.key}
+                        icon={p.icon}
+                        title={p.label}
+                        desc={p.hint}
+                        selected={paymentMethod === p.key}
+                        accentColor={accentColor}
+                        trailing="check"
                         onClick={() => setPaymentMethod(p.key)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                          paymentMethod === p.key ? "" : "border-white/[0.08] bg-white/[0.03]"
-                        }`}
-                        style={paymentMethod === p.key ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
-                      >
-                        <CreditCard className="w-4 h-4" style={{ color: accentColor }} />
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-medium">{p.label}</p>
-                          {p.hint && <p className="text-[10px] text-muted-foreground">{p.hint}</p>}
-                        </div>
-                      </button>
+                      />
                     ));
+
                   })()}
 
                   {paymentMethod === "cash" && (
