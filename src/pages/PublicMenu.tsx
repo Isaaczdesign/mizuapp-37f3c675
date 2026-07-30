@@ -34,6 +34,7 @@ import {
   SHEET_PAD,
 } from "@/components/public-menu/menuTokens";
 import { useSheetViewport, useKeyboardFocusScroll } from "@/hooks/useSheetViewport";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 
 
@@ -113,6 +114,10 @@ const PublicMenu = () => {
   const [loading, setLoading] = useState(true);
   const sheetViewport = useSheetViewport(showCart || checkoutStep > 0);
   useKeyboardFocusScroll(showCart || checkoutStep > 0);
+  const closeCheckout = useCallback(() => setCheckoutStep(0), []);
+  const closeCart = useCallback(() => setShowCart(false), []);
+  const checkoutTrapRef = useFocusTrap<HTMLDivElement>(checkoutStep > 0, closeCheckout);
+  const cartTrapRef = useFocusTrap<HTMLDivElement>(showCart, closeCart);
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<null | { token: string }>(null);
   const [operatingHours, setOperatingHours] = useState<any>(null);
@@ -898,6 +903,7 @@ const PublicMenu = () => {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              ref={cartTrapRef}
               className="mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none max-h-[88%] lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
@@ -993,6 +999,7 @@ const PublicMenu = () => {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              ref={checkoutTrapRef}
               className="mt-auto lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl max-h-[92%] lg:max-h-[86%] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
