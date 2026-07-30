@@ -700,12 +700,15 @@ const MenuAdmin = () => {
 
   const { data: items } = useQuery({
     queryKey: ["menu-items", rid, selectedCat],
-    enabled: !!rid && !!selectedCat,
+    enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", rid!).eq("category_id", selectedCat!).order("sort_order");
+      let q = supabase.from("menu_items").select("*").eq("restaurant_id", rid!);
+      if (selectedCat) q = q.eq("category_id", selectedCat);
+      const { data } = await q.order("sort_order");
       return data ?? [];
     },
   });
+
 
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: string; sort_order: number; table: "menu_categories" | "menu_items" }[]) => {
