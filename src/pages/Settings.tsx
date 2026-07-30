@@ -7,10 +7,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Upload, Crown, User, Globe, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
+import { Save, Crown, User, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
@@ -40,14 +40,8 @@ const Settings = () => {
   const [ownerName, setOwnerName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
-  const [primaryColor, setPrimaryColor] = useState("#E84310");
-  const [description, setDescription] = useState("");
-  const [pickupNote, setPickupNote] = useState("");
+
   const [whatsappProvider, setWhatsappProvider] = useState("");
   const [whatsappApiKey, setWhatsappApiKey] = useState("");
   const [whatsappSenderId, setWhatsappSenderId] = useState("");
@@ -95,14 +89,10 @@ const Settings = () => {
   useEffect(() => {
     if (restaurant) {
       setName(restaurant.name);
-      setLogoPreview(restaurant.logo_url);
       setOwnerName((restaurant as any).owner_name ?? "");
       setOwnerPhone((restaurant as any).owner_phone ?? "");
       setOwnerEmail((restaurant as any).owner_email ?? "");
-      setPrimaryColor((restaurant as any).primary_color ?? "#E84310");
-      setBannerPreview((restaurant as any).banner_url ?? null);
-      setDescription((restaurant as any).description ?? "");
-      setPickupNote((restaurant as any).pickup_dine_in_note ?? "");
+
       const pm = (restaurant as any).payment_methods;
       if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
       setDineInEnabled(((restaurant as any).dine_in_enabled ?? true) as boolean);
@@ -155,21 +145,6 @@ const Settings = () => {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!rid) throw new Error("Restaurante não encontrado");
-      let logo_url = restaurant?.logo_url ?? null;
-      let banner_url = (restaurant as any)?.banner_url ?? null;
-
-      const uploadViaEdge = async (file: File, kind: "logo" | "banner") => {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("kind", kind);
-        const { data, error } = await supabase.functions.invoke("upload-restaurant-image", { body: fd });
-        if (error) throw new Error(`Falha ao enviar ${kind}: ${error.message}`);
-        if (!data?.url) throw new Error(`Falha ao enviar ${kind}`);
-        return data.url as string;
-      };
-
-      if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
-      if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
 
       // Validate slug before saving
       const cleanedSlug = slug.trim().toLowerCase();
@@ -179,9 +154,9 @@ const Settings = () => {
       }
 
       const payload: any = {
-        name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
-        primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
+        name, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
         payment_methods: paymentMethods,
+
         dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
         delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
         address: address || null,
@@ -222,15 +197,8 @@ const Settings = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-  };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) { setBannerFile(file); setBannerPreview(URL.createObjectURL(file)); }
-  };
+
 
   const updateHour = (day: string, field: "open" | "close", value: string) => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
@@ -252,7 +220,7 @@ const Settings = () => {
   return (
     <AdminLayout>
       <PageShell className="max-w-2xl">
-        <PageHeader emoji="⚙️" title="Configurações" subtitle="Identidade, horários, pagamentos e integrações do restaurante." />
+        <PageHeader emoji="⚙️" title="Configurações" subtitle="Dados do restaurante, horários, pagamentos e integrações." />
 
         <div className="space-y-8">
           {/* Plan Status */}
@@ -333,54 +301,20 @@ const Settings = () => {
                 Este é o endereço do seu cardápio. Escolha algo curto e memorável (ex: <span className="font-mono">sushi-do-isaac</span>).
               </p>
             </div>
-            <div>
-              <Label>Logomarca</Label>
-              <div className="flex items-center gap-4 mt-2">
-                {logoPreview && <img src={logoPreview} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-border" />}
-                <label className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors">
-                    <Upload className="w-4 h-4" /> Enviar logo
-                  </div>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                </label>
+            <div className="rounded-xl border border-border bg-secondary/30 p-4 flex items-start gap-3">
+              <Palette className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Personalização do cardápio público</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Logo, banner, descrição, cor principal e templates agora ficam em Cardápio → Personalizar.
+                </p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/menu-admin")}>
+                  Ir para Personalizar
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Public Page customization */}
-          <div className="glass-card p-6 space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <Globe className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Página Pública</h2>
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" rows={2} placeholder="Descrição do seu restaurante..." />
-            </div>
-            <div>
-              <Label>Nota de Retirada / Dine-in</Label>
-              <Input value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} className="mt-1" placeholder="Ex: Disponível para retirada e consumo no local" />
-            </div>
-            <div>
-              <Label className="flex items-center gap-2"><Palette className="w-4 h-4" /> Cor Principal</Label>
-              <div className="flex items-center gap-3 mt-1">
-                <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
-                <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-28 font-mono text-sm" />
-              </div>
-            </div>
-            <div>
-              <Label>Banner (Imagem de Capa)</Label>
-              <div className="mt-2">
-                {bannerPreview && <img src={bannerPreview} alt="Banner" className="w-full h-32 rounded-xl object-cover border border-border mb-2" />}
-                <label className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors w-fit">
-                    <Upload className="w-4 h-4" /> Enviar banner
-                  </div>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
-                </label>
-              </div>
-            </div>
-          </div>
 
           {/* Operating hours */}
           <div className="glass-card p-6 space-y-4">

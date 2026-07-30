@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { broadcastMenuUpdate } from "@/lib/menuRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Check, ExternalLink, Palette, Sparkles, Smartphone, Search, ShoppingBag } from "lucide-react";
+import { Check, ExternalLink, Palette, Sparkles, Smartphone, Search, ShoppingBag, Upload, ImageIcon, Trash2 } from "lucide-react";
 import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme } from "@/lib/menuThemes";
 import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
 
@@ -33,37 +36,194 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
   const [color, setColor] = useState(currentColor || "#E84310");
   const [ready, setReady] = useState(false);
 
+  // ——— Identidade visual do cardápio público ———
+  const { data: identity } = useQuery({
+    queryKey: ["menu-identity", restaurantId],
+    enabled: !!restaurantId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("restaurants")
+        .select("logo_url, banner_url, description, pickup_dine_in_note")
+        .eq("id", restaurantId!)
+        .single();
+      return data;
+    },
+  });
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoRemoved, setLogoRemoved] = useState(false);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [bannerRemoved, setBannerRemoved] = useState(false);
+  const [description, setDescription] = useState("");
+  const [pickupNote, setPickupNote] = useState("");
+
+  useEffect(() => {
+    if (!identity) return;
+    setLogoPreview((identity as any).logo_url ?? null);
+    setBannerPreview((identity as any).banner_url ?? null);
+    setDescription((identity as any).description ?? "");
+    setPickupNote((identity as any).pickup_dine_in_note ?? "");
+    setLogoFile(null); setBannerFile(null); setLogoRemoved(false); setBannerRemoved(false);
+  }, [identity]);
+
   useEffect(() => { setThemeId(resolveMenuTheme(currentTheme).id); }, [currentTheme]);
   useEffect(() => { setColor(currentColor || "#E84310"); }, [currentColor]);
   useEffect(() => { const t = setTimeout(() => setReady(true), 350); return () => clearTimeout(t); }, []);
 
   const theme = useMemo(() => resolveMenuTheme(themeId), [themeId]);
   const items = previewItems && previewItems.length > 0 ? previewItems.slice(0, 3) : FALLBACK_ITEMS;
-  const dirty = themeId !== resolveMenuTheme(currentTheme).id || color !== (currentColor || "#E84310");
+  const identityDirty =
+    !!logoFile || !!bannerFile || logoRemoved || bannerRemoved ||
+    description !== (((identity as any)?.description ?? "")) ||
+    pickupNote !== (((identity as any)?.pickup_dine_in_note ?? ""));
+  const dirty =
+    themeId !== resolveMenuTheme(currentTheme).id ||
+    color !== (currentColor || "#E84310") ||
+    identityDirty;
+
+  const pickLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setLogoFile(file); setLogoRemoved(false); setLogoPreview(URL.createObjectURL(file)); }
+    e.target.value = "";
+  };
+  const pickBanner = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setBannerFile(file); setBannerRemoved(false); setBannerPreview(URL.createObjectURL(file)); }
+    e.target.value = "";
+  };
 
   const save = useMutation({
     mutationFn: async () => {
       if (!restaurantId) throw new Error("Restaurante não encontrado");
+
+      const uploadViaEdge = async (file: File, kind: "logo" | "banner") => {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("kind", kind);
+        const { data, error } = await supabase.functions.invoke("upload-restaurant-image", { body: fd });
+        if (error) throw new Error(`Falha ao enviar ${kind}: ${error.message}`);
+        if (!data?.url) throw new Error(`Falha ao enviar ${kind}`);
+        return data.url as string;
+      };
+
+      let logo_url = logoRemoved ? null : ((identity as any)?.logo_url ?? null);
+      let banner_url = bannerRemoved ? null : ((identity as any)?.banner_url ?? null);
+      if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
+      if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
+
       const { error } = await supabase
         .from("restaurants")
-        .update({ menu_theme: themeId, primary_color: color })
+        .update({
+          menu_theme: themeId,
+          primary_color: color,
+          logo_url,
+          banner_url,
+          description: description.trim() || null,
+          pickup_dine_in_note: pickupNote.trim() || null,
+        })
         .eq("id", restaurantId);
       if (error) throw error;
+
+      await broadcastMenuUpdate(restaurantId, "settings");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["restaurant"] });
+      queryClient.invalidateQueries({ queryKey: ["menu-identity", restaurantId] });
       queryClient.invalidateQueries({ queryKey: ["menu-restaurant"] });
       queryClient.invalidateQueries({ queryKey: ["settings-restaurant"] });
-      toast.success("Layout do cardápio atualizado!");
+      toast.success("Personalização do cardápio atualizada!");
     },
     onError: (e: any) => toast.error(e.message || "Não foi possível salvar"),
   });
+
 
   return (
     <div className="grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start">
       {/* ————— Coluna esquerda ————— */}
       <div className="space-y-8 min-w-0">
+        {/* Identidade visual */}
+        <section>
+          <SectionHeader
+            icon={<ImageIcon className="w-4 h-4" />}
+            title="Identidade visual"
+            subtitle="Logo, banner e textos que o cliente vê no topo do cardápio público."
+          />
+
+          <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-6 shadow-[0_20px_60px_-40px_hsl(0_0%_0%/0.9)]">
+            {/* Logo */}
+            <div>
+              <Label>Logomarca</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Recomendado: imagem quadrada (512x512).</p>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="w-20 h-20 rounded-2xl border border-border bg-secondary/40 overflow-hidden flex items-center justify-center shrink-0">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-muted-foreground opacity-50" />
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors">
+                      <Upload className="w-4 h-4" /> {logoPreview ? "Trocar logo" : "Enviar logo"}
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={pickLogo} />
+                  </label>
+                  {logoPreview && (
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => { setLogoFile(null); setLogoPreview(null); setLogoRemoved(true); }}>
+                      <Trash2 className="w-4 h-4 mr-1.5" /> Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Banner */}
+            <div>
+              <Label>Banner (imagem de capa)</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Recomendado: 1600x600 px.</p>
+              <div className="mt-3 space-y-2">
+                <div className="w-full h-32 rounded-2xl border border-border bg-secondary/40 overflow-hidden flex items-center justify-center">
+                  {bannerPreview ? (
+                    <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Nenhum banner enviado</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors w-fit">
+                      <Upload className="w-4 h-4" /> {bannerPreview ? "Trocar banner" : "Enviar banner"}
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={pickBanner} />
+                  </label>
+                  {bannerPreview && (
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => { setBannerFile(null); setBannerPreview(null); setBannerRemoved(true); }}>
+                      <Trash2 className="w-4 h-4 mr-1.5" /> Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Textos */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Descrição do restaurante</Label>
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1.5" placeholder="Ex: Sushi artesanal preparado na hora." />
+              </div>
+              <div>
+                <Label>Nota de retirada / consumo no local</Label>
+                <Input value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} className="mt-1.5" placeholder="Ex: Disponível para retirada e consumo no local" />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Templates */}
+
         <section>
           <SectionHeader
             icon={<Smartphone className="w-4 h-4" />}
@@ -215,6 +375,10 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
               color={color}
               items={items}
               restaurantName={restaurantName}
+              logoUrl={logoPreview}
+              bannerUrl={bannerPreview}
+              description={description}
+
               loading={!ready}
             />
           </PhoneFrame>
@@ -367,20 +531,26 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
 }
 
 function PhonePreview({
-  theme, color, items, restaurantName, loading,
-}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean }) {
+  theme, color, items, restaurantName, loading, logoUrl, bannerUrl, description,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean; logoUrl?: string | null; bannerUrl?: string | null; description?: string }) {
   return (
     <div className="flex flex-col h-[660px]">
       {/* status bar */}
       <div className="h-10 shrink-0" />
 
       {/* header */}
-      <div className="h-28 relative shrink-0" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
-        <div className="absolute inset-x-0 bottom-0 px-4 pb-3">
-          <div className="font-display font-bold text-lg truncate">{restaurantName || "Seu restaurante"}</div>
-          <div className="text-[11px] text-muted-foreground">Aberto agora · Entrega 30-45 min</div>
+      <div className="h-28 relative shrink-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
+        {bannerUrl && <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-3 flex items-end gap-2.5">
+          {logoUrl && <img src={logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-white/20 shrink-0" />}
+          <div className="min-w-0">
+            <div className="font-display font-bold text-lg truncate">{restaurantName || "Seu restaurante"}</div>
+            <div className="text-[11px] text-muted-foreground truncate">{description?.trim() || "Aberto agora · Entrega 30-45 min"}</div>
+          </div>
         </div>
       </div>
+
 
       {/* busca */}
       <div className="px-4 py-3 shrink-0">
