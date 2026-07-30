@@ -18,9 +18,15 @@ const POSITIONS: { id: PopupPosition; label: string }[] = [
 export default function NotificationSettings() {
   const { prefs, save, loading } = useNotificationPrefs();
   const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [inIframe, setInIframe] = useState(false);
 
   useEffect(() => {
     if ("Notification" in window) setPermission(Notification.permission);
+    try {
+      setInIframe(window.self !== window.top);
+    } catch {
+      setInIframe(true);
+    }
   }, []);
 
   const requestPermission = async () => {
@@ -28,15 +34,37 @@ export default function NotificationSettings() {
       toast.error("Seu navegador não suporta notificações");
       return;
     }
-    const result = await Notification.requestPermission();
-    setPermission(result);
-    if (result === "granted") {
-      toast.success("Notificações ativadas!");
-      new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui." });
-    } else if (result === "denied") {
-      toast.error("Permissão negada. Ative manualmente nas configurações do navegador.");
+
+    // Dentro de um iframe (preview do editor) o navegador bloqueia o pedido
+    // de permissão automaticamente. Abrimos o app em uma aba nova.
+    if (inIframe) {
+      toast.info("Abrindo o app em uma nova aba para ativar as notificações...");
+      window.open(window.location.href, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      toast.error("Notificações bloqueadas para este site. Clique no cadeado 🔒 na barra de endereço e permita 'Notificações'.");
+      return;
+    }
+
+    try {
+      const result = await Notification.requestPermission();
+      setPermission(result);
+      if (result === "granted") {
+        toast.success("Notificações ativadas!");
+        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui." });
+        save({ browser_push_enabled: true });
+      } else if (result === "denied") {
+        toast.error("Permissão negada. Clique no cadeado 🔒 na barra de endereço do navegador e permita 'Notificações'.");
+      } else {
+        toast.info("Permissão não concedida. Tente novamente e escolha 'Permitir'.");
+      }
+    } catch {
+      toast.error("Não foi possível solicitar a permissão neste contexto. Abra o app em uma aba própria.");
     }
   };
+
 
   const testPopup = () => {
     toast.success("🔔 Teste: Novo pedido #ABC123", {
@@ -76,15 +104,21 @@ export default function NotificationSettings() {
             </div>
             {permission !== "granted" && (
               <Button size="sm" variant="hero" onClick={requestPermission}>
-                Ativar
+                {inIframe ? "Abrir em nova aba" : "Ativar"}
               </Button>
             )}
           </div>
-          {permission === "denied" && (
-            <p className="text-xs text-destructive">
-              As notificações foram bloqueadas. Abra as configurações do site no navegador e permita notificações.
+          {inIframe && permission !== "granted" && (
+            <p className="text-xs text-muted-foreground">
+              Você está vendo o app dentro do editor. O navegador só permite ativar notificações em uma aba própria — clique no botão para abrir o app e ativar por lá.
             </p>
           )}
+          {permission === "denied" && !inIframe && (
+            <p className="text-xs text-destructive">
+              As notificações estão bloqueadas para este site. Clique no cadeado 🔒 ao lado do endereço, escolha "Notificações" → "Permitir" e recarregue a página.
+            </p>
+          )}
+
         </div>
 
         {/* Preferences */}
