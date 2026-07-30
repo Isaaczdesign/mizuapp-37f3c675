@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 
 const ResetPassword = () => {
   const [ready, setReady] = useState(false);
@@ -101,7 +102,7 @@ const ResetPassword = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <a href="/" className="font-display text-2xl font-bold gradient-text">Kōban</a>
+          <a href="/" aria-label="Mizu" className="inline-block"><Logo className="h-10 mx-auto" /></a>
           <p className="text-muted-foreground mt-2">Redefinir sua senha</p>
         </div>
 

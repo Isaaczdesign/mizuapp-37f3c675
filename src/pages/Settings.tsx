@@ -43,7 +43,7 @@ const Settings = () => {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
-  const [primaryColor, setPrimaryColor] = useState("#FF6B35");
+  const [primaryColor, setPrimaryColor] = useState("#E84310");
   const [description, setDescription] = useState("");
   const [pickupNote, setPickupNote] = useState("");
   const [whatsappProvider, setWhatsappProvider] = useState("");
@@ -97,7 +97,7 @@ const Settings = () => {
       setOwnerName((restaurant as any).owner_name ?? "");
       setOwnerPhone((restaurant as any).owner_phone ?? "");
       setOwnerEmail((restaurant as any).owner_email ?? "");
-      setPrimaryColor((restaurant as any).primary_color ?? "#FF6B35");
+      setPrimaryColor((restaurant as any).primary_color ?? "#E84310");
       setBannerPreview((restaurant as any).banner_url ?? null);
       setDescription((restaurant as any).description ?? "");
       setPickupNote((restaurant as any).pickup_dine_in_note ?? "");

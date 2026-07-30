@@ -34,7 +34,7 @@ export default function MenuLinkQR({
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const fullUrl = `${origin}/r/${slug}`;
   const shortUrl = code ? `${origin}/q/${code}` : null;
-  const primary = primaryColor && /^#[0-9A-Fa-f]{6}$/.test(primaryColor) ? primaryColor : "#FF6B35";
+  const primary = primaryColor && /^#[0-9A-Fa-f]{6}$/.test(primaryColor) ? primaryColor : "#E84310";
 
   const copy = async (text: string, label = "Link") => {
     try { await navigator.clipboard.writeText(text); toast.success(`${label} copiado!`); }
