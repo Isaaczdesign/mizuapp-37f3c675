@@ -145,21 +145,6 @@ const Settings = () => {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!rid) throw new Error("Restaurante não encontrado");
-      let logo_url = restaurant?.logo_url ?? null;
-      let banner_url = (restaurant as any)?.banner_url ?? null;
-
-      const uploadViaEdge = async (file: File, kind: "logo" | "banner") => {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("kind", kind);
-        const { data, error } = await supabase.functions.invoke("upload-restaurant-image", { body: fd });
-        if (error) throw new Error(`Falha ao enviar ${kind}: ${error.message}`);
-        if (!data?.url) throw new Error(`Falha ao enviar ${kind}`);
-        return data.url as string;
-      };
-
-      if (logoFile) logo_url = await uploadViaEdge(logoFile, "logo");
-      if (bannerFile) banner_url = await uploadViaEdge(bannerFile, "banner");
 
       // Validate slug before saving
       const cleanedSlug = slug.trim().toLowerCase();
@@ -169,9 +154,9 @@ const Settings = () => {
       }
 
       const payload: any = {
-        name, logo_url, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
-        primary_color: primaryColor, banner_url, description, pickup_dine_in_note: pickupNote,
+        name, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
         payment_methods: paymentMethods,
+
         dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
         delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
         address: address || null,
