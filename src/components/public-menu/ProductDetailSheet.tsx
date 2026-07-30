@@ -249,7 +249,8 @@ export default function ProductDetailSheet({
           </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
+
 
   );
 }
