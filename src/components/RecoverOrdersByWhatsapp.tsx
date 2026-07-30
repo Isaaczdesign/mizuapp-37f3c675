@@ -40,6 +40,7 @@ export default function RecoverOrdersByWhatsapp({
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Found[] | null>(null);
   const [recentCount, setRecentCount] = useState(0);
