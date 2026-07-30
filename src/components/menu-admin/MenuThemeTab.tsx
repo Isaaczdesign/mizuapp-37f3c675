@@ -610,19 +610,39 @@ function ThumbSkeleton() {
 function MiniMenu({
   theme, color, items, device,
 }: { theme: MenuTheme; color: string; items: MenuCardItem[]; device: MenuDevice }) {
+  const desktop = device === "desktop";
   return (
-    <div className="px-2 pb-2">
-      <div className="h-8 rounded-lg mb-2 flex items-end p-1.5" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
+    <div className="px-2 pb-2 pt-1.5">
+      <div className={`${desktop ? "h-7" : "h-8"} rounded-lg mb-2 flex items-end p-1.5`} style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
         <div className="h-1.5 w-12 rounded-full bg-white/40" />
       </div>
-      <div className="flex gap-1 mb-2">
-        <span className="px-1.5 py-0.5 rounded-full text-[6px] font-semibold text-black" style={{ backgroundColor: color }}>Destaques</span>
-        <span className="px-1.5 py-0.5 rounded-full text-[6px] bg-white/10 text-muted-foreground">Combos</span>
-      </div>
-      <div className="text-[7px] font-bold mb-1.5" style={{ color }}>Mais pedidos</div>
-      <MenuThemeMock theme={theme} color={color} items={items} device={device} variant="thumb" />
+
+      {desktop ? (
+        <div className="flex gap-2">
+          <div className="w-12 shrink-0 space-y-1">
+            <div className="px-1 py-0.5 rounded text-[6px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
+            {["Combos", "Temakis", "Bebidas"].map((c) => (
+              <div key={c} className="px-1 py-0.5 rounded text-[6px] bg-white/[0.06] text-muted-foreground truncate">{c}</div>
+            ))}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[7px] font-bold mb-1" style={{ color }}>Mais pedidos</div>
+            <MenuThemeMock theme={theme} color={color} items={items} device={device} variant="thumb" />
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex gap-1 mb-2">
+            <span className="px-1.5 py-0.5 rounded-full text-[6px] font-semibold text-black" style={{ backgroundColor: color }}>Destaques</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[6px] bg-white/10 text-muted-foreground">Combos</span>
+          </div>
+          <div className="text-[7px] font-bold mb-1.5" style={{ color }}>Mais pedidos</div>
+          <MenuThemeMock theme={theme} color={color} items={items} device={device} variant="thumb" />
+        </>
+      )}
     </div>
   );
+
 }
 
 
