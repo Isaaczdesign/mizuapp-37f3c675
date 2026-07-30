@@ -30,6 +30,16 @@ export default function ActiveOrderFab() {
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Esconde o botão enquanto qualquer modal/drawer estiver aberto
+  useEffect(() => {
+    const check = () => setDialogOpen(!!document.querySelector('[role="dialog"][aria-modal="true"]'));
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, []);
 
   const hidden =
     HIDDEN_PREFIXES.some((p) => location.pathname.startsWith(p)) ||
@@ -62,12 +72,12 @@ export default function ActiveOrderFab() {
     return () => clearInterval(t);
   }, [hidden, refresh, location.pathname]);
 
-  if (hidden || dismissed || orders.length === 0) return null;
+  if (hidden || dismissed || dialogOpen || orders.length === 0) return null;
 
   const primary = orders[0];
 
   return (
-    <div className="fixed bottom-24 right-4 z-[60] flex flex-col items-end gap-2 print:hidden">
+    <div className="fixed bottom-24 right-4 z-[45] flex flex-col items-end gap-2 print:hidden">
       <AnimatePresence>
         {expanded && orders.length > 1 && (
           <motion.div
