@@ -1053,7 +1053,7 @@ const PublicMenu = () => {
               {checkoutStep === 2 && orderType && (
                 <div className="p-4 space-y-4 overflow-y-auto flex-1">
                   {hasSavedData && (
-                    <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-xs space-y-2">
+                    <div className={`${R_FIELD} bg-white/[0.03] ${BORDER} px-3 py-2.5 text-xs space-y-2`}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">
                           {autofillEnabled ? "✨ Dados salvos neste dispositivo" : "Preenchimento automático desativado"}
