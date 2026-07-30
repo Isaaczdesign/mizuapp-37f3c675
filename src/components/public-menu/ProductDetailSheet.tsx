@@ -3,7 +3,7 @@ import { X, Plus, Minus, AlertTriangle, UtensilsCrossed } from "lucide-react";
 import {
   BORDER, R_CHIP, TEXT_SECONDARY, accentFaint, accentGlow, brl as fmt, D_MICRO, EASE,
 } from "./menuTokens";
-import { useSheetViewport } from "@/hooks/useSheetViewport";
+import { useSheetViewport, useKeyboardFocusScroll } from "@/hooks/useSheetViewport";
 
 type Variation = { id: string; name: string; price_delta: number; absolute_price: number | null };
 type Addon = { id: string; name: string; price: number };
@@ -41,6 +41,7 @@ export default function ProductDetailSheet({
   onAdd: () => void;
 }) {
   const sheetViewport = useSheetViewport(true);
+  useKeyboardFocusScroll(true);
   const basePrice =
     selectedVariation?.absolute_price != null
       ? Number(selectedVariation.absolute_price)

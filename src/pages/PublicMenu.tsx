@@ -33,7 +33,7 @@ import {
   TOUCH_ICON,
   SHEET_PAD,
 } from "@/components/public-menu/menuTokens";
-import { useSheetViewport } from "@/hooks/useSheetViewport";
+import { useSheetViewport, useKeyboardFocusScroll } from "@/hooks/useSheetViewport";
 
 
 
@@ -112,6 +112,7 @@ const PublicMenu = () => {
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
   const sheetViewport = useSheetViewport(showCart || checkoutStep > 0);
+  useKeyboardFocusScroll(showCart || checkoutStep > 0);
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<null | { token: string }>(null);
   const [operatingHours, setOperatingHours] = useState<any>(null);
