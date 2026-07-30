@@ -3,6 +3,7 @@ import { X, Plus, Minus, AlertTriangle, UtensilsCrossed } from "lucide-react";
 import {
   BORDER, R_CHIP, TEXT_SECONDARY, accentFaint, accentGlow, brl as fmt, D_MICRO, EASE,
 } from "./menuTokens";
+import { useSheetViewport } from "@/hooks/useSheetViewport";
 
 type Variation = { id: string; name: string; price_delta: number; absolute_price: number | null };
 type Addon = { id: string; name: string; price: number };
@@ -197,7 +198,8 @@ export default function ProductDetailSheet({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: D_MICRO }}
-      className="fixed inset-x-0 top-0 h-[100dvh] z-50 flex flex-col lg:items-center lg:justify-center lg:p-8"
+      style={sheetViewport}
+      className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-title"
@@ -209,7 +211,7 @@ export default function ProductDetailSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 32, stiffness: 340 }}
-        className="mt-auto relative w-full sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-4xl bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] max-h-[92dvh] lg:max-h-[86dvh] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+        className="mt-auto relative w-full sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-4xl bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] max-h-[92%] lg:max-h-[86%] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
       >
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-white/25 lg:hidden" aria-hidden />
 
