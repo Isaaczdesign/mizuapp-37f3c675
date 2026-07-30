@@ -321,10 +321,12 @@ export function useKeyboardFocusScroll(active: boolean) {
               try { (prev as HTMLTextAreaElement).setSelectionRange(start, end); } catch { /* noop */ }
             }
             focused = prev;
+            observeFocused();
             reveal(false);
             return;
           }
           focused = null;
+          ro?.disconnect();
         }, 0),
       );
     };
@@ -332,16 +334,26 @@ export function useKeyboardFocusScroll(active: boolean) {
 
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("input", onFieldActivity, true);
+    document.addEventListener("keyup", onFieldActivity, true);
+    document.addEventListener("transitionend", onMotionEnd, true);
+    document.addEventListener("animationend", onMotionEnd, true);
     window.visualViewport?.addEventListener("resize", onViewportChange);
     window.visualViewport?.addEventListener("scroll", onViewportChange);
 
     return () => {
       cancelAnimationFrame(raf);
       timers.forEach(clearTimeout);
+      ro?.disconnect();
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("input", onFieldActivity, true);
+      document.removeEventListener("keyup", onFieldActivity, true);
+      document.removeEventListener("transitionend", onMotionEnd, true);
+      document.removeEventListener("animationend", onMotionEnd, true);
       window.visualViewport?.removeEventListener("resize", onViewportChange);
       window.visualViewport?.removeEventListener("scroll", onViewportChange);
     };
   }, [active]);
 }
+
