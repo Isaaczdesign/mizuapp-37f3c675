@@ -66,12 +66,70 @@ export default function NotificationSettings() {
   };
 
 
-  const testPopup = () => {
-    toast.success("🔔 Teste: Novo pedido #ABC123", {
-      description: "R$ 89,90 — Mesa 5",
-      duration: 5000,
-    });
+  const playTestSound = () => {
+    try {
+      const ctx = new AudioContext();
+      const beep = (freq: number, at: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + at);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + at + 0.4);
+        osc.start(ctx.currentTime + at);
+        osc.stop(ctx.currentTime + at + 0.4);
+      };
+      beep(880, 0);
+      beep(1100, 0.15);
+      beep(1320, 0.3);
+      return true;
+    } catch {
+      return false;
+    }
   };
+
+  const testPopup = () => {
+    const applied: string[] = [];
+
+    if (prefs.sound_enabled && playTestSound()) applied.push("som");
+
+    if (prefs.browser_push_enabled) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          const notif = new Notification("🔔 Novo Pedido!", {
+            body: "Teste · Mesa 5 · Total: R$89,90",
+            icon: "/favicon.ico",
+            tag: "test-order",
+          });
+          notif.onclick = () => {
+            window.focus();
+            notif.close();
+          };
+          applied.push("push do navegador");
+        } catch {}
+      } else {
+        toast.warning("Push do navegador está ligado, mas a permissão ainda não foi concedida.");
+      }
+    }
+
+    if (prefs.popup_enabled) {
+      toast.success("🔔 Teste: Novo pedido #ABC123", {
+        description: "R$ 89,90 — Mesa 5",
+        duration: 5000,
+        position: SONNER_POSITION[prefs.popup_position],
+      });
+      applied.push("pop-up");
+    }
+
+    if (applied.length === 0) {
+      toast.info("Todas as notificações estão desativadas. Ative uma preferência para testar.", {
+        position: "top-center",
+      });
+    }
+  };
+
 
   if (loading) {
     return (
