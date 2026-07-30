@@ -210,13 +210,18 @@ const Customers = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold">👥 <span className="gradient-text">CRM — Clientes</span></h1>
-          <Button size="sm" onClick={() => setShowCouponForm(true)}>
-            <Ticket className="w-4 h-4 mr-1" /> Novo Cupom
-          </Button>
-        </div>
+      <PageShell>
+        <PageHeader
+          icon={Users}
+          title="CRM — Clientes"
+          subtitle="Segmentos, histórico de consumo e cupons de fidelização."
+          actions={
+            <Button size="sm" className="rounded-xl" onClick={() => setShowCouponForm(true)}>
+              <Ticket className="w-4 h-4 mr-1" /> Novo Cupom
+            </Button>
+          }
+        />
+
 
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <Input placeholder="Buscar por nome ou WhatsApp..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs bg-card/60" />
