@@ -313,6 +313,24 @@ export type Database = {
           },
         ]
       }
+      internal_cron_secrets: {
+        Row: {
+          created_at: string
+          key: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       menu_categories: {
         Row: {
           created_at: string
