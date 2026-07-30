@@ -111,6 +111,7 @@ const PublicMenu = () => {
 
   const [showItemDetail, setShowItemDetail] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const sheetViewport = useSheetViewport(showCart || checkoutStep > 0);
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<null | { token: string }>(null);
   const [operatingHours, setOperatingHours] = useState<any>(null);

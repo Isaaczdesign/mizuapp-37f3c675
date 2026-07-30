@@ -40,6 +40,7 @@ export default function ProductDetailSheet({
   onClose: () => void;
   onAdd: () => void;
 }) {
+  const sheetViewport = useSheetViewport(true);
   const basePrice =
     selectedVariation?.absolute_price != null
       ? Number(selectedVariation.absolute_price)
