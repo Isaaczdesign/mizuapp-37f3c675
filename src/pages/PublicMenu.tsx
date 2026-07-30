@@ -15,6 +15,8 @@ import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
 import MenuItemCard from "@/components/public-menu/MenuItemCard";
 import { resolveMenuTheme } from "@/lib/menuThemes";
+import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
+
 
 
 // ── Types ──
