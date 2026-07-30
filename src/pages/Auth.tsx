@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PASSWORD_RESET_REDIRECT_URL } from "@/lib/authRecoveryEmail";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
+import authSushi from "@/assets/auth-sushi.jpg";
 
 const RESET_COOLDOWN_SECONDS = 60;
 const RESET_STORAGE_KEY = "koban_reset_last_sent";
+
+const fieldClass =
+  "mt-2 h-12 rounded-xl bg-[#151515] border border-white/10 px-4 text-[#efeae1] placeholder:text-white/25 transition-all duration-300 focus-visible:ring-0 focus-visible:border-[#D4AF37]/70 focus-visible:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]";
+const labelClass = "text-xs font-medium uppercase tracking-[0.14em] text-white/40";
+
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
