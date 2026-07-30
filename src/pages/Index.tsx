@@ -3,6 +3,7 @@ import { ArrowRight, QrCode, ChefHat, BarChart3, MessageSquare, X, AlertTriangle
 import { Button } from "@/components/ui/button";
 import heroSushi from "@/assets/hero-sushi.jpg";
 import phoneMockup from "@/assets/phone-mockup.jpg";
+import { Logo } from "@/components/Logo";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -269,8 +270,8 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <span className="font-display font-bold text-foreground">Kōban</span>
-          <p>© 2026 Kōban. Todos os direitos reservados.</p>
+          <Logo className="h-7" />
+          <p>© 2026 Mizu — Gestão de Restaurantes. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
