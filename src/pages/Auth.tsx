@@ -175,9 +175,10 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-[#0B0B0B] flex">
+    <div className="h-screen w-full overflow-x-hidden bg-[#0B0B0B] flex">
       {/* Coluna esquerda — formulário */}
-      <div className="relative flex w-full lg:w-[35%] items-center justify-center px-6 py-8 sm:px-10 lg:py-6">
+      <div className="relative flex h-full w-full lg:w-[35%] items-center justify-center px-6 py-8 sm:px-10 lg:py-6 overflow-y-auto">
+
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
