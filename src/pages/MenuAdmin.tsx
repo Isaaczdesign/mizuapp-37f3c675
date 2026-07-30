@@ -845,8 +845,28 @@ const MenuAdmin = () => {
   const formMargin = itemForm.margin_percent ? parseFloat(itemForm.margin_percent) : null;
   const formProfit = formCost ? formPrice - formCost : formMargin ? formPrice * formMargin : null;
 
-  const totalItems = (items ?? []).length;
   const totalCats = (categories ?? []).length;
+  const allItems = items ?? [];
+  const catNameById = (id: string) => categories?.find((c) => c.id === id)?.name ?? "";
+
+  const q = search.trim().toLowerCase();
+  const filteredItems = allItems.filter((it: any) => {
+    if (q) {
+      const hay = `${it.name ?? ""} ${it.description ?? ""} ${it.ingredients ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (tagFilter.length && !tagFilter.every((t) => (it.tags ?? []).includes(t))) return false;
+    if (availFilter === "active" && !it.is_active) return false;
+    if (availFilter === "inactive" && it.is_active) return false;
+    return true;
+  });
+  const filtersActive = !!q || tagFilter.length > 0 || availFilter !== "all";
+  const canReorder = !!selectedCat && !filtersActive;
+  const totalItems = filteredItems.length;
+  const clearFilters = () => { setSearch(""); setTagFilter([]); setAvailFilter("all"); };
+  const toggleTagFilter = (t: string) =>
+    setTagFilter((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+
 
   return (
     <AdminLayout>
