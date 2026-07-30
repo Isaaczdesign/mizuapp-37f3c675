@@ -18,6 +18,13 @@ export default {
         display: ["Space Grotesk", "sans-serif"],
       },
       colors: {
+        brand: {
+          ink: "hsl(0 0% 7%)",
+          sand: "hsl(var(--brand-sand))",
+          ember: "hsl(var(--brand-ember))",
+          cream: "hsl(var(--brand-cream))",
+          graphite: "hsl(var(--brand-graphite))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
