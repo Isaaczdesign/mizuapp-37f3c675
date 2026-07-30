@@ -309,12 +309,12 @@ const Orders = () => {
   async function confirmPayment(orderId: string) {
     const { error } = await supabase
       .from("orders")
-      .update({ payment_status: "paid" } as any)
+      .update({ payment_status: "approved" } as any)
       .eq("id", orderId);
-    if (error) { toast.error("Erro ao confirmar pagamento"); return; }
+    if (error) { toast.error(error.message || "Erro ao confirmar pagamento"); return; }
     toast.success("💰 Pagamento confirmado!");
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, payment_status: "paid" } : o)));
-    setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, payment_status: "paid" } : prev));
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, payment_status: "approved" } : o)));
+    setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, payment_status: "approved" } : prev));
   }
 
 
