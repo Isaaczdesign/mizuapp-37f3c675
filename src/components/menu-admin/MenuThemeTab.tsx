@@ -33,11 +33,26 @@ const FALLBACK_ITEMS: MenuCardItem[] = [
 /** Templates sugeridos pela equipe Mizu */
 const RECOMMENDED: MenuThemeId[] = ["classic", "showcase"];
 
-export default function MenuThemeTab({ restaurantId, currentTheme, currentColor, restaurantName, publicMenuUrl, previewItems }: Props) {
+export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeMobile, currentThemeDesktop, currentColor, restaurantName, publicMenuUrl, previewItems }: Props) {
   const queryClient = useQueryClient();
-  const [themeId, setThemeId] = useState<MenuThemeId>(resolveMenuTheme(currentTheme).id);
+  const savedMobile = resolveMenuTheme(currentThemeMobile ?? currentTheme).id;
+  const savedDesktop = resolveMenuTheme(currentThemeDesktop ?? currentTheme).id;
+
+  /** Aba de dispositivo que está sendo editada */
+  const [device, setDevice] = useState<MenuDevice>("mobile");
+  const [themeMobile, setThemeMobile] = useState<MenuThemeId>(savedMobile);
+  const [themeDesktop, setThemeDesktop] = useState<MenuThemeId>(savedDesktop);
+  /** Quando ativo, escolher um template aplica nos dois dispositivos */
+  const [syncDevices, setSyncDevices] = useState(savedMobile === savedDesktop);
   const [color, setColor] = useState(currentColor || "#E84310");
   const [ready, setReady] = useState(false);
+
+  const themeId = device === "mobile" ? themeMobile : themeDesktop;
+  const setThemeId = (id: MenuThemeId) => {
+    if (syncDevices) { setThemeMobile(id); setThemeDesktop(id); return; }
+    if (device === "mobile") setThemeMobile(id); else setThemeDesktop(id);
+  };
+
 
   // ——— Identidade visual do cardápio público ———
   const { data: identity } = useQuery({
