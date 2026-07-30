@@ -9,31 +9,46 @@ export function useVisualViewport() {
   const [vp, setVp] = useState(() => ({
     height: typeof window !== "undefined" ? window.innerHeight : 0,
     offsetTop: 0,
+    keyboardInset: 0,
   }));
 
   useEffect(() => {
     const vv = window.visualViewport;
     const update = () => {
-      setVp({
-        height: Math.round(vv ? vv.height : window.innerHeight),
-        offsetTop: Math.round(vv ? vv.offsetTop : 0),
-      });
+      const height = Math.round(vv ? vv.height : window.innerHeight);
+      const offsetTop = Math.round(vv ? vv.offsetTop : 0);
+      // Espaço ocupado pelo teclado (ou barras) abaixo da área visível.
+      const keyboardInset = Math.max(0, Math.round(window.innerHeight - height - offsetTop));
+      setVp({ height, offsetTop, keyboardInset });
     };
     update();
+
+    // Ao girar o iPhone (principalmente com teclado aberto) as medidas
+    // chegam desatualizadas: remedimos algumas vezes após a rotação.
+    const timers: number[] = [];
+    const updateDeferred = () => {
+      update();
+      [50, 150, 350, 600].forEach((ms) => timers.push(window.setTimeout(update, ms)));
+    };
+
     vv?.addEventListener("resize", update);
     vv?.addEventListener("scroll", update);
     window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
+    window.addEventListener("orientationchange", updateDeferred);
+    window.screen?.orientation?.addEventListener?.("change", updateDeferred);
     return () => {
+      timers.forEach(clearTimeout);
       vv?.removeEventListener("resize", update);
       vv?.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
+      window.removeEventListener("orientationchange", updateDeferred);
+      window.screen?.orientation?.removeEventListener?.("change", updateDeferred);
     };
   }, []);
 
   return vp;
 }
+
 
 let lockCount = 0;
 let savedScrollY = 0;
