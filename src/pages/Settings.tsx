@@ -216,15 +216,8 @@ const Settings = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-  };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) { setBannerFile(file); setBannerPreview(URL.createObjectURL(file)); }
-  };
+
 
   const updateHour = (day: string, field: "open" | "close", value: string) => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
