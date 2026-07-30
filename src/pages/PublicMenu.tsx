@@ -907,7 +907,7 @@ const PublicMenu = () => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
               ref={cartTrapRef}
-              className={`mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none ${keyboardOpen ? "max-h-full" : "max-h-[88%]"} lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
+              className={`relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none ${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[88%]"} lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
