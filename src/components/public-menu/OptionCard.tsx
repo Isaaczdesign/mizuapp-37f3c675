@@ -41,7 +41,7 @@ const OptionCard = ({
     disabled={disabled}
     onClick={onClick}
     aria-pressed={selected}
-    className={`group w-full flex items-center gap-3.5 p-3.5 ${R_CARD_SM} border text-left transition-all duration-200 active:scale-[0.99] disabled:opacity-45 disabled:pointer-events-none ${
+    className={`group w-full flex items-center gap-4 p-4 ${R_CARD_SM} border text-left transition-all duration-200 active:scale-[0.99] disabled:opacity-45 disabled:pointer-events-none ${
       selected
         ? ""
         : "border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.12]"
@@ -57,7 +57,7 @@ const OptionCard = ({
     }
   >
     <span
-      className={ICON_TILE}
+      className={`w-12 h-12 shrink-0 ${R_TILE} flex items-center justify-center border transition-colors duration-200`}
       style={{
         backgroundColor: selected ? `${accentColor}1f` : "rgba(255,255,255,0.04)",
         borderColor: selected ? `${accentColor}4d` : "rgba(255,255,255,0.07)",
