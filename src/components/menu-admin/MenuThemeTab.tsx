@@ -563,17 +563,29 @@ function TemplateCard({
 
       {/* mockup real do layout */}
       <div className="relative z-10 flex justify-center pt-2">
-        <MiniPhone>
-          {loading ? (
-            <ThumbSkeleton />
-          ) : (
-            <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
-              <MiniMenu theme={theme} color={color} items={items} />
-            </div>
-
-          )}
-        </MiniPhone>
+        {device === "desktop" ? (
+          <MiniDesktop>
+            {loading ? (
+              <ThumbSkeleton />
+            ) : (
+              <div className="origin-top-left" style={{ width: 620, transform: "scale(0.4)" }}>
+                <MiniMenuDesktop theme={theme} color={color} items={items} />
+              </div>
+            )}
+          </MiniDesktop>
+        ) : (
+          <MiniPhone>
+            {loading ? (
+              <ThumbSkeleton />
+            ) : (
+              <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
+                <MiniMenu theme={theme} color={color} items={items} />
+              </div>
+            )}
+          </MiniPhone>
+        )}
       </div>
+
 
       <div className="relative z-10 mt-4">
         <div className="font-semibold text-sm">{theme.name}</div>
