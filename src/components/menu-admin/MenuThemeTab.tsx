@@ -15,11 +15,14 @@ import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuIt
 interface Props {
   restaurantId: string | undefined;
   currentTheme: string | null | undefined;
+  currentThemeMobile?: string | null;
+  currentThemeDesktop?: string | null;
   currentColor: string | null | undefined;
   restaurantName?: string | null;
   publicMenuUrl?: string | null;
   previewItems?: MenuCardItem[];
 }
+
 
 const FALLBACK_ITEMS: MenuCardItem[] = [
   { id: "p1", name: "Combo Sushi 20 peças", description: "Seleção do chef com salmão, atum e kani.", price: 89.9, image_url: null, tags: ["best_seller", "combo"] },
