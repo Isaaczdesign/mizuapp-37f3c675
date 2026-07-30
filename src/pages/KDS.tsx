@@ -12,6 +12,8 @@ import type { Database } from "@/integrations/supabase/types";
 import AdminLayout from "@/components/AdminLayout";
 import { Maximize2, Minimize2, Volume2, VolumeX, Printer, PrinterIcon, Undo2, Pin, PinOff, LayoutGrid, Rows3, Clock, Settings2 } from "lucide-react";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
+import { PageShell, PageHeader, SectionHeader, Segmented, Surface, EmptyState } from "@/components/dashboard/ui";
+
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 
