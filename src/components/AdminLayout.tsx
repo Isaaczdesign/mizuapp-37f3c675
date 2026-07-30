@@ -160,9 +160,10 @@ export default function AdminLayout({ children, collapsible = false }: { childre
       {/* Desktop sidebar — animated width */}
       <aside
         aria-hidden={!desktopVisible}
-        className={`hidden md:flex flex-col border-r border-border/60 bg-card/50 backdrop-blur-2xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
+        className={`hidden md:flex sticky top-0 h-screen shrink-0 flex-col border-r border-border/60 bg-card/50 backdrop-blur-2xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
           desktopVisible ? "w-64 opacity-100" : "w-0 opacity-0 border-r-0"
         }`}
+
       >
         <div className="relative p-5 border-b border-border/60 flex items-center justify-between gap-2 min-w-[16rem]">
           <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
