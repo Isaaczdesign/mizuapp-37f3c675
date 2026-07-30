@@ -1455,22 +1455,38 @@ const PublicMenu = () => {
                       <span className="font-display text-xl font-bold" style={{ color: accentColor }}>{fmt(grandTotal)}</span>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground space-y-1 border-t border-white/[0.06] pt-3">
-                    <p>👤 {customerName} · 📱 {customerWhatsapp}</p>
-                    <p>
-                      {orderType === "dine_in" && `🍽️ Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
-                      {orderType === "pickup" && `🛍️ Retirada`}
-                      {orderType === "delivery" && `🛵 ${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
+                  <div className={`text-xs ${TEXT_SECONDARY} space-y-2 border-t border-white/[0.06] pt-3`}>
+                    <p className="flex items-center gap-2">
+                      <Phone className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                      <span className="truncate">{customerName} · {customerWhatsapp}</span>
                     </p>
-                    <p>💳 {orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod, orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</p>
+                    <p className="flex items-center gap-2">
+                      {orderType === "delivery"
+                        ? <Truck className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                        : orderType === "pickup"
+                          ? <ShoppingBag className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                          : <UtensilsCrossed className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />}
+                      <span className="truncate">
+                        {orderType === "dine_in" && `Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
+                        {orderType === "pickup" && `Retirada no balcão`}
+                        {orderType === "delivery" && `${deliveryStreet}, ${deliveryNumber} — ${deliveryNeighborhood}`}
+                      </span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <CreditCard className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                      <span className="truncate">{orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod, orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</span>
+                    </p>
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Observações</label>
+                    <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
+                      <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
+                    </label>
                     <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className="w-full mt-1 p-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm resize-none h-16 border-none outline-none"
+                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-sm resize-none h-16 outline-none focus:border-white/20 transition-colors`}
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
+
 
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
