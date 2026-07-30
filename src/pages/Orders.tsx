@@ -520,13 +520,13 @@ const Orders = () => {
                 <span>{col.label}</span>
                 <span className="bg-background/20 rounded-full px-2 py-0.5 text-xs">{colOrders.length}</span>
               </div>
-              <div className="flex-1 bg-card/20 rounded-b-xl border border-border border-t-0 p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="flex-1 bg-card/20 rounded-b-[20px] border border-border/70 border-t-0 p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {colOrders.map((order) => {
                   const next = getNextStatus(order.status, order.order_type);
                   const meta = TYPE_META[order.order_type] ?? TYPE_META.dine_in;
                   const TypeIcon = meta.icon;
                   return (
-                    <div key={order.id} className="glass-card p-3 space-y-2">
+                    <div key={order.id} className="glass-card-hover overflow-hidden p-3 space-y-2 min-w-0">
                       <div className="flex items-center justify-between">
                         <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${meta.color}`}>
                           <TypeIcon className="w-3 h-3" />
