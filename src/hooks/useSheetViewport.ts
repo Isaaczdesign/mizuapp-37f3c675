@@ -54,6 +54,36 @@ let lockCount = 0;
 let savedScrollY = 0;
 let savedStyles: Partial<CSSStyleDeclaration> | null = null;
 
+let touchStartY = 0;
+
+/** Container rolável (com espaço para rolar) mais próximo do alvo do toque. */
+function scrollableAncestor(target: EventTarget | null, dy: number): HTMLElement | null {
+  let el = target as HTMLElement | null;
+  while (el && el !== document.body && el !== document.documentElement) {
+    const style = getComputedStyle(el);
+    if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) {
+      const atTop = el.scrollTop <= 0;
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+      // Só permite o gesto se ainda houver para onde rolar nesse sentido
+      // (evita o "scroll chaining" para o body no iOS).
+      if (!(atTop && dy > 0) && !(atBottom && dy < 0)) return el;
+    }
+    el = el.parentElement;
+  }
+  return null;
+}
+
+const onTouchStart = (e: TouchEvent) => {
+  touchStartY = e.touches[0]?.clientY ?? 0;
+};
+
+const onTouchMove = (e: TouchEvent) => {
+  if (e.touches.length > 1) return; // pinch/zoom
+  const dy = (e.touches[0]?.clientY ?? 0) - touchStartY;
+  if (scrollableAncestor(e.target, dy)) return;
+  if (e.cancelable) e.preventDefault();
+};
+
 function lockBody() {
   if (lockCount === 0) {
     const body = document.body;
@@ -65,13 +95,17 @@ function lockBody() {
       right: body.style.right,
       width: body.style.width,
       overflow: body.style.overflow,
-    };
+      overscrollBehavior: body.style.overscrollBehavior,
+    } as Partial<CSSStyleDeclaration>;
     body.style.position = "fixed";
     body.style.top = `-${savedScrollY}px`;
     body.style.left = "0";
     body.style.right = "0";
     body.style.width = "100%";
     body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
   }
   lockCount += 1;
 }
@@ -86,7 +120,10 @@ function unlockBody() {
     body.style.right = savedStyles.right ?? "";
     body.style.width = savedStyles.width ?? "";
     body.style.overflow = savedStyles.overflow ?? "";
+    body.style.overscrollBehavior = savedStyles.overscrollBehavior ?? "";
     savedStyles = null;
+    document.removeEventListener("touchstart", onTouchStart);
+    document.removeEventListener("touchmove", onTouchMove);
     window.scrollTo(0, savedScrollY);
   }
 }
