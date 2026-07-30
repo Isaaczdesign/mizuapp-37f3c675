@@ -27,6 +27,7 @@ import Expediente from "./pages/Expediente";
 import ExpedienteHistorico from "./pages/ExpedienteHistorico";
 import ShortLink from "./pages/ShortLink";
 import ActiveOrderFab from "@/components/ActiveOrderFab";
+import DevSheetHarness from "./pages/DevSheetHarness";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,9 @@ const App = () => (
             <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
             <Route path="/expediente" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Expediente /></ProtectedRoute>} />
             <Route path="/expediente/historico" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><ExpedienteHistorico /></ProtectedRoute>} />
+            {import.meta.env.DEV && (
+              <Route path="/dev/sheet-harness" element={<DevSheetHarness />} />
+            )}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
