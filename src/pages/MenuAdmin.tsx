@@ -24,7 +24,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import MenuLinkQR from "@/components/MenuLinkQR";
-import { PageShell, PageHeader } from "@/components/dashboard/ui";
+import { PageShell, PageHeader, Surface, SectionHeader } from "@/components/dashboard/ui";
 
 const TAG_OPTIONS = [
   { value: "best_seller", label: "🔥 Mais Vendido" },
