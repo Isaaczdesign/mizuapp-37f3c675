@@ -305,7 +305,9 @@ const PublicMenu = () => {
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
   const accentColor = restaurant?.primary_color ?? "#E84310";
+  const menuDevice = useMenuDevice();
   const menuTheme = resolveDeviceTheme(menuDevice, restaurant);
+
   // status do hero acompanha o tick de relógio (30s)
   const openStatus = useMemo(() => getOpenStatus(operatingHours), [operatingHours, clockTick]);
 
