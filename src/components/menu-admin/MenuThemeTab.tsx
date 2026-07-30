@@ -297,9 +297,10 @@ function TemplateCard({
           {loading ? (
             <ThumbSkeleton />
           ) : (
-            <div className="origin-top scale-[0.52] w-[192%] -mb-[92%]">
+            <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
               <MiniMenu theme={theme} color={color} items={items} />
             </div>
+
           )}
         </MiniPhone>
       </div>
