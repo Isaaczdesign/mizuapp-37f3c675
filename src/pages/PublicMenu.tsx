@@ -973,18 +973,22 @@ const PublicMenu = () => {
                 })()}
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* ── Step-Based Checkout (4 steps) ── */}
       <AnimatePresence>
         {checkoutStep > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          <div
             role="dialog" aria-modal="true" aria-label="Finalizar pedido"
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8">
-            <div className="bg-black/70 backdrop-blur-md" style={sheetViewport} onClick={() => setCheckoutStep(0)} />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="bg-black/60"
+              style={{ ...sheetViewport, backdropFilter: "blur(18px) saturate(120%)", WebkitBackdropFilter: "blur(18px) saturate(120%)" }}
+              onClick={() => setCheckoutStep(0)} />
+
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
