@@ -97,3 +97,15 @@ export const selectedTileStyle = (c: string, selected: boolean) => ({
     ? `inset 0 1px 0 ${c}33`
     : "inset 0 1px 0 rgba(255,255,255,0.04)",
 });
+
+/** ---- Mobile-first: alvos de toque e respiro padrão ---- */
+
+/** Altura mínima confortável de toque (WCAG 2.5.5 / iOS HIG) */
+export const TOUCH = "min-h-[48px]";
+/** Alvo de toque para linhas de card selecionáveis */
+export const TOUCH_ROW = "min-h-[56px]";
+/** Alvo de toque para botões secundários pequenos (remover, fechar) */
+export const TOUCH_ICON =
+  "min-w-[40px] min-h-[40px] flex items-center justify-center";
+/** Padding padrão do conteúdo das etapas do checkout (respeita safe-area) */
+export const SHEET_PAD = "px-4 sm:px-5 pt-4 sm:pt-5 pb-[max(1rem,env(safe-area-inset-bottom))]";

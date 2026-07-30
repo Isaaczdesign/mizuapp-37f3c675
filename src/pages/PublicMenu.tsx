@@ -28,6 +28,10 @@ import {
   BG_CARD, BORDER, R_CARD_SM, R_FIELD, R_BUTTON, R_TILE, ICON_SM, ICON_STROKE,
   TEXT_SECONDARY, TEXT_TERTIARY,
   SELECTABLE_BASE, SELECTABLE_IDLE, selectedSurface, selectedTileStyle,
+  TOUCH,
+  TOUCH_ROW,
+  TOUCH_ICON,
+  SHEET_PAD,
 } from "@/components/public-menu/menuTokens";
 
 
@@ -888,17 +892,17 @@ const PublicMenu = () => {
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
                 <div className="w-10 h-1 rounded-full bg-white/25" />
               </div>
-              <div className="flex items-center justify-between px-4 pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between px-4 pt-1 pb-3 lg:pt-4 border-b border-white/[0.06]">
                 <h2 className="font-display text-lg font-bold">Seu Pedido</h2>
-                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-9 h-9 ${R_TILE} bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-10 h-10 ${R_TILE} bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
                   <X className={ICON_SM} strokeWidth={ICON_STROKE} />
                 </button>
               </div>
-              <div className="overflow-y-auto flex-1 p-4 space-y-3">
+              <div className="overflow-y-auto flex-1 px-4 pt-4 pb-2 space-y-3">
                 {cart.map((item) => (
                   <div
                     key={item.cartKey}
-                    className={`flex items-center gap-3 p-2.5 ${R_CARD_SM} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}
+                    className={`flex items-center gap-3 p-3 ${R_CARD_SM} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}
                   >
                     {item.image_url && (
                       <img src={item.image_url} alt="" className={`w-12 h-12 ${R_TILE} object-cover shrink-0`} />
@@ -910,15 +914,15 @@ const PublicMenu = () => {
                       )}
                       <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{fmt(item.price)}</p>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-8 h-8 rounded-xl bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-9 h-9 rounded-xl bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
                         <Minus className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} />
                       </button>
-                      <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
+                      <span className="text-sm font-bold w-6 text-center tabular-nums">{item.quantity}</span>
                       <button
                         onClick={() => setCart((prev) => prev.map((i) => i.cartKey === item.cartKey ? { ...i, quantity: i.quantity + 1 } : i))}
                         aria-label="Adicionar uma unidade"
-                        className="w-8 h-8 rounded-xl text-[#080909] flex items-center justify-center transition-transform active:scale-95"
+                        className="w-9 h-9 rounded-xl text-[#080909] flex items-center justify-center transition-transform active:scale-95"
                         style={{ backgroundColor: accentColor }}>
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
                       </button>
@@ -939,7 +943,7 @@ const PublicMenu = () => {
               </div>
 
 
-              <div className="p-4 border-t border-white/[0.06] space-y-3">
+              <div className="px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-white/[0.06] space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
@@ -980,12 +984,12 @@ const PublicMenu = () => {
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-2.5 px-4 sm:px-5 pt-2 pb-4 border-b border-white/[0.06] overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 pt-2.5 pb-3.5 border-b border-white/[0.06] overflow-x-auto no-scrollbar">
                 {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => {
                   const done = checkoutStep > i + 1;
                   const active = checkoutStep === i + 1;
                   return (
-                    <div key={i} className="flex items-center gap-2.5 shrink-0">
+                    <div key={i} className="flex items-center gap-2 sm:gap-2.5 shrink-0">
                       <div className="flex items-center gap-2">
                         <div
                           className={`relative w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${
@@ -1007,15 +1011,15 @@ const PublicMenu = () => {
                           {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : i + 1}
                         </div>
                         <span
-                          className={`text-[10.5px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 ${
-                            active ? "text-white" : done ? "text-white/55" : "text-white/30"
+                          className={`text-[10.5px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap transition-colors duration-300 ${
+                            active ? "text-white inline" : done ? "text-white/55 hidden sm:inline" : "text-white/30 hidden sm:inline"
                           }`}
                         >
                           {label}
                         </span>
                       </div>
                       {i < 3 && (
-                        <div className="w-6 h-[2px] rounded-full bg-white/[0.08] overflow-hidden">
+                        <div className="w-5 sm:w-6 h-[2px] rounded-full bg-white/[0.08] overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500 ease-out"
                             style={{
@@ -1032,8 +1036,8 @@ const PublicMenu = () => {
 
               {/* Step 1: Tipo de atendimento */}
               {checkoutStep === 1 && (
-                <div className="p-4 sm:p-5 space-y-2.5 overflow-y-auto flex-1">
-                  <h3 className="font-display text-base font-bold tracking-tight">Como deseja seu pedido?</h3>
+                <div className={`${SHEET_PAD} space-y-3 overflow-y-auto flex-1`}>
+                  <h3 className="font-display text-base font-bold tracking-tight mb-1">Como deseja seu pedido?</h3>
                   {([
                     restaurant.dine_in_enabled && {
                       key: "dine_in" as const,
@@ -1077,9 +1081,9 @@ const PublicMenu = () => {
 
               {/* Step 2: Infos (customer + mesa/endereço) */}
               {checkoutStep === 2 && orderType && (
-                <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                <div className={`${SHEET_PAD} space-y-4 overflow-y-auto flex-1`}>
                   {hasSavedData && (
-                    <div className={`${R_FIELD} bg-white/[0.03] ${BORDER} px-3 py-2.5 text-xs space-y-2`}>
+                    <div className={`${R_FIELD} bg-white/[0.03] ${BORDER} p-3 text-xs space-y-2.5`}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">
                           {autofillEnabled ? "✨ Dados salvos neste dispositivo" : "Preenchimento automático desativado"}
@@ -1087,7 +1091,7 @@ const PublicMenu = () => {
                         </span>
                         <button
                           type="button"
-                          className="text-destructive hover:underline font-medium shrink-0"
+                          className="text-destructive hover:underline font-medium shrink-0 min-h-[36px] px-1 -mr-1"
                           onClick={async () => {
                             const { clearCustomerStorage } = await import("@/lib/publicMenuStorage");
                             clearCustomerStorage(slug);
@@ -1102,7 +1106,7 @@ const PublicMenu = () => {
                           Apagar tudo
                         </button>
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2.5 cursor-pointer min-h-[40px]">
                         <input
                           type="checkbox"
                           checked={autofillEnabled}
@@ -1119,7 +1123,7 @@ const PublicMenu = () => {
                               addresses: enabled ? savedAddresses : [],
                             });
                           }}
-                          className="rounded"
+                          className="rounded w-[18px] h-[18px] shrink-0"
                           style={{ accentColor }}
                         />
                         <span className="text-muted-foreground">Preencher automaticamente meus dados neste dispositivo</span>
@@ -1127,25 +1131,25 @@ const PublicMenu = () => {
                     </div>
                   )}
                   <div>
-                    <label className="text-sm font-medium">Nome *</label>
+                    <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>Nome *</label>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
-                      required placeholder="Seu nome" className="mt-1" />
+                      required placeholder="Seu nome" className="mt-1.5 h-12" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">WhatsApp *</label>
+                    <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>WhatsApp *</label>
                     <Input value={customerWhatsapp} onChange={(e) => setCustomerWhatsapp(e.target.value)}
-                      required placeholder="(11) 99999-9999" className="mt-1" />
+                      required placeholder="(11) 99999-9999" className="mt-1.5 h-12" />
                   </div>
 
                   {orderType === "dine_in" && !tableId && (
                     <div>
-                      <label className="text-sm font-medium">Mesa *</label>
+                      <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>Mesa *</label>
                       {tables.length > 0 ? (
-                        <div className="grid grid-cols-4 gap-2 mt-2">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 mt-2">
                           {tables.map((t) => (
                             <button key={t.id} type="button"
                               onClick={() => setSelectedTableId(t.id)}
-                              className={`py-2.5 ${R_TILE} text-sm font-semibold ${SELECTABLE_BASE} ${
+                              className={`min-h-[52px] px-2 ${R_TILE} text-sm font-semibold ${SELECTABLE_BASE} ${
                                 selectedTableId === t.id
                                   ? "font-bold"
                                   : `${SELECTABLE_IDLE} text-white/70`
@@ -1173,14 +1177,14 @@ const PublicMenu = () => {
                     <div className="space-y-3">
                       {savedAddresses.length > 0 && (
                         <div>
-                          <label className="text-xs font-medium">Endereços salvos</label>
-                          <div className="mt-1 space-y-1.5">
+                          <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Endereços salvos</label>
+                          <div className="mt-2 space-y-2">
                             {savedAddresses.map((a) => {
                               const active = selectedAddressId === a.id;
                               return (
                                 <div
                                   key={a.id}
-                                  className={`group flex items-center gap-3 ${R_FIELD} px-3 py-2.5 text-sm cursor-pointer ${SELECTABLE_BASE} ${
+                                  className={`group flex items-center gap-3 ${TOUCH_ROW} ${R_FIELD} p-3 text-sm cursor-pointer ${SELECTABLE_BASE} ${
                                     active ? "" : SELECTABLE_IDLE
                                   }`}
                                   style={active ? selectedSurface(accentColor) : {}}
@@ -1206,7 +1210,7 @@ const PublicMenu = () => {
 
                                   <button
                                     type="button"
-                                    className="text-xs text-destructive hover:underline shrink-0"
+                                    className={`text-xs text-destructive hover:underline shrink-0 ${TOUCH_ICON}`}
                                     onClick={async (e) => {
                                       e.stopPropagation();
                                       const { removeAddress, saveCustomerStorage } = await import("@/lib/publicMenuStorage");
@@ -1234,7 +1238,7 @@ const PublicMenu = () => {
                             })}
                             <button
                               type="button"
-                              className={`w-full flex items-center gap-2 ${R_FIELD} border-dashed px-3 py-2.5 text-sm ${SELECTABLE_BASE} ${
+                              className={`w-full flex items-center justify-center gap-2 ${TOUCH} ${R_FIELD} border-dashed px-3 text-sm font-medium ${SELECTABLE_BASE} ${
                                 selectedAddressId === null
                                   ? ""
                                   : `${SELECTABLE_IDLE} text-white/60 hover:text-white`
@@ -1254,7 +1258,7 @@ const PublicMenu = () => {
                       )}
 
                       <div>
-                        <label className="text-xs font-medium">CEP *</label>
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>CEP *</label>
                         <Input
                           value={deliveryCep}
                           onChange={(e) => {
@@ -1275,44 +1279,44 @@ const PublicMenu = () => {
                           required
                           inputMode="numeric"
                           placeholder="00000-000"
-                          className="mt-1"
+                          className="mt-1.5 h-12"
                         />
                         {deliveryCep && deliveryCep.replace(/\D/g, "").length !== 8 && (
                           <p className="text-[11px] text-destructive mt-1">CEP deve ter 8 dígitos</p>
                         )}
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-2.5">
                         <div className="col-span-2">
-                          <label className="text-xs font-medium">Rua *</label>
-                          <Input value={deliveryStreet} onChange={(e) => setDeliveryStreet(e.target.value)} required placeholder="Rua" className="mt-1" />
+                          <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Rua *</label>
+                          <Input value={deliveryStreet} onChange={(e) => setDeliveryStreet(e.target.value)} required placeholder="Rua" className="mt-1.5 h-12" />
                         </div>
                         <div>
-                          <label className="text-xs font-medium">Nº *</label>
-                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required inputMode="numeric" placeholder="123" className="mt-1" />
+                          <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Nº *</label>
+                          <Input value={deliveryNumber} onChange={(e) => setDeliveryNumber(e.target.value)} required inputMode="numeric" placeholder="123" className="mt-1.5 h-12" />
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs font-medium">Bairro *</label>
-                        <Input value={deliveryNeighborhood} onChange={(e) => setDeliveryNeighborhood(e.target.value)} required placeholder="Bairro" className="mt-1" />
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Bairro *</label>
+                        <Input value={deliveryNeighborhood} onChange={(e) => setDeliveryNeighborhood(e.target.value)} required placeholder="Bairro" className="mt-1.5 h-12" />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">Cidade *</label>
-                        <Input value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} required placeholder="Cidade" className="mt-1" />
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Cidade *</label>
+                        <Input value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} required placeholder="Cidade" className="mt-1.5 h-12" />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">Complemento</label>
-                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência, ponto de apoio..." className="mt-1" />
+                        <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Complemento</label>
+                        <Input value={deliveryComplement} onChange={(e) => setDeliveryComplement(e.target.value)} placeholder="Apto, referência, ponto de apoio..." className="mt-1.5 h-12" />
                       </div>
                     </div>
                   )}
 
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <label className={`flex items-center gap-2.5 ${TOUCH} text-sm text-muted-foreground cursor-pointer`}>
                     <input type="checkbox" checked={consentMarketing} onChange={(e) => setConsentMarketing(e.target.checked)}
-                      className="rounded" style={{ accentColor }} />
+                      className="rounded w-[18px] h-[18px] shrink-0" style={{ accentColor }} />
                     Aceito receber promoções por WhatsApp
                   </label>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-2.5 pt-2">
                     <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(1)}>
                       Voltar
                     </Button>
@@ -1341,8 +1345,8 @@ const PublicMenu = () => {
 
               {/* Step 3: Pagamento */}
               {checkoutStep === 3 && (
-                <div className="p-4 space-y-3 overflow-y-auto flex-1">
-                  <h3 className="font-display font-bold">Forma de pagamento</h3>
+                <div className={`${SHEET_PAD} space-y-3 overflow-y-auto flex-1`}>
+                  <h3 className="font-display text-base font-bold tracking-tight mb-1">Forma de pagamento</h3>
                   {(() => {
                     const pm = restaurant.payment_methods;
                     const mpOn = Boolean((restaurant as any).mp_enabled);
@@ -1376,13 +1380,13 @@ const PublicMenu = () => {
 
                   {paymentMethod === "cash" && (
                     <div>
-                      <label className="text-xs font-medium">Precisa de troco para quanto? (opcional)</label>
+                      <label className={`text-xs font-medium ${TEXT_SECONDARY}`}>Precisa de troco para quanto? (opcional)</label>
                       <Input value={changeFor} onChange={(e) => setChangeFor(e.target.value)}
-                        type="number" step="0.01" placeholder="Ex: 100.00" className="mt-1" />
+                        type="number" step="0.01" placeholder="Ex: 100.00" className="mt-1.5 h-12" />
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-2.5 pt-2">
                     <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(2)}>
                       Voltar
                     </Button>
@@ -1400,10 +1404,10 @@ const PublicMenu = () => {
 
               {/* Step 4: Revisão */}
               {checkoutStep === 4 && (
-                <form onSubmit={handleCheckout} className="p-4 space-y-4 overflow-y-auto flex-1">
+                <form onSubmit={handleCheckout} className={`${SHEET_PAD} space-y-4 overflow-y-auto flex-1`}>
                   <div className="space-y-2">
                     {cart.map((item) => (
-                      <div key={item.cartKey} className={`flex justify-between gap-3 text-sm px-3 py-2 ${R_FIELD} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}>
+                      <div key={item.cartKey} className={`flex justify-between gap-3 text-sm px-3 py-2.5 ${R_FIELD} ${SELECTABLE_BASE} ${SELECTABLE_IDLE}`}>
                         <span className="text-muted-foreground">{item.quantity}× {item.name}</span>
                         <span className="font-medium">{fmt(item.price * item.quantity)}</span>
                       </div>
@@ -1437,23 +1441,23 @@ const PublicMenu = () => {
                             </div>
                           </div>
                         </div>
-                        <button type="button" onClick={removeCoupon} className="text-muted-foreground hover:text-destructive p-1 rounded-md transition-colors">
+                        <button type="button" onClick={removeCoupon} className={`text-muted-foreground hover:text-destructive rounded-lg transition-colors shrink-0 ${TOUCH_ICON}`}>
                           <X className="w-4 h-4" />
                         </button>
                       </motion.div>
                     ) : (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2.5">
                         <Input
                           value={couponInput}
                           onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
                           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCouponCode(); } }}
                           placeholder="Digite o código"
-                          className="flex-1 font-mono uppercase tracking-wider"
+                          className="flex-1 min-h-[48px] font-mono uppercase tracking-wider"
                           maxLength={40}
                         />
                         <Button type="button" onClick={applyCouponCode}
                           disabled={couponValidating || !couponInput.trim()}
-                          className="px-4 rounded-xl" style={{ backgroundColor: accentColor }}>
+                          className="px-5 min-h-[48px] rounded-[14px] font-semibold text-[#080909]" style={{ backgroundColor: accentColor }}>
                           {couponValidating ? "..." : "Aplicar"}
                         </Button>
                       </div>
@@ -1523,7 +1527,7 @@ const PublicMenu = () => {
                   </div>
 
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
                       Voltar
                     </Button>

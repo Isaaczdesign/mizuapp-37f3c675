@@ -44,6 +44,19 @@ export default function RecoverOrdersByWhatsapp({
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Found[] | null>(null);
   const [recentCount, setRecentCount] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Esconde o botão flutuante enquanto qualquer sheet/modal estiver aberto
+  useEffect(() => {
+    const check = () =>
+      setModalOpen(
+        !!document.querySelector('[role="dialog"][aria-modal="true"]:not([data-recover-orders])'),
+      );
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.body, { childList: true, subtree: true, attributes: true });
+    return () => obs.disconnect();
+  }, []);
 
   // Atualiza contagem de pedidos recentes salvos no navegador
   useEffect(() => {
@@ -138,7 +151,9 @@ export default function RecoverOrdersByWhatsapp({
               aria-label={label}
               aria-haspopup="dialog"
               aria-expanded={open}
-              className="fixed bottom-24 right-4 z-[100] w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className={`fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4 z-[44] w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                modalOpen && !open ? "opacity-0 pointer-events-none translate-y-2" : "opacity-100"
+              }`}
               style={{
                 background: accentColor,
                 boxShadow: `0 8px 24px ${accentColor}66, 0 0 0 4px ${accentColor}22`,
@@ -167,6 +182,7 @@ export default function RecoverOrdersByWhatsapp({
       {/* Modal */}
       {open && (
         <div
+          data-recover-orders
           role="dialog"
           aria-modal="true"
           aria-labelledby="recover-order-title"
