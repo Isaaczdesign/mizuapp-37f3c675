@@ -658,52 +658,19 @@ const PublicMenu = () => {
         </div>
       )}
 
-      <div className="sticky top-0 z-40 mt-4 bg-background/90 backdrop-blur-xl border-b border-border">
-        <div className="px-4 pt-2 pb-1">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar no cardápio..."
-              className="w-full bg-secondary/60 rounded-full pl-9 pr-9 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-background/50"
-                aria-label="Limpar busca"
-              >
-                <X className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            )}
-          </div>
-        </div>
-        {!search && (
-          <div ref={categoryNavRef} className="flex gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
-                className="px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all font-medium"
-                style={
-                  activeCategory === cat.id
-                    ? { backgroundColor: accentColor, color: "white" }
-                    : {}
-                }
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <MenuStickyBar
+        search={search}
+        onSearch={setSearch}
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategory={scrollToCategory}
+        accentColor={accentColor}
+      />
 
       {/* ── Items by Category ── */}
-      <div className="px-4 pt-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
         {categorizedItems.length === 0 && (
-          <div className="text-center py-16">
+          <div className="text-center py-20">
             {search ? (
               <>
                 <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
@@ -725,14 +692,16 @@ const PublicMenu = () => {
             key={cat.id}
             ref={(el) => { categoryRefs.current[cat.id] = el; }}
             data-cat-id={cat.id}
-            className="mb-6 scroll-mt-[60px]"
+            className="mb-10 scroll-mt-[64px]"
           >
-            <h2 className={`${menuTheme.categoryTitleClass} mb-3 sticky top-[52px] bg-background/90 backdrop-blur-sm py-2 z-20`}>
-              {cat.name}
-            </h2>
+            <div className="sticky top-[60px] z-20 -mx-1 px-1 py-2.5 mb-4 bg-background/80 backdrop-blur-xl">
+              <h2 className={menuTheme.categoryTitleClass}>{cat.name}</h2>
+              <span className="mt-2 block h-px w-14 rounded-full" style={{ backgroundColor: accentColor + "66" }} />
+            </div>
 
             <div className={menuTheme.listClass}>
               {cat.items.map((item, idx) => {
+
                 const inCart = cart.filter((c) => c.menuItemId === item.id).reduce((s, c) => s + c.quantity, 0);
                 return (
                   <MenuItemCard
