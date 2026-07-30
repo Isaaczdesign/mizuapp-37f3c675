@@ -7,6 +7,10 @@ import {
   R_TILE,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  SELECTABLE_BASE,
+  SELECTABLE_IDLE,
+  selectedSurface,
+  selectedTileStyle,
 } from "./menuTokens";
 
 interface OptionCardProps {
@@ -41,28 +45,14 @@ const OptionCard = ({
     disabled={disabled}
     onClick={onClick}
     aria-pressed={selected}
-    className={`group w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-5 ${R_CARD_SM} border text-left transition-all duration-300 ease-out active:scale-[0.99] disabled:opacity-45 disabled:pointer-events-none ${
-      selected
-        ? ""
-        : "border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.14] hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)]"
+    className={`group w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-5 ${R_CARD_SM} text-left ${SELECTABLE_BASE} disabled:opacity-45 disabled:pointer-events-none ${
+      selected ? "" : SELECTABLE_IDLE
     }`}
-    style={
-      selected
-        ? {
-            borderColor: accentColor,
-            backgroundImage: `linear-gradient(145deg, ${accentColor}18, ${accentColor}0c)`,
-            boxShadow: `0 0 0 4px ${accentColor}1f, 0 6px 20px -6px ${accentColor}`,
-          }
-        : {}
-    }
+    style={selected ? selectedSurface(accentColor) : {}}
   >
     <span
       className={`w-12 h-12 shrink-0 ${R_TILE} flex items-center justify-center border transition-all duration-300 ease-out`}
-      style={{
-        backgroundColor: selected ? `${accentColor}1f` : "rgba(255,255,255,0.04)",
-        borderColor: selected ? `${accentColor}55` : "rgba(255,255,255,0.08)",
-        boxShadow: selected ? `inset 0 1px 0 ${accentColor}33` : "inset 0 1px 0 rgba(255,255,255,0.04)",
-      }}
+      style={selectedTileStyle(accentColor, selected)}
     >
       <Icon
         className={ICON_LG}
