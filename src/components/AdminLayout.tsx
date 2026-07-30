@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 import { Button } from "@/components/ui/button";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
+import { Logo } from "@/components/Logo";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[] };
 
@@ -151,7 +152,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         }`}
       >
         <div className="p-4 border-b border-border flex items-center justify-between gap-2 min-w-[14rem]">
-          <a href="/" className="font-display text-xl font-bold gradient-text">Kōban</a>
+          <a href="/" aria-label="Mizu"><Logo className="h-7" /></a>
           {collapsible && (
             <button
               onClick={() => setHidden(true)}
@@ -192,7 +193,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           >
             <Menu className="w-5 h-5" />
           </button>
-          <a href="/" className="font-display text-lg font-bold gradient-text">Kōban</a>
+          <a href="/" aria-label="Mizu"><Logo className="h-6" /></a>
           <div className="w-9" />
         </div>
       )}
@@ -217,7 +218,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           aria-label="Menu de navegação"
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <a href="/" className="font-display text-xl font-bold gradient-text" onClick={() => setMobileOpen(false)}>Kōban</a>
+            <a href="/" aria-label="Mizu" onClick={() => setMobileOpen(false)}><Logo className="h-7" /></a>
             <button
               onClick={() => setMobileOpen(false)}
               className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
