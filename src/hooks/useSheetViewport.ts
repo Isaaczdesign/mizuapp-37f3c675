@@ -298,9 +298,11 @@ export function useKeyboardFocusScroll(active: boolean) {
         if (performance.now() - start < 600) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
+      observeFocused();
       // Espera o teclado terminar de abrir antes de reposicionar.
       [120, 320, 520].forEach((ms) => timers.push(window.setTimeout(() => reveal(false), ms)));
     };
+
 
     // Durante as transições do sheet o elemento focado pode perder o foco
     // (re-render/animação). Se nenhum outro campo assumiu, devolvemos o foco.
