@@ -40,14 +40,8 @@ const Settings = () => {
   const [ownerName, setOwnerName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
-  const [primaryColor, setPrimaryColor] = useState("#E84310");
-  const [description, setDescription] = useState("");
-  const [pickupNote, setPickupNote] = useState("");
+
   const [whatsappProvider, setWhatsappProvider] = useState("");
   const [whatsappApiKey, setWhatsappApiKey] = useState("");
   const [whatsappSenderId, setWhatsappSenderId] = useState("");
