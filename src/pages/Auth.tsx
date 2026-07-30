@@ -175,6 +175,31 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+      // In full-page flows the browser redirects away; in popup/preview flows the
+      // session is already set and the auth listener will redirect to dashboard.
+      if (!result.redirected) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          toast.success("Login realizado com Google!");
+          navigate("/dashboard", { replace: true });
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Não foi possível entrar com Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="h-screen w-full overflow-x-hidden bg-[#0B0B0B] flex">
       {/* Coluna esquerda — formulário */}
