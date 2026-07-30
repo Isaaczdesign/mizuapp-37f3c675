@@ -885,7 +885,7 @@ const PublicMenu = () => {
       {/* ── Cart Drawer ── */}
       <AnimatePresence>
         {showCart && (
-          <div
+          <motion.div
             role="dialog" aria-modal="true" aria-label="Seu pedido"
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:flex-row lg:justify-end">
@@ -980,7 +980,7 @@ const PublicMenu = () => {
       {/* ── Step-Based Checkout (4 steps) ── */}
       <AnimatePresence>
         {checkoutStep > 0 && (
-          <div
+          <motion.div
             role="dialog" aria-modal="true" aria-label="Finalizar pedido"
             style={sheetViewport}
             className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8">
