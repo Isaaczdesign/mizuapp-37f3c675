@@ -965,78 +965,111 @@ const PublicMenu = () => {
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-1.5 px-4 pb-3 border-b border-white/[0.06] overflow-x-auto">
-                {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => (
-                  <div key={i} className="flex items-center gap-1.5 shrink-0">
-                    <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
-                      checkoutStep > i + 1 ? "text-white" : checkoutStep === i + 1 ? "text-white" : "bg-secondary text-muted-foreground"
-                    }`} style={checkoutStep >= i + 1 ? { backgroundColor: accentColor } : {}}>
-                      {checkoutStep > i + 1 ? <Check className="w-3 h-3" /> : i + 1}
+              <div className="flex items-center gap-2 px-4 sm:px-5 pt-1 pb-4 border-b border-white/[0.06] overflow-x-auto no-scrollbar">
+                {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => {
+                  const done = checkoutStep > i + 1;
+                  const active = checkoutStep === i + 1;
+                  return (
+                    <div key={i} className="flex items-center gap-2 shrink-0">
+                      <div
+                        className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-200 ${
+                          done || active ? "text-black" : "bg-white/[0.06] text-white/40 border border-white/[0.08]"
+                        }`}
+                        style={done || active ? { backgroundColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}22` } : {}}
+                      >
+                        {done ? <Check className="w-3 h-3" strokeWidth={3} /> : i + 1}
+                      </div>
+                      <span
+                        className={`text-[11px] font-semibold tracking-tight transition-colors ${
+                          active ? "text-white" : done ? "text-white/60" : "text-white/35"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                      {i < 3 && (
+                        <div
+                          className="w-5 h-px rounded-full transition-colors"
+                          style={{ backgroundColor: done ? accentColor + "80" : "rgba(255,255,255,0.10)" }}
+                        />
+                      )}
                     </div>
-                    <span className={`text-xs font-medium ${checkoutStep === i + 1 ? "text-foreground" : "text-muted-foreground"}`}>
-                      {label}
-                    </span>
-                    {i < 3 && <div className="w-4 h-px bg-border" />}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Step 1: Tipo de atendimento */}
               {checkoutStep === 1 && (
-                <div className="p-4 space-y-3 overflow-y-auto flex-1">
-                  <h3 className="font-display font-bold">Como deseja seu pedido?</h3>
-                  {restaurant.dine_in_enabled && (
-                    <button
-                      onClick={() => { setOrderType("dine_in"); setCheckoutStep(2); }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-colors duration-150 ${
-                        orderType === "dine_in" ? "" : "border-white/[0.08] bg-white/[0.03]"
-                      }`}
-                      style={orderType === "dine_in" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
-                    >
-                      <UtensilsCrossed className="w-5 h-5" style={{ color: accentColor }} />
-                      <div className="text-left">
-                        <p className="font-medium text-sm">No local</p>
-                        <p className="text-xs text-muted-foreground">Peça direto da mesa</p>
-                      </div>
-                    </button>
-                  )}
-                  {restaurant.pickup_enabled && (
-                    <button
-                      onClick={() => { setOrderType("pickup"); setCheckoutStep(2); }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-colors duration-150 ${
-                        orderType === "pickup" ? "" : "border-white/[0.08] bg-white/[0.03]"
-                      }`}
-                      style={orderType === "pickup" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
-                    >
-                      <ShoppingBag className="w-5 h-5" style={{ color: accentColor }} />
-                      <div className="text-left">
-                        <p className="font-medium text-sm">Retirada</p>
-                        <p className="text-xs text-muted-foreground">Buscar no balcão</p>
-                      </div>
-                    </button>
-                  )}
-                  {restaurant.delivery_enabled && (
-                    <button
-                      onClick={() => { setOrderType("delivery"); setCheckoutStep(2); }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-colors duration-150 ${
-                        orderType === "delivery" ? "" : "border-white/[0.08] bg-white/[0.03]"
-                      }`}
-                      style={orderType === "delivery" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
-                    >
-                      <Truck className="w-5 h-5" style={{ color: accentColor }} />
-                      <div className="text-left flex-1">
-                        <p className="font-medium text-sm">Delivery</p>
-                        <p className="text-xs text-muted-foreground">
-                          Entrega em casa {restaurant.delivery_fee ? `· Taxa ${fmt(Number(restaurant.delivery_fee))}` : ""}
-                        </p>
-                      </div>
-                    </button>
+                <div className="p-4 sm:p-5 space-y-2.5 overflow-y-auto flex-1">
+                  <h3 className="font-display text-base font-bold tracking-tight">Como deseja seu pedido?</h3>
+                  {([
+                    restaurant.dine_in_enabled && {
+                      key: "dine_in" as const,
+                      icon: UtensilsCrossed,
+                      title: "No local",
+                      desc: "Peça direto da mesa",
+                    },
+                    restaurant.pickup_enabled && {
+                      key: "pickup" as const,
+                      icon: ShoppingBag,
+                      title: "Retirada",
+                      desc: "Buscar no balcão",
+                    },
+                    restaurant.delivery_enabled && {
+                      key: "delivery" as const,
+                      icon: Truck,
+                      title: "Delivery",
+                      desc: `Entrega em casa${restaurant.delivery_fee ? ` · Taxa ${fmt(Number(restaurant.delivery_fee))}` : ""}`,
+                    },
+                  ].filter(Boolean) as Array<{ key: "dine_in" | "pickup" | "delivery"; icon: typeof Truck; title: string; desc: string }>).map(
+                    (opt) => {
+                      const selected = orderType === opt.key;
+                      const Icon = opt.icon;
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() => { setOrderType(opt.key); setCheckoutStep(2); }}
+                          className={`group w-full flex items-center gap-3.5 p-3.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99] ${
+                            selected
+                              ? ""
+                              : "border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.12]"
+                          }`}
+                          style={
+                            selected
+                              ? {
+                                  borderColor: accentColor,
+                                  backgroundColor: accentColor + "12",
+                                  boxShadow: `0 0 0 3px ${accentColor}1a`,
+                                }
+                              : {}
+                          }
+                        >
+                          <span
+                            className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center border transition-colors"
+                            style={{
+                              backgroundColor: selected ? accentColor + "1f" : "rgba(255,255,255,0.04)",
+                              borderColor: selected ? accentColor + "4d" : "rgba(255,255,255,0.07)",
+                            }}
+                          >
+                            <Icon className="w-5 h-5" style={{ color: selected ? accentColor : "rgba(255,255,255,0.65)" }} strokeWidth={1.75} />
+                          </span>
+                          <span className="flex-1 min-w-0">
+                            <span className="block font-semibold text-sm text-white">{opt.title}</span>
+                            <span className="block text-xs text-white/45 mt-0.5">{opt.desc}</span>
+                          </span>
+                          <ChevronRight
+                            className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                            style={{ color: selected ? accentColor : "rgba(255,255,255,0.3)" }}
+                          />
+                        </button>
+                      );
+                    },
                   )}
                   {!restaurant.dine_in_enabled && !restaurant.pickup_enabled && !restaurant.delivery_enabled && (
-                    <p className="text-sm text-muted-foreground text-center py-4">Nenhum tipo de atendimento disponível.</p>
+                    <p className="text-sm text-white/45 text-center py-4">Nenhum tipo de atendimento disponível.</p>
                   )}
                 </div>
               )}
+
 
               {/* Step 2: Infos (customer + mesa/endereço) */}
               {checkoutStep === 2 && orderType && (
