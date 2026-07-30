@@ -430,9 +430,11 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
       {/* ————— Coluna direita: preview grande ————— */}
       <div className="xl:sticky xl:top-6 h-fit">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">Prévia ao vivo</p>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">
+            Prévia ao vivo · {device === "mobile" ? "Celular" : "Computador"}
+          </p>
           <motion.span
-            key={theme.id}
+            key={theme.id + device}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
@@ -447,21 +449,46 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
             className="absolute -inset-10 rounded-[4rem] blur-3xl opacity-25 pointer-events-none"
             style={{ background: `radial-gradient(circle at 50% 20%, ${color}, transparent 70%)` }}
           />
-          <PhoneFrame>
-            <PhonePreview
-              theme={theme}
-              color={color}
-              items={items}
-              restaurantName={restaurantName}
-              logoUrl={logoPreview}
-              bannerUrl={bannerPreview}
-              description={description}
-
-              loading={!ready}
-            />
-          </PhoneFrame>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={device}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
+            >
+              {device === "mobile" ? (
+                <PhoneFrame>
+                  <PhonePreview
+                    theme={theme}
+                    color={color}
+                    items={items}
+                    restaurantName={restaurantName}
+                    logoUrl={logoPreview}
+                    bannerUrl={bannerPreview}
+                    description={description}
+                    loading={!ready}
+                  />
+                </PhoneFrame>
+              ) : (
+                <DesktopFrame>
+                  <DesktopPreview
+                    theme={theme}
+                    color={color}
+                    items={items}
+                    restaurantName={restaurantName}
+                    logoUrl={logoPreview}
+                    bannerUrl={bannerPreview}
+                    description={description}
+                    loading={!ready}
+                  />
+                </DesktopFrame>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
+
     </div>
   );
 }
