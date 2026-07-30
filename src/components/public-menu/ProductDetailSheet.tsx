@@ -206,8 +206,8 @@ export default function ProductDetailSheet({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: D_MICRO }}
-        className="bg-black/60"
-        style={{ ...sheetViewport, backdropFilter: "blur(18px) saturate(120%)", WebkitBackdropFilter: "blur(18px) saturate(120%)" }}
+        className="fixed inset-0 bg-black/80"
+        style={{ height: "100lvh", minHeight: "100vh", backdropFilter: "blur(20px) saturate(120%)", WebkitBackdropFilter: "blur(20px) saturate(120%)" }}
         onClick={onClose}
       />
 
