@@ -572,11 +572,12 @@ const PublicMenu = () => {
         complement: deliveryComplement.trim() || null,
       } : null;
 
+      // Preço é recalculado no servidor a partir do cardápio; enviamos apenas as escolhas.
       const itemsPayload = cart.map((item) => ({
         menu_item_id: item.menuItemId,
-        name: item.name,
         quantity: item.quantity,
-        unit_price: item.price,
+        variation_id: item.variationId ?? null,
+        addon_ids: item.addonIds ?? [],
         notes: item.itemNotes || null,
       }));
 
