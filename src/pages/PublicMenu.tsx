@@ -973,7 +973,7 @@ const PublicMenu = () => {
                 })()}
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -1554,7 +1554,7 @@ const PublicMenu = () => {
                 </form>
               )}
             </motion.div>
-          </div>
+          </motion.div>
 
         )}
       </AnimatePresence>

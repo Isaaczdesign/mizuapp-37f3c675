@@ -194,7 +194,7 @@ export default function ProductDetailSheet({
   );
 
   return (
-    <div
+    <motion.div
       style={sheetViewport}
       className="z-50 flex flex-col overflow-hidden lg:items-center lg:justify-center lg:p-8"
       role="dialog"
