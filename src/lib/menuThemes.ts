@@ -1,14 +1,15 @@
 // Templates de layout do cardápio público.
 // Fonte única usada pelo admin (aba Personalizar) e pela página pública.
+// Todos compartilham o mesmo Design System premium da Mizu — muda só a organização visual.
 
-export type MenuThemeId = "classic" | "showcase" | "compact" | "grid" | "elegant" | "vibrant";
+export type MenuThemeId = "classic" | "showcase" | "grid" | "elegant" | "express";
 
 export type MenuTheme = {
   id: MenuThemeId;
   name: string;
   description: string;
   /** Estrutura do card do item */
-  layout: "row" | "stacked" | "text" | "tile";
+  layout: "row" | "stacked" | "tile" | "editorial" | "express";
   /** Classes do container da lista de itens */
   listClass: string;
   /** Classes do card */
@@ -29,102 +30,94 @@ export type MenuTheme = {
   boldPrice?: boolean;
 };
 
+/** Base compartilhada: mesmas bordas, sombras e vidro em todos os templates */
+const SURFACE =
+  "bg-card/50 backdrop-blur-xl border border-white/[0.06] shadow-[0_18px_50px_-40px_rgba(0,0,0,0.95)] hover:border-white/[0.14] hover:bg-card/70";
+
 export const MENU_THEMES: MenuTheme[] = [
   {
     id: "classic",
-    name: "Clássico",
-    description: "Lista com foto pequena à direita. Equilibrado e familiar.",
+    name: "Mizu Classic",
+    description: "Lista elegante com foto à esquerda, preço destacado e muito respiro.",
     layout: "row",
-    listClass: "space-y-2",
-    cardClass:
-      "flex gap-3 p-3 rounded-2xl bg-card/60 backdrop-blur border border-white/[0.05] hover:border-white/[0.1]",
-    imageClass: "w-24 h-24 rounded-xl object-cover shrink-0",
-    titleClass: "font-semibold text-sm leading-tight",
-    priceClass: "font-display font-bold text-sm",
-    categoryTitleClass: "font-display text-lg font-bold",
+    listClass: "space-y-3",
+    cardClass: `group flex gap-4 p-3.5 rounded-3xl ${SURFACE}`,
+    imageClass: "w-[88px] h-[88px] sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0",
+    titleClass: "font-display font-semibold text-[15px] leading-snug tracking-tight",
+    priceClass: "font-display font-bold text-[15px] tabular-nums",
+    categoryTitleClass: "font-display text-lg font-bold tracking-tight",
     showImage: true,
     showDescription: true,
   },
   {
     id: "showcase",
-    name: "Vitrine",
-    description: "Cards grandes com foto no topo. Ideal para dar água na boca.",
+    name: "Mizu Showcase",
+    description: "Cards grandes com foto dominante e preço em destaque. Feito para converter.",
     layout: "stacked",
-    listClass: "space-y-4",
-    cardClass:
-      "block overflow-hidden rounded-3xl bg-card/70 backdrop-blur border border-white/[0.06] hover:border-white/[0.12]",
-    imageClass: "w-full h-44 object-cover",
-    titleClass: "font-display font-bold text-base leading-tight",
-    priceClass: "font-display font-bold text-base",
-    categoryTitleClass: "font-display text-xl font-bold",
+    listClass: "space-y-5",
+    cardClass: `group block overflow-hidden rounded-[28px] ${SURFACE}`,
+    imageClass: "w-full h-52 object-cover",
+    titleClass: "font-display font-bold text-[17px] leading-snug tracking-tight",
+    priceClass: "font-display font-bold text-lg tabular-nums",
+    categoryTitleClass: "font-display text-xl font-bold tracking-tight",
     showImage: true,
     showDescription: true,
   },
   {
-    id: "compact",
-    name: "Compacto",
-    description: "Lista densa sem fotos. Perfeito para cardápios extensos.",
-    layout: "text",
-    listClass: "divide-y divide-border/60 rounded-2xl border border-border/60 bg-card/40 overflow-hidden",
-    cardClass: "flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/40",
-    imageClass: "hidden",
-    titleClass: "font-medium text-sm leading-tight",
-    priceClass: "font-semibold text-sm tabular-nums",
-    categoryTitleClass: "font-display text-base font-bold uppercase tracking-wide",
-    showImage: false,
-    showDescription: false,
-  },
-  {
     id: "grid",
-    name: "Grade",
-    description: "Duas colunas com fotos quadradas. Visual de app de delivery.",
+    name: "Mizu Grid",
+    description: "Duas colunas compactas com foto grande. Padrão dos apps de delivery.",
     layout: "tile",
-    listClass: "grid grid-cols-2 gap-3",
-    cardClass:
-      "flex flex-col overflow-hidden rounded-2xl bg-card/60 backdrop-blur border border-white/[0.05] hover:border-white/[0.12]",
+    listClass: "grid grid-cols-2 gap-3.5",
+    cardClass: `group flex flex-col overflow-hidden rounded-3xl ${SURFACE}`,
     imageClass: "w-full aspect-square object-cover",
-    titleClass: "font-semibold text-[13px] leading-tight line-clamp-2",
-    priceClass: "font-display font-bold text-sm",
-    categoryTitleClass: "font-display text-lg font-bold",
+    titleClass: "font-display font-semibold text-[13.5px] leading-snug line-clamp-2 tracking-tight",
+    priceClass: "font-display font-bold text-[15px] tabular-nums",
+    categoryTitleClass: "font-display text-lg font-bold tracking-tight",
     showImage: true,
     showDescription: false,
   },
   {
     id: "elegant",
-    name: "Elegante",
-    description: "Tipografia serifada, divisores finos e foto discreta.",
-    layout: "row",
-    listClass: "divide-y divide-border/50",
-    cardClass: "flex gap-4 py-4 hover:opacity-90",
-    imageClass: "w-16 h-16 rounded-full object-cover shrink-0",
-    titleClass: "font-serif text-[15px] tracking-wide leading-tight",
-    priceClass: "font-serif text-sm tracking-wider",
-    categoryTitleClass: "font-serif text-lg tracking-[0.2em] uppercase",
+    name: "Mizu Elegant",
+    description: "Muito espaço em branco, divisores finos e foto discreta. Visual fine dining.",
+    layout: "editorial",
+    listClass: "divide-y divide-white/[0.06]",
+    cardClass: "group flex items-center gap-5 py-6",
+    imageClass: "w-14 h-14 rounded-2xl object-cover shrink-0",
+    titleClass: "font-display text-[15px] tracking-[0.06em] uppercase leading-snug",
+    priceClass: "text-[13px] tracking-[0.12em] tabular-nums",
+    categoryTitleClass: "font-display text-sm tracking-[0.28em] uppercase",
     showImage: true,
     showDescription: true,
   },
   {
-    id: "vibrant",
-    name: "Vibrante",
-    description: "Cards arredondados, cores fortes e preço em destaque.",
-    layout: "row",
-    listClass: "space-y-3",
-    cardClass:
-      "flex gap-3 p-3.5 rounded-[26px] border-2 hover:brightness-110 shadow-lg",
-    imageClass: "w-24 h-24 rounded-2xl object-cover shrink-0",
-    titleClass: "font-display font-bold text-[15px] leading-tight",
-    priceClass: "font-display font-extrabold text-sm",
-    categoryTitleClass: "font-display text-xl font-extrabold",
+    id: "express",
+    name: "Mizu Express",
+    description: "Lista limpa e rápida, preço grande e botão sempre à mão. Ideal para cardápios extensos.",
+    layout: "express",
+    listClass: "space-y-2",
+    cardClass: `group flex items-center gap-3.5 px-3.5 py-3 rounded-2xl ${SURFACE}`,
+    imageClass: "w-12 h-12 rounded-xl object-cover shrink-0",
+    titleClass: "font-display font-semibold text-[14.5px] leading-snug tracking-tight",
+    priceClass: "font-display font-bold text-base tabular-nums",
+    categoryTitleClass: "font-display text-base font-bold uppercase tracking-[0.14em]",
     showImage: true,
-    showDescription: true,
-    boldPrice: true,
+    showDescription: false,
   },
 ];
 
 export const DEFAULT_MENU_THEME: MenuThemeId = "classic";
 
+/** Compatibilidade com temas salvos antes do redesign */
+const LEGACY_ALIASES: Record<string, MenuThemeId> = {
+  compact: "express",
+  vibrant: "showcase",
+};
+
 export function resolveMenuTheme(id?: string | null): MenuTheme {
-  return MENU_THEMES.find((t) => t.id === id) ?? MENU_THEMES[0];
+  const key = id ? (LEGACY_ALIASES[id] ?? id) : undefined;
+  return MENU_THEMES.find((t) => t.id === key) ?? MENU_THEMES[0];
 }
 
 export const ACCENT_PRESETS: { name: string; value: string }[] = [
