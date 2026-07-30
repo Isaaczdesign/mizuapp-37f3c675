@@ -4,6 +4,7 @@ import {
   BORDER, R_CHIP, TEXT_SECONDARY, accentFaint, accentGlow, brl as fmt, D_MICRO, EASE,
 } from "./menuTokens";
 import { useSheetViewport, useKeyboardFocusScroll } from "@/hooks/useSheetViewport";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type Variation = { id: string; name: string; price_delta: number; absolute_price: number | null };
 type Addon = { id: string; name: string; price: number };
@@ -42,6 +43,7 @@ export default function ProductDetailSheet({
 }) {
   const sheetViewport = useSheetViewport(true);
   useKeyboardFocusScroll(true);
+  const trapRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const basePrice =
     selectedVariation?.absolute_price != null
       ? Number(selectedVariation.absolute_price)
@@ -218,6 +220,7 @@ export default function ProductDetailSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 32, stiffness: 340 }}
+        ref={trapRef}
         className="mt-auto relative w-full sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-4xl bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] max-h-[92%] lg:max-h-[86%] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
       >
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-white/25 lg:hidden" aria-hidden />
