@@ -18,6 +18,10 @@ import { resolveMenuTheme } from "@/lib/menuThemes";
 import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
 import { ClosedNotice } from "@/components/public-menu/ClosedNotice";
 import { subscribeMenuUpdates } from "@/lib/menuRealtime";
+import MenuSidebar from "@/components/public-menu/MenuSidebar";
+import ProductDetailSheet from "@/components/public-menu/ProductDetailSheet";
+import EmptyState from "@/components/public-menu/EmptyState";
+import MenuSkeleton from "@/components/public-menu/MenuSkeletons";
 
 
 
@@ -70,31 +74,6 @@ function getOpenStatus(hours: any): { isOpen: boolean; label: string } {
   if (nowMin >= openMin && nowMin <= closeMin) return { isOpen: true, label: `Aberto até ${today.close}` };
   if (nowMin < openMin) return { isOpen: false, label: `Abre às ${today.open}` };
   return { isOpen: false, label: "Fechado agora" };
-}
-
-// ── Skeleton Loaders ──
-function MenuSkeleton() {
-  return (
-    <div className="space-y-4 px-4 py-6">
-      {/* Banner skeleton */}
-      <Skeleton className="w-full h-44 rounded-2xl" />
-      {/* Category bar skeleton */}
-      <div className="flex gap-2">
-        {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-8 w-20 rounded-full" />)}
-      </div>
-      {/* Item skeletons */}
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="flex gap-3">
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-            <Skeleton className="h-4 w-16" />
-          </div>
-          <Skeleton className="w-24 h-24 rounded-xl shrink-0" />
-        </div>
-      ))}
-    </div>
-  );
 }
 
 // ── Main Component ──
@@ -682,9 +661,34 @@ const PublicMenu = () => {
     items: items.filter((i) => i.category_id === cat.id && matchesSearch(i)),
   })).filter((c) => c.items.length > 0);
 
+  const categoryCounts = categorizedItems.map((c) => ({ id: c.id, name: c.name, count: c.items.length }));
+
   return (
-    <div className="min-h-screen bg-background pb-32">
-      {/* ── Hero premium ── */}
+    <div className="min-h-[100dvh] bg-[#080909] text-[#F7F7F5] lg:flex">
+      {/* ── Desktop: sidebar fixa ── */}
+      <MenuSidebar
+        name={restaurant.name}
+        description={restaurant.description}
+        logoUrl={restaurant.logo_url}
+        accentColor={accentColor}
+        isOpen={openStatus.isOpen}
+        statusLabel={openStatus.label}
+        deliveryEnabled={restaurant.delivery_enabled}
+        deliveryFee={restaurant.delivery_fee}
+        ownerPhone={restaurant.owner_phone}
+        search={search}
+        onSearch={setSearch}
+        categories={categoryCounts}
+        activeCategory={activeCategory}
+        onCategory={scrollToCategory}
+        cartCount={cartCount}
+        cartTotal={cartTotal}
+        onOpenCart={() => setShowCart(true)}
+      />
+
+      <main className="flex-1 min-w-0 pb-32 lg:pb-16">
+      {/* ── Hero (mobile e tablet) ── */}
+      <div className="lg:hidden">
       <RestaurantHero
         name={restaurant.name}
         description={restaurant.description}
@@ -697,7 +701,23 @@ const PublicMenu = () => {
         deliveryFee={restaurant.delivery_fee}
         ownerPhone={restaurant.owner_phone}
       />
+      </div>
 
+      {/* ── Desktop: banner de capa ── */}
+      {restaurant.banner_url && (
+        <div className="hidden lg:block px-8 pt-8">
+          <div className="relative h-56 xl:h-64 rounded-[22px] overflow-hidden border border-white/[0.07]">
+            <img src={restaurant.banner_url} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080909]/85 via-[#080909]/25 to-transparent" />
+            <div className="absolute bottom-5 left-6 right-6">
+              <h2 className="font-display text-2xl xl:text-[28px] font-bold tracking-tight">{restaurant.name}</h2>
+              {restaurant.description && (
+                <p className="mt-1 text-[13.5px] text-[#A5A5A0] line-clamp-1 max-w-2xl">{restaurant.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ClosedNotice
         operatingHours={operatingHours as any}
@@ -733,6 +753,7 @@ const PublicMenu = () => {
         </div>
       )}
 
+      <div className="lg:hidden">
       <MenuStickyBar
         search={search}
         onSearch={setSearch}
@@ -741,23 +762,28 @@ const PublicMenu = () => {
         onCategory={scrollToCategory}
         accentColor={accentColor}
       />
+      </div>
 
       {/* ── Items by Category ── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
+      <div className="max-w-3xl lg:max-w-none xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8">
         {categorizedItems.length === 0 && (
-          <div className="text-center py-20">
+          <div className="py-16">
             {search ? (
-              <>
-                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <h3 className="font-display font-bold mb-1">Nenhum item encontrado</h3>
-                <p className="text-sm text-muted-foreground">Tente outro termo ou limpe a busca.</p>
-              </>
+              <EmptyState
+                icon={<Search className="w-6 h-6" />}
+                title="Nenhum item encontrado"
+                description={`Não achamos nada para “${search}”. Tente outro termo ou veja o cardápio completo.`}
+                actionLabel="Limpar busca"
+                onAction={() => setSearch("")}
+                accentColor={accentColor}
+              />
             ) : (
-              <>
-                <UtensilsCrossed className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <h3 className="font-display font-bold mb-1">Cardápio em breve</h3>
-                <p className="text-sm text-muted-foreground">Este restaurante ainda está preparando o cardápio.</p>
-              </>
+              <EmptyState
+                icon={<UtensilsCrossed className="w-6 h-6" />}
+                title="Cardápio em breve"
+                description="Este restaurante ainda está preparando os pratos. Volte em instantes."
+                accentColor={accentColor}
+              />
             )}
           </div>
         )}
@@ -767,12 +793,18 @@ const PublicMenu = () => {
             key={cat.id}
             ref={(el) => { categoryRefs.current[cat.id] = el; }}
             data-cat-id={cat.id}
-            className="mb-10 scroll-mt-[64px]"
+            className="mb-10 lg:mb-12 scroll-mt-[72px] lg:scroll-mt-6"
           >
-            <div className="sticky top-[60px] z-20 -mx-1 px-1 py-2.5 mb-4 bg-background/80 backdrop-blur-xl">
-              <h2 className={menuTheme.categoryTitleClass}>{cat.name}</h2>
+            <div className="sticky top-[60px] lg:top-0 z-20 -mx-1 px-1 py-2.5 lg:py-4 mb-4 bg-[#080909]/85 backdrop-blur-xl">
+              <div className="flex items-baseline gap-3">
+                <h2 className={menuTheme.categoryTitleClass}>{cat.name}</h2>
+                <span className="text-[11.5px] tabular-nums text-[#74746F]">
+                  {cat.items.length} {cat.items.length === 1 ? "item" : "itens"}
+                </span>
+              </div>
               <span className="mt-2 block h-px w-14 rounded-full" style={{ backgroundColor: accentColor + "66" }} />
             </div>
+
 
             <div className={menuTheme.listClass}>
               {cat.items.map((item, idx) => {
@@ -796,165 +828,27 @@ const PublicMenu = () => {
         ))}
       </div>
 
-      {/* ── Item Detail Modal ── */}
+      </main>
+
+      {/* ── Detalhe do produto ── */}
       <AnimatePresence>
         {showItemDetail && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col"
-          >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowItemDetail(null)} />
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="mt-auto relative w-full sm:max-w-lg sm:mx-auto bg-[#141414] border-t sm:border border-white/[0.08] rounded-t-[28px] sm:rounded-[28px] sm:mb-6 max-h-[92vh] flex flex-col overflow-hidden shadow-[0_-30px_80px_-40px_rgba(0,0,0,1)]"
-            >
-              {/* Drag handle */}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-white/25" />
-
-              <div className="overflow-y-auto flex-1">
-                {showItemDetail.image_url ? (
-                  <div className="relative">
-                    <img src={showItemDetail.image_url} alt="" className="w-full h-64 sm:h-72 object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#141414] to-transparent" />
-                    <button
-                      onClick={() => setShowItemDetail(null)}
-                      aria-label="Fechar"
-                      className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/10 active:scale-90 transition-transform"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : <div className="h-6" />}
-                <div className="p-5 space-y-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <h2 className="font-display text-[22px] font-bold tracking-tight leading-tight">{showItemDetail.name}</h2>
-                    <span
-                      className="font-display text-lg font-bold shrink-0 px-3 py-1.5 rounded-full border tabular-nums"
-                      style={{ color: accentColor, borderColor: accentColor + "33", backgroundColor: accentColor + "12" }}
-                    >
-                      {fmt(Number(showItemDetail.price))}
-                    </span>
-                  </div>
-
-                  {showItemDetail.description && (
-                    <p className="text-[13.5px] leading-relaxed text-muted-foreground">{showItemDetail.description}</p>
-                  )}
-
-
-                  {showItemDetail.ingredients && (
-                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4">
-                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-1.5">Ingredientes</p>
-                      <p className="text-[13px] leading-relaxed">{showItemDetail.ingredients}</p>
-                    </div>
-                  )}
-
-                  {showItemDetail.allergens && (
-                    <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
-                      <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-yellow-500/90 leading-relaxed">{showItemDetail.allergens}</p>
-                    </div>
-                  )}
-
-                  {/* Variations */}
-                  {(showItemDetail.variations?.length ?? 0) > 0 && (
-                    <div>
-                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-2.5">Variação</p>
-                      <div className="space-y-2">
-                        {showItemDetail.variations!.map((v) => {
-                          const isSelected = selectedVariation?.id === v.id;
-                          return (
-                            <motion.button key={v.id}
-                              whileTap={{ scale: 0.985 }}
-                              onClick={() => setSelectedVariation(isSelected ? null : v)}
-                              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl text-[13.5px] border transition-all"
-                              style={isSelected
-                                ? { borderColor: accentColor, backgroundColor: accentColor + "12", boxShadow: `0 10px 30px -22px ${accentColor}` }
-                                : { borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)" }}
-                            >
-                              <span className="font-medium">{v.name}</span>
-                              <span className="font-semibold tabular-nums" style={{ color: accentColor }}>
-                                {v.absolute_price != null ? fmt(Number(v.absolute_price)) :
-                                  v.price_delta > 0 ? `+${fmt(Number(v.price_delta))}` : "incluso"}
-                              </span>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Addons */}
-                  {(showItemDetail.addons?.length ?? 0) > 0 && (
-                    <div>
-                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.16em] mb-2.5">Adicionais</p>
-                      <div className="space-y-2">
-                        {showItemDetail.addons!.map((a) => {
-                          const isSelected = selectedAddons.find((sa) => sa.id === a.id);
-                          return (
-                            <motion.button key={a.id}
-                              whileTap={{ scale: 0.985 }}
-                              onClick={() => setSelectedAddons(isSelected
-                                ? selectedAddons.filter((sa) => sa.id !== a.id) : [...selectedAddons, a]
-                              )}
-                              className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl text-[13.5px] border transition-all"
-                              style={isSelected
-                                ? { borderColor: accentColor, backgroundColor: accentColor + "12", boxShadow: `0 10px 30px -22px ${accentColor}` }
-                                : { borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)" }}
-                            >
-                              <span className="font-medium">{a.name}</span>
-                              <span className="font-semibold tabular-nums" style={{ color: accentColor }}>+{fmt(Number(a.price))}</span>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quantity */}
-                  <div className="flex items-center justify-center gap-5 py-1">
-                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => setDetailQty(Math.max(1, detailQty - 1))}
-                      aria-label="Diminuir"
-                      className="w-11 h-11 rounded-full border border-white/[0.08] bg-white/[0.04] flex items-center justify-center">
-                      <Minus className="w-4 h-4" />
-                    </motion.button>
-                    <AnimatePresence mode="popLayout">
-                      <motion.span
-                        key={detailQty}
-                        initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}
-                        transition={{ duration: 0.16 }}
-                        className="font-display text-2xl font-bold w-10 text-center tabular-nums"
-                      >
-                        {detailQty}
-                      </motion.span>
-                    </AnimatePresence>
-                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => setDetailQty(detailQty + 1)}
-                      aria-label="Aumentar"
-                      className="w-11 h-11 rounded-full text-white flex items-center justify-center"
-                      style={{ backgroundColor: accentColor, boxShadow: `0 12px 30px -16px ${accentColor}` }}>
-                      <Plus className="w-4 h-4" />
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className="p-4 border-t border-white/[0.06] bg-[#141414]/90 backdrop-blur-xl"
-                style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
-              >
-                <Button className="w-full py-6 text-base rounded-2xl font-bold text-white transition-transform active:scale-[0.985]"
-                  style={{ backgroundColor: accentColor, boxShadow: `0 18px 40px -22px ${accentColor}` }}
-                  onClick={addToCartFromDetail}>
-                  Adicionar • {fmt(
-                    ((selectedVariation?.absolute_price != null ? Number(selectedVariation.absolute_price) :
-                      Number(showItemDetail.price) + (selectedVariation?.price_delta ?? 0)) +
-                      selectedAddons.reduce((s, a) => s + Number(a.price), 0)) * detailQty
-                  )}
-                </Button>
-              </div>
-
-            </motion.div>
-          </motion.div>
+          <ProductDetailSheet
+            item={showItemDetail}
+            accentColor={accentColor}
+            selectedVariation={selectedVariation}
+            onSelectVariation={setSelectedVariation}
+            selectedAddons={selectedAddons}
+            onToggleAddon={(a) =>
+              setSelectedAddons((prev) =>
+                prev.find((sa) => sa.id === a.id) ? prev.filter((sa) => sa.id !== a.id) : [...prev, a],
+              )
+            }
+            qty={detailQty}
+            onQty={setDetailQty}
+            onClose={() => setShowItemDetail(null)}
+            onAdd={addToCartFromDetail}
+          />
         )}
       </AnimatePresence>
 
@@ -975,19 +869,20 @@ const PublicMenu = () => {
       <AnimatePresence>
         {showCart && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowCart(false)} />
+            role="dialog" aria-modal="true" aria-label="Seu pedido"
+            className="fixed inset-0 z-50 flex flex-col lg:flex-row lg:justify-end">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowCart(false)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="mt-auto relative bg-card border-t border-border rounded-t-3xl max-h-[85vh] flex flex-col"
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="mt-auto relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none max-h-[88dvh] lg:max-h-none lg:h-[100dvh] lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
             >
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-muted" />
+              <div className="flex justify-center pt-3 pb-1 lg:hidden">
+                <div className="w-10 h-1 rounded-full bg-white/25" />
               </div>
-              <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
+              <div className="flex items-center justify-between px-4 pb-3 border-b border-white/[0.06]">
                 <h2 className="font-display text-lg font-bold">Seu Pedido</h2>
-                <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+                <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -1005,7 +900,7 @@ const PublicMenu = () => {
                       <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{fmt(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <button onClick={() => removeFromCart(item.cartKey)} className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
+                      <button onClick={() => removeFromCart(item.cartKey)} className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
@@ -1021,15 +916,15 @@ const PublicMenu = () => {
 
 
                 {/* Order notes */}
-                <div className="pt-3 border-t border-border">
+                <div className="pt-3 border-t border-white/[0.06]">
                   <label className="text-xs font-medium text-muted-foreground">Observações</label>
                   <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                    className="w-full mt-1 p-3 rounded-xl bg-secondary text-sm resize-none h-16 border-none outline-none placeholder:text-muted-foreground"
+                    className="w-full mt-1 p-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm resize-none h-16 border-none outline-none placeholder:text-muted-foreground"
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
               </div>
 
-              <div className="p-4 border-t border-border space-y-3">
+              <div className="p-4 border-t border-white/[0.06] space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
@@ -1038,7 +933,7 @@ const PublicMenu = () => {
                   const closed = (restaurant as any)?.accepting_orders === false || (!!operatingHours && !isOpenNow(operatingHours));
                   return (
                     <Button
-                      className="w-full py-6 text-base rounded-2xl font-bold"
+                      className="w-full min-h-[52px] text-base rounded-[16px] font-bold text-[#080909]"
                       style={{ backgroundColor: accentColor }}
                       disabled={closed}
                       onClick={() => { setShowCart(false); setCheckoutStep(1); }}
@@ -1057,19 +952,20 @@ const PublicMenu = () => {
       <AnimatePresence>
         {checkoutStep > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setCheckoutStep(0)} />
+            role="dialog" aria-modal="true" aria-label="Finalizar pedido"
+            className="fixed inset-0 z-50 flex flex-col lg:items-center lg:justify-center lg:p-8">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setCheckoutStep(0)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="mt-auto relative bg-card border-t border-border rounded-t-3xl max-h-[90vh] flex flex-col"
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="mt-auto lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl max-h-[90dvh] lg:max-h-[86dvh] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]"
             >
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-muted" />
+              <div className="flex justify-center pt-3 pb-1 lg:hidden">
+                <div className="w-10 h-1 rounded-full bg-white/25" />
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-1.5 px-4 pb-3 border-b border-border overflow-x-auto">
+              <div className="flex items-center gap-1.5 px-4 pb-3 border-b border-white/[0.06] overflow-x-auto">
                 {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => (
                   <div key={i} className="flex items-center gap-1.5 shrink-0">
                     <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
@@ -1092,8 +988,8 @@ const PublicMenu = () => {
                   {restaurant.dine_in_enabled && (
                     <button
                       onClick={() => { setOrderType("dine_in"); setCheckoutStep(2); }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
-                        orderType === "dine_in" ? "" : "border-border bg-secondary/40"
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-colors duration-150 ${
+                        orderType === "dine_in" ? "" : "border-white/[0.08] bg-white/[0.03]"
                       }`}
                       style={orderType === "dine_in" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
                     >
@@ -1107,8 +1003,8 @@ const PublicMenu = () => {
                   {restaurant.pickup_enabled && (
                     <button
                       onClick={() => { setOrderType("pickup"); setCheckoutStep(2); }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
-                        orderType === "pickup" ? "" : "border-border bg-secondary/40"
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-colors duration-150 ${
+                        orderType === "pickup" ? "" : "border-white/[0.08] bg-white/[0.03]"
                       }`}
                       style={orderType === "pickup" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
                     >
@@ -1122,8 +1018,8 @@ const PublicMenu = () => {
                   {restaurant.delivery_enabled && (
                     <button
                       onClick={() => { setOrderType("delivery"); setCheckoutStep(2); }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
-                        orderType === "delivery" ? "" : "border-border bg-secondary/40"
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-colors duration-150 ${
+                        orderType === "delivery" ? "" : "border-white/[0.08] bg-white/[0.03]"
                       }`}
                       style={orderType === "delivery" ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
                     >
@@ -1365,11 +1261,11 @@ const PublicMenu = () => {
                   </label>
 
                   <div className="flex gap-2 pt-2">
-                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(1)}>
+                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(1)}>
                       Voltar
                     </Button>
                     <Button
-                      className="flex-1 py-6 rounded-2xl font-bold"
+                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[#080909]"
                       style={{ backgroundColor: accentColor }}
                       disabled={
                         !customerName.trim() || !customerWhatsapp.trim() ||
@@ -1415,7 +1311,7 @@ const PublicMenu = () => {
                       <button key={p.key} type="button"
                         onClick={() => setPaymentMethod(p.key)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                          paymentMethod === p.key ? "" : "border-border bg-secondary/40"
+                          paymentMethod === p.key ? "" : "border-white/[0.08] bg-white/[0.03]"
                         }`}
                         style={paymentMethod === p.key ? { borderColor: accentColor, backgroundColor: accentColor + "10" } : {}}
                       >
@@ -1437,11 +1333,11 @@ const PublicMenu = () => {
                   )}
 
                   <div className="flex gap-2 pt-2">
-                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(2)}>
+                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(2)}>
                       Voltar
                     </Button>
                     <Button
-                      className="flex-1 py-6 rounded-2xl font-bold"
+                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[#080909]"
                       style={{ backgroundColor: accentColor }}
                       disabled={!paymentMethod}
                       onClick={() => setCheckoutStep(4)}
@@ -1464,7 +1360,7 @@ const PublicMenu = () => {
                     ))}
                   </div>
                   {/* Coupon */}
-                  <div className="border-t border-border pt-3">
+                  <div className="border-t border-white/[0.06] pt-3">
                     <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-1.5">🎟️ Cupom de desconto</label>
                     {appliedCoupon ? (
                       <motion.div
@@ -1514,7 +1410,7 @@ const PublicMenu = () => {
                     </AnimatePresence>
                   </div>
 
-                  <div className="border-t border-border pt-3 space-y-1 text-sm">
+                  <div className="border-t border-white/[0.06] pt-3 space-y-1 text-sm">
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span><span>{fmt(cartTotal)}</span>
                     </div>
@@ -1535,7 +1431,7 @@ const PublicMenu = () => {
                       <span className="font-display text-xl font-bold" style={{ color: accentColor }}>{fmt(grandTotal)}</span>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-3">
+                  <div className="text-xs text-muted-foreground space-y-1 border-t border-white/[0.06] pt-3">
                     <p>👤 {customerName} · 📱 {customerWhatsapp}</p>
                     <p>
                       {orderType === "dine_in" && `🍽️ Mesa ${tables.find(t => t.id === (tableId ?? selectedTableId))?.number ?? ""}`}
@@ -1548,15 +1444,15 @@ const PublicMenu = () => {
                   <div>
                     <label className="text-xs font-medium text-muted-foreground">Observações</label>
                     <textarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className="w-full mt-1 p-3 rounded-xl bg-secondary text-sm resize-none h-16 border-none outline-none"
+                      className="w-full mt-1 p-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm resize-none h-16 border-none outline-none"
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
 
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
+                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
                       Voltar
                     </Button>
-                    <Button type="submit" className="flex-1 py-6 rounded-2xl font-bold text-base"
+                    <Button type="submit" className="flex-1 min-h-[52px] rounded-[16px] font-bold text-base text-[#080909]"
                       style={{ backgroundColor: accentColor }} disabled={submitting}>
                       {submitting ? "Enviando..." : "Confirmar"} <Send className="ml-2 w-4 h-4" />
                     </Button>
