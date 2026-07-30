@@ -114,6 +114,8 @@ const PublicMenu = () => {
   const [loading, setLoading] = useState(true);
   const sheetViewport = useSheetViewport(showCart || checkoutStep > 0);
   useKeyboardFocusScroll(showCart || checkoutStep > 0);
+  const { keyboardInset } = useVisualViewport();
+  const keyboardOpen = keyboardInset > 120;
   const closeCheckout = useCallback(() => setCheckoutStep(0), []);
   const closeCart = useCallback(() => setShowCart(false), []);
   const checkoutTrapRef = useFocusTrap<HTMLDivElement>(checkoutStep > 0, closeCheckout);
