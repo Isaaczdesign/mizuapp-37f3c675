@@ -188,8 +188,9 @@ export function revealFieldInScroller(el: HTMLElement | null, smooth = true) {
   let delta = 0;
   if (rect.bottom > bottom - margin) delta = rect.bottom - (bottom - margin);
   else if (rect.top < top + margin) delta = rect.top - (top + margin);
-  // Nunca puxa o campo para fora pelo topo ao corrigir o rodapé.
-  if (delta > 0) delta = Math.min(delta, Math.max(0, rect.top - (top + margin)) + delta);
+  // Ao corrigir pelo rodapé, nunca rola além do topo do campo.
+  if (delta > 0) delta = Math.min(delta, Math.max(0, rect.top - (top + margin)));
+
   if (Math.abs(delta) < 2) return;
 
   scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: smooth ? "smooth" : "auto" });
