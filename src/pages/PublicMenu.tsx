@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Plus, Minus, X, Send, ChevronRight, Phone, Clock,
   AlertTriangle, Check, UtensilsCrossed, MapPin, Star, Truck, ShoppingBag, CreditCard, Search, ClipboardList,
+  QrCode, Banknote, Ticket, StickyNote,
 } from "lucide-react";
 import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
@@ -22,6 +23,12 @@ import MenuSidebar from "@/components/public-menu/MenuSidebar";
 import ProductDetailSheet from "@/components/public-menu/ProductDetailSheet";
 import EmptyState from "@/components/public-menu/EmptyState";
 import MenuSkeleton from "@/components/public-menu/MenuSkeletons";
+import OptionCard from "@/components/public-menu/OptionCard";
+import {
+  BG_CARD, BORDER, R_CARD_SM, R_FIELD, R_BUTTON, R_TILE, ICON_SM, ICON_STROKE,
+  TEXT_SECONDARY, TEXT_TERTIARY,
+} from "@/components/public-menu/menuTokens";
+
 
 
 
