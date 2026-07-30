@@ -100,31 +100,34 @@ export function MetricCard({
   icon: Icon,
   hint,
   accent,
+  compact,
 }: {
   label: string;
   value: ReactNode;
   icon: LucideIcon;
   hint?: ReactNode;
   accent?: boolean;
+  compact?: boolean;
 }) {
   return (
     <motion.div variants={fadeUp} whileTap={{ scale: 0.99 }}>
-      <Surface hover className="relative overflow-hidden p-5">
+      <Surface hover className={cn("relative overflow-hidden", compact ? "p-3.5" : "p-5")}>
         {accent && (
           <div className="pointer-events-none absolute -top-16 -right-10 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
         )}
-        <div className="relative flex items-start justify-between gap-3">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-medium">{label}</p>
-          <span className="w-8 h-8 rounded-lg bg-secondary/70 border border-border/70 flex items-center justify-center shrink-0">
-            <Icon className="w-4 h-4 text-accent" />
+        <div className="relative flex items-start justify-between gap-2">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-medium truncate">{label}</p>
+          <span className={cn("rounded-lg bg-secondary/70 border border-border/70 flex items-center justify-center shrink-0", compact ? "w-7 h-7" : "w-8 h-8")}>
+            <Icon className={cn("text-accent", compact ? "w-3.5 h-3.5" : "w-4 h-4")} />
           </span>
         </div>
-        <p className="relative mt-3 font-display text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
-        {hint && <div className="relative mt-2 text-xs text-muted-foreground">{hint}</div>}
+        <p className={cn("relative font-display font-semibold tracking-tight tabular-nums", compact ? "mt-1.5 text-lg" : "mt-3 text-2xl")}>{value}</p>
+        {hint && <div className={cn("relative text-[11px] text-muted-foreground truncate", compact ? "mt-0.5" : "mt-2")}>{hint}</div>}
       </Surface>
     </motion.div>
   );
 }
+
 
 /* ---------- Trend pill ---------- */
 export function Trend({ delta, suffix = "vs. período anterior" }: { delta: number | null; suffix?: string }) {

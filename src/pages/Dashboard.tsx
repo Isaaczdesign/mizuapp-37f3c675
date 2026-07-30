@@ -261,7 +261,7 @@ const Dashboard = () => {
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const int = (v: number) => String(Math.round(v));
   const periodLabel = { today: "Hoje", week: "Semana", month: "Mês", custom: "Personalizado" };
-  const firstName = (profile?.display_name ?? "").trim().split(" ")[0];
+  const firstName = (profile?.display_name ?? "").trim().split("@")[0].split(" ")[0];
 
   const cards = [
     { label: "Receita", raw: stats?.revenue ?? 0, format: fmt, icon: DollarSign, hint: <Trend delta={delta(stats?.revenue ?? 0, prevStats?.revenue)} />, accent: true },
@@ -274,18 +274,18 @@ const Dashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="relative">
+      <div className="relative lg:h-[100dvh] lg:overflow-hidden">
         {/* ambient gradient */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(60%_100%_at_50%_0%,hsl(var(--accent)/0.07),transparent_70%)]" />
 
-        <div className="relative p-5 md:p-8 max-w-[1400px] mx-auto space-y-6 md:space-y-8">
+        <div className="relative h-full flex flex-col gap-3 p-4 md:p-5 max-w-[1600px] mx-auto lg:overflow-hidden">
           {/* Header */}
-          <motion.div initial="hidden" animate="show" variants={stagger} className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
-            <motion.div variants={fadeUp}>
-              <h1 className="font-display text-2xl md:text-[28px] font-semibold tracking-tight text-foreground">
+          <motion.div initial="hidden" animate="show" variants={stagger} className="shrink-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <motion.div variants={fadeUp} className="min-w-0">
+              <h1 className="font-display text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate">
                 Bem-vindo de volta{firstName ? `, ${firstName}` : ""} <span className="align-middle">👋</span>
               </h1>
-              <p className="text-sm text-muted-foreground mt-1.5">
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
                 Aqui está um resumo do desempenho do seu restaurante {period === "today" ? "hoje" : "no período selecionado"}.
               </p>
             </motion.div>
@@ -341,84 +341,66 @@ const Dashboard = () => {
             </motion.div>
           </motion.div>
 
-          {/* Setup Progress Banner */}
-          {setupStatus && !setupStatus.allDone && !bannerDismissed && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <Surface className="p-5 border-accent/25">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
-                    <Rocket className="w-5 h-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-display font-semibold text-sm">Complete a configuração do seu restaurante</h3>
-                      <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground transition-colors">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{setupStatus.completed}/{setupStatus.total} etapas concluídas</p>
-                    <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-3 h-1.5" />
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {setupStatus.steps.filter((s) => !s.done).map((s) => (
-                        <span key={s.label} className="text-[11px] px-2.5 py-1 rounded-full bg-secondary/70 border border-border text-muted-foreground">
-                          {s.label}
-                        </span>
-                      ))}
-                    </div>
-                    <Button size="sm" variant="outline" className="mt-4 rounded-xl" onClick={() => (window.location.href = "/settings")}>
-                      Ir para Configurações
-                    </Button>
-                  </div>
+          {/* Compact alerts + public link row */}
+          <div className="shrink-0 flex flex-col lg:flex-row gap-3">
+            {publicMenuUrl && (
+              <Surface hover className="relative overflow-hidden flex-1 min-w-0 px-4 py-2.5 flex items-center gap-3">
+                <div className="pointer-events-none absolute -left-16 -top-16 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
+                <div className="relative w-8 h-8 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                  <Link className="w-4 h-4 text-accent" />
+                </div>
+                <div className="relative flex-1 min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-medium">Link do cardápio</p>
+                  <p className="text-xs font-mono truncate text-accent">{publicMenuUrl}</p>
+                </div>
+                <div className="relative flex items-center gap-1.5 shrink-0">
+                  <Button variant="outline" size="sm" className="rounded-xl h-8" onClick={copyMenuLink}>
+                    <Copy className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" className="rounded-xl h-8" onClick={() => window.open(publicMenuUrl, "_blank")}>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               </Surface>
-            </motion.div>
-          )}
+            )}
 
-          {shopClosed && (
-            <Surface className="p-5 border-destructive/40 bg-destructive/5">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <Lock className="w-5 h-5 text-destructive shrink-0" />
-                <div className="flex-1">
-                  <div className="font-display font-semibold text-destructive text-sm">Recebimento de pedidos encerrado</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {outsideHours
-                      ? (countdown
-                          ? <>O restaurante está fora do horário. Reabre em <span className="font-semibold text-foreground">{countdown}</span>{nextOpen ? ` (${nextOpen.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })})` : ""}.</>
-                          : "O restaurante está fora do horário de funcionamento configurado.")
-                      : "O recebimento de pedidos está desativado manualmente. Reabra em Configurações ou pelo Expediente."}
-                  </div>
-                </div>
-                <Button size="sm" variant="outline" className="rounded-xl" onClick={() => navigate("/settings")}>Ajustar horários</Button>
+            <Surface hover className="px-4 py-2.5 flex items-center gap-3 lg:w-[280px] shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                <Repeat className="w-4 h-4 text-accent" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-display text-base font-semibold tabular-nums leading-tight">{(stats?.reactivationRate ?? 0).toFixed(1)}%</p>
+                <p className="text-[11px] text-muted-foreground truncate">Taxa de reativação (30 dias)</p>
               </div>
             </Surface>
-          )}
 
-          {/* Public Menu Link */}
-          {publicMenuUrl && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <Surface hover className="relative overflow-hidden p-5">
-                <div className="pointer-events-none absolute -left-16 -top-16 w-52 h-52 rounded-full bg-accent/10 blur-3xl" />
-                <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
-                    <Link className="w-5 h-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-sm">Link do cardápio digital</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Compartilhe com seus clientes ou use no QR Code das mesas.</p>
-                    <p className="text-xs font-mono truncate text-accent mt-2">{publicMenuUrl}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="outline" size="sm" className="rounded-xl" onClick={copyMenuLink}>
-                      <Copy className="w-4 h-4 mr-1.5" /> Copiar
-                    </Button>
-                    <Button size="sm" className="rounded-xl" onClick={() => window.open(publicMenuUrl, "_blank")}>
-                      <ExternalLink className="w-4 h-4 mr-1.5" /> Abrir
-                    </Button>
-                  </div>
+            {setupStatus && !setupStatus.allDone && !bannerDismissed && (
+              <Surface className="px-4 py-2.5 flex items-center gap-3 border-accent/25 lg:w-[320px] shrink-0">
+                <Rocket className="w-4 h-4 text-accent shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">Configuração {setupStatus.completed}/{setupStatus.total}</p>
+                  <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-1 h-1" />
                 </div>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs rounded-lg" onClick={() => (window.location.href = "/settings")}>Ajustar</Button>
+                <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </Surface>
-            </motion.div>
-          )}
+            )}
+
+            {shopClosed && (
+              <Surface className="px-4 py-2.5 flex items-center gap-3 border-destructive/40 bg-destructive/5 lg:w-[320px] shrink-0">
+                <Lock className="w-4 h-4 text-destructive shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-destructive">Pedidos encerrados</p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {outsideHours ? (countdown ? `Reabre em ${countdown}` : "Fora do horário configurado") : "Desativado manualmente"}
+                  </p>
+                </div>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs rounded-lg" onClick={() => navigate("/settings")}>Ajustar</Button>
+              </Surface>
+            )}
+          </div>
 
           {/* KPI Cards */}
           <motion.div
@@ -426,130 +408,127 @@ const Dashboard = () => {
             initial="hidden"
             animate="show"
             variants={stagger}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
+            className="shrink-0 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"
           >
             {cards.map((card) => (
               <MetricCard
                 key={card.label}
+                compact
                 label={card.label}
                 icon={card.icon}
                 accent={card.accent}
                 hint={card.hint}
-                value={stats ? <AnimatedValue value={card.raw} format={card.format} /> : <Skeleton className="h-7 w-24" />}
+                value={stats ? <AnimatedValue value={card.raw} format={card.format} /> : <Skeleton className="h-6 w-20" />}
               />
             ))}
           </motion.div>
 
-          {/* Reactivation */}
-          <Surface hover className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
-              <Repeat className="w-5 h-5 text-accent" />
-            </div>
-            <div className="flex-1">
-              <p className="font-display text-xl font-semibold tabular-nums">{(stats?.reactivationRate ?? 0).toFixed(1)}%</p>
-              <p className="text-xs text-muted-foreground">Taxa de reativação · clientes inativos há 30 dias que voltaram a pedir</p>
-            </div>
-          </Surface>
-
-          {/* Charts */}
-          <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-            <Surface className="p-6">
+          {/* Charts + rankings — fills remaining height */}
+          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-3">
+            <Surface className="p-4 lg:col-span-2 flex flex-col min-h-[240px] lg:min-h-0">
               <SectionHeader
                 title="Evolução de receita"
                 subtitle={`${format(dateRange.from, "dd/MM")} — ${format(dateRange.to, "dd/MM")}`}
                 icon={TrendingUp}
                 action={<span className="text-xs text-muted-foreground hidden sm:block">{periodLabel[period]}</span>}
               />
-              {(stats?.evolution?.some((d) => d.revenue > 0) ?? false) ? (
-                <ResponsiveContainer width="100%" height={230}>
-                  <LineChart data={stats?.evolution ?? []} margin={{ left: -12, right: 8, top: 6 }}>
-                    <defs>
-                      <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="hsl(var(--primary))" />
-                        <stop offset="100%" stopColor="hsl(var(--accent))" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <YAxis tickLine={false} axisLine={false} width={54} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <Tooltip cursor={{ stroke: "hsl(var(--accent))", strokeOpacity: 0.25 }} content={<ChartTooltip formatter={fmt} />} />
-                    <Line type="monotone" dataKey="revenue" stroke="url(#revLine)" strokeWidth={2.5} dot={false}
-                      activeDot={{ r: 4, fill: "hsl(var(--accent))" }} animationDuration={700} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <EmptyState icon={TrendingUp} title="Sem receita registrada" description="Assim que os primeiros pedidos forem concluídos, a evolução aparecerá aqui." />
-              )}
+              <div className="flex-1 min-h-0">
+                {(stats?.evolution?.some((d) => d.revenue > 0) ?? false) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats?.evolution ?? []} margin={{ left: -12, right: 8, top: 6, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="hsl(var(--primary))" />
+                          <stop offset="100%" stopColor="hsl(var(--accent))" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis tickLine={false} axisLine={false} width={54} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <Tooltip cursor={{ stroke: "hsl(var(--accent))", strokeOpacity: 0.25 }} content={<ChartTooltip formatter={fmt} />} />
+                      <Line type="monotone" dataKey="revenue" stroke="url(#revLine)" strokeWidth={2.5} dot={false}
+                        activeDot={{ r: 4, fill: "hsl(var(--accent))" }} animationDuration={700} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <EmptyState className="h-full" icon={TrendingUp} title="Sem receita registrada" description="Assim que os primeiros pedidos forem concluídos, a evolução aparecerá aqui." />
+                )}
+              </div>
             </Surface>
 
-            <Surface className="p-6">
+            <Surface className="p-4 lg:row-span-2 flex flex-col min-h-0 overflow-hidden">
+              <SectionHeader title="Top itens" subtitle="Vendas e lucro do período" icon={ShoppingBag} />
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-medium mb-1.5">Por vendas</p>
+                  {(stats?.topItems?.length ?? 0) === 0 ? (
+                    <EmptyState icon={ShoppingBag} title="Nenhum pedido neste período" description="Seus campeões de venda aparecerão aqui." />
+                  ) : (
+                    <ul className="space-y-0.5">
+                      {stats?.topItems?.map((item, i) => (
+                        <motion.li key={item.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                          className="flex justify-between items-center gap-3 rounded-xl px-2.5 py-1.5 hover:bg-secondary/50 transition-colors">
+                          <span className="flex items-center gap-2.5 min-w-0">
+                            <span className="w-5 h-5 rounded-md bg-secondary border border-border text-[10px] font-semibold flex items-center justify-center text-muted-foreground shrink-0">{i + 1}</span>
+                            <span className="text-xs truncate">{item.name}</span>
+                          </span>
+                          <span className="font-mono text-xs font-semibold tabular-nums shrink-0">{item.qty}x</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-border/60">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-medium mb-1.5">Por lucro</p>
+                  {(stats?.topItemsByProfit?.length ?? 0) === 0 ? (
+                    <EmptyState icon={Target} title="Sem custo ou margem" description="Cadastre custo/margem no cardápio para ver a lucratividade." />
+                  ) : (
+                    <ul className="space-y-0.5">
+                      {stats?.topItemsByProfit?.map((item, i) => (
+                        <motion.li key={item.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                          className="flex justify-between items-center gap-3 rounded-xl px-2.5 py-1.5 hover:bg-secondary/50 transition-colors">
+                          <span className="flex items-center gap-2.5 min-w-0">
+                            <span className="w-5 h-5 rounded-md bg-secondary border border-border text-[10px] font-semibold flex items-center justify-center text-muted-foreground shrink-0">{i + 1}</span>
+                            <span className="text-xs truncate">{item.name}</span>
+                          </span>
+                          <span className="font-mono text-xs font-semibold tabular-nums text-emerald-400 shrink-0">{fmt(item.profit)}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </Surface>
+
+            <Surface className="p-4 lg:col-span-2 flex flex-col min-h-[240px] lg:min-h-0">
               <SectionHeader title="Horários de pico" subtitle="Distribuição de pedidos por hora" icon={CalendarIcon} />
-              {(stats?.peakHours?.some((h) => h.pedidos > 0) ?? false) ? (
-                <ResponsiveContainer width="100%" height={230}>
-                  <BarChart data={stats?.peakHours ?? []} margin={{ left: -18, right: 8, top: 6 }}>
-                    <defs>
-                      <linearGradient id="peakBar" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--accent))" />
-                        <stop offset="100%" stopColor="hsl(var(--primary))" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis dataKey="hour" tickLine={false} axisLine={false} interval={2} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={40} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <Tooltip cursor={{ fill: "hsl(var(--accent)/0.06)" }} content={<ChartTooltip />} />
-                    <Bar dataKey="pedidos" fill="url(#peakBar)" radius={[6, 6, 2, 2]} animationDuration={700} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <EmptyState icon={CalendarIcon} title="Nenhum pedido no período" description="Os horários com maior movimento aparecerão aqui para ajudar no planejamento da equipe." />
-              )}
-            </Surface>
-          </div>
-
-          {/* Top items */}
-          <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-            <Surface className="p-6">
-              <SectionHeader title="Top itens por vendas" subtitle="Os 5 mais pedidos do período" icon={ShoppingBag} />
-              {(stats?.topItems?.length ?? 0) === 0 ? (
-                <EmptyState icon={ShoppingBag} title="Nenhum pedido neste período" description="Quando os pedidos começarem a chegar, seus campeões de venda aparecerão aqui." />
-              ) : (
-                <ul className="space-y-1">
-                  {stats?.topItems?.map((item, i) => (
-                    <motion.li key={item.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                      className="flex justify-between items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-secondary/50 transition-colors">
-                      <span className="flex items-center gap-3 min-w-0">
-                        <span className="w-6 h-6 rounded-lg bg-secondary border border-border text-[11px] font-semibold flex items-center justify-center text-muted-foreground shrink-0">{i + 1}</span>
-                        <span className="text-sm truncate">{item.name}</span>
-                      </span>
-                      <span className="font-mono text-sm font-semibold tabular-nums shrink-0">{item.qty}x</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              )}
-            </Surface>
-
-            <Surface className="p-6">
-              <SectionHeader title="Top itens por lucro" subtitle="Maior contribuição de margem" icon={TrendingUp} />
-              {(stats?.topItemsByProfit?.length ?? 0) === 0 ? (
-                <EmptyState icon={Target} title="Sem dados de custo ou margem" description="Cadastre custo/margem dos itens no cardápio para desbloquear a análise de lucratividade." />
-              ) : (
-                <ul className="space-y-1">
-                  {stats?.topItemsByProfit?.map((item, i) => (
-                    <motion.li key={item.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                      className="flex justify-between items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-secondary/50 transition-colors">
-                      <span className="flex items-center gap-3 min-w-0">
-                        <span className="w-6 h-6 rounded-lg bg-secondary border border-border text-[11px] font-semibold flex items-center justify-center text-muted-foreground shrink-0">{i + 1}</span>
-                        <span className="text-sm truncate">{item.name}</span>
-                      </span>
-                      <span className="font-mono text-sm font-semibold tabular-nums text-emerald-400 shrink-0">{fmt(item.profit)}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              )}
+              <div className="flex-1 min-h-0">
+                {(stats?.peakHours?.some((h) => h.pedidos > 0) ?? false) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats?.peakHours ?? []} margin={{ left: -18, right: 8, top: 6, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="peakBar" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--accent))" />
+                          <stop offset="100%" stopColor="hsl(var(--primary))" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="hour" tickLine={false} axisLine={false} interval={2} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={40} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <Tooltip cursor={{ fill: "hsl(var(--accent)/0.06)" }} content={<ChartTooltip />} />
+                      <Bar dataKey="pedidos" fill="url(#peakBar)" radius={[6, 6, 2, 2]} animationDuration={700} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <EmptyState className="h-full" icon={CalendarIcon} title="Nenhum pedido no período" description="Os horários com maior movimento aparecerão aqui." />
+                )}
+              </div>
             </Surface>
           </div>
         </div>
       </div>
+
 
 
       <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
