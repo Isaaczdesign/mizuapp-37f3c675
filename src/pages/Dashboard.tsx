@@ -261,7 +261,7 @@ const Dashboard = () => {
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const int = (v: number) => String(Math.round(v));
   const periodLabel = { today: "Hoje", week: "Semana", month: "Mês", custom: "Personalizado" };
-  const firstName = (profile?.display_name ?? "").trim().split(" ")[0];
+  const firstName = (profile?.display_name ?? "").trim().split("@")[0].split(" ")[0];
 
   const cards = [
     { label: "Receita", raw: stats?.revenue ?? 0, format: fmt, icon: DollarSign, hint: <Trend delta={delta(stats?.revenue ?? 0, prevStats?.revenue)} />, accent: true },
