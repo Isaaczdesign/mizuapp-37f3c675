@@ -42,41 +42,29 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, Props>(
       resize();
     }, [resize, rest.value]);
 
-    useEffect(() => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-      const onVV = () => {
-        if (document.activeElement === innerRef.current) {
-          window.setTimeout(ensureVisible, 60);
-        }
-      };
-      vv.addEventListener("resize", onVV);
-      vv.addEventListener("scroll", onVV);
-      return () => {
-        vv.removeEventListener("resize", onVV);
-        vv.removeEventListener("scroll", onVV);
-      };
-    }, [ensureVisible]);
-
+    // O reposicionamento com teclado aberto é feito pelo useKeyboardFocusScroll
+    // (listener global). Aqui só garantimos o caret visível ao crescer.
     return (
       <textarea
         {...rest}
         ref={setRefs}
         rows={1}
         style={{ minHeight: minRowsHeight, maxHeight, ...style }}
-        className={`resize-none scroll-mb-32 ${className}`}
+        className={`resize-none scroll-mb-24 ${className}`}
         onInput={(e) => {
+          const before = innerRef.current?.offsetHeight ?? 0;
           resize();
-          ensureVisible();
+          const after = innerRef.current?.offsetHeight ?? 0;
+          if (after !== before) ensureVisible(false);
           onInput?.(e);
         }}
         onFocus={(e) => {
           resize();
-          window.setTimeout(ensureVisible, 250);
           onFocus?.(e);
         }}
       />
     );
+
   },
 );
 
