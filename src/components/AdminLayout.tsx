@@ -86,7 +86,8 @@ export default function AdminLayout({ children, collapsible = false }: { childre
 
   const renderNav = (onNavigate?: () => void) => (
     <>
-      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold">Operação</p>
         {navItems.map((item) => {
           const showBadge = item.to === "/orders" && pendingOrders > 0;
           return (
@@ -95,38 +96,49 @@ export default function AdminLayout({ children, collapsible = false }: { childre
               to={item.to}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
-                  isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                `group relative flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+                  isActive
+                    ? "bg-accent/10 text-foreground font-medium border border-accent/20 shadow-[0_8px_24px_-16px_hsl(var(--accent)/0.8)]"
+                    : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5"
                 }`
               }
             >
-              <span className="relative shrink-0">
-                <item.icon className="w-4 h-4" />
-                {showBadge && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">
-                    {pendingOrders > 99 ? "99+" : pendingOrders}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-accent shadow-[0_0_12px_hsl(var(--accent)/0.8)]" />
+                  )}
+                  <span className="relative shrink-0">
+                    <item.icon className={`w-4 h-4 transition-colors ${isActive ? "text-accent" : "group-hover:text-foreground"}`} />
+                    {showBadge && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">
+                        {pendingOrders > 99 ? "99+" : pendingOrders}
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-              <span className="truncate flex-1">{item.label}</span>
-              {showBadge && (
-                <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
-                  {pendingOrders > 99 ? "99+" : pendingOrders}
-                </span>
+                  <span className="truncate flex-1">{item.label}</span>
+                  {showBadge && (
+                    <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
+                      {pendingOrders > 99 ? "99+" : pendingOrders}
+                    </span>
+                  )}
+                </>
               )}
             </NavLink>
           );
         })}
       </nav>
-      <div className="p-2 border-t border-border space-y-0.5">
+      <div className="p-3 border-t border-border/60 space-y-1">
         {bottomNav.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
-                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              `flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+                isActive
+                  ? "bg-accent/10 text-foreground font-medium border border-accent/20"
+                  : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5"
               }`
             }
           >
@@ -134,7 +146,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
-        <button onClick={handleSignOut} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive w-full transition-colors">
+        <button onClick={handleSignOut} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-full transition-colors">
           <LogOut className="w-4 h-4 shrink-0" />
           <span className="truncate">Sair</span>
         </button>
@@ -142,21 +154,23 @@ export default function AdminLayout({ children, collapsible = false }: { childre
     </>
   );
 
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Desktop sidebar — animated width */}
       <aside
         aria-hidden={!desktopVisible}
-        className={`hidden md:flex flex-col border-r border-border bg-card/40 backdrop-blur-xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
-          desktopVisible ? "w-56 opacity-100" : "w-0 opacity-0 border-r-0"
+        className={`hidden md:flex flex-col border-r border-border/60 bg-card/50 backdrop-blur-2xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
+          desktopVisible ? "w-64 opacity-100" : "w-0 opacity-0 border-r-0"
         }`}
       >
-        <div className="p-4 border-b border-border flex items-center justify-between gap-2 min-w-[14rem]">
-          <a href="/" aria-label="Mizu"><Logo className="h-8" /></a>
+        <div className="relative p-5 border-b border-border/60 flex items-center justify-between gap-2 min-w-[16rem]">
+          <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
+          <a href="/" aria-label="Mizu" className="relative transition-transform duration-200 hover:scale-[1.03]"><Logo className="h-9" /></a>
           {collapsible && (
             <button
               onClick={() => setHidden(true)}
-              className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary transition-colors"
+              className="relative text-muted-foreground hover:text-foreground p-1.5 rounded-xl hover:bg-secondary transition-colors"
               aria-label="Ocultar menu lateral"
               title="Ocultar menu lateral"
             >
@@ -164,10 +178,11 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             </button>
           )}
         </div>
-        <div className="flex-1 flex flex-col min-w-[14rem]">
+        <div className="flex-1 flex flex-col min-w-[16rem]">
           {renderNav()}
         </div>
       </aside>
+
 
       {/* Desktop floating "show" button when sidebar is hidden */}
       {collapsible && hidden && (
