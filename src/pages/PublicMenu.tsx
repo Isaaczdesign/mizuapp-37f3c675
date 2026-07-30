@@ -1119,25 +1119,29 @@ const PublicMenu = () => {
                           {tables.map((t) => (
                             <button key={t.id} type="button"
                               onClick={() => setSelectedTableId(t.id)}
-                              className={`py-2 rounded-lg text-sm font-medium border transition-all ${
-                                selectedTableId === t.id ? "text-white" : "bg-secondary border-border"
+                              className={`py-2.5 ${R_TILE} text-sm font-semibold border transition-all duration-200 active:scale-[0.97] ${
+                                selectedTableId === t.id
+                                  ? "text-[#080909]"
+                                  : `bg-white/[0.025] ${BORDER} text-white/70 hover:bg-white/[0.05] hover:border-white/[0.12]`
                               }`}
-                              style={selectedTableId === t.id ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+                              style={selectedTableId === t.id ? { backgroundColor: accentColor, borderColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}1a` } : {}}
                             >
                               {t.number}
                             </button>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground mt-1">Nenhuma mesa cadastrada.</p>
+                        <p className={`text-xs ${TEXT_TERTIARY} mt-1`}>Nenhuma mesa cadastrada.</p>
                       )}
                     </div>
                   )}
                   {orderType === "dine_in" && tableId && (
-                    <div className="p-3 rounded-xl bg-secondary/50 text-sm">
-                      🍽️ Mesa identificada via QR Code
+                    <div className={`flex items-center gap-2.5 p-3 ${R_FIELD} ${BG_CARD} ${BORDER} text-sm`}>
+                      <UtensilsCrossed className={ICON_SM} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
+                      <span className={TEXT_SECONDARY}>Mesa identificada via QR Code</span>
                     </div>
                   )}
+
 
                   {orderType === "delivery" && (
                     <div className="space-y-3">
