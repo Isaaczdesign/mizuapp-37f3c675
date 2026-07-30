@@ -1,5 +1,5 @@
-import logoFull from "@/assets/mizu-logo-full.png.asset.json";
-import logoMark from "@/assets/mizu-logo-mark.png.asset.json";
+import logoFull from "@/assets/mizu-logo-full.png";
+import logoMark from "@/assets/mizu-logo-mark.png";
 import { cn } from "@/lib/utils";
 
 type LogoProps = {
@@ -9,7 +9,7 @@ type LogoProps = {
 
 /** Marca oficial Mizu — Gestão de Restaurantes */
 export function Logo({ variant = "full", className }: LogoProps) {
-  const src = variant === "full" ? logoFull.url : logoMark.url;
+  const src = variant === "full" ? logoFull : logoMark;
   return (
     <img
       src={src}
