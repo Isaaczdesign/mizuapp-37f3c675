@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Check, ExternalLink, Palette, Smartphone } from "lucide-react";
-import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId } from "@/lib/menuThemes";
+import { Check, ExternalLink, Palette, Sparkles, Smartphone, Search, ShoppingBag } from "lucide-react";
+import { MENU_THEMES, ACCENT_PRESETS, resolveMenuTheme, type MenuThemeId, type MenuTheme } from "@/lib/menuThemes";
 import MenuItemCard, { type MenuCardItem } from "@/components/public-menu/MenuItemCard";
 
 interface Props {
@@ -23,13 +24,18 @@ const FALLBACK_ITEMS: MenuCardItem[] = [
   { id: "p3", name: "Yakisoba de Frango", description: "Macarrão oriental com legumes frescos.", price: 42, image_url: null, tags: [] },
 ];
 
+/** Templates sugeridos pela equipe Mizu */
+const RECOMMENDED: MenuThemeId[] = ["classic", "showcase"];
+
 export default function MenuThemeTab({ restaurantId, currentTheme, currentColor, restaurantName, publicMenuUrl, previewItems }: Props) {
   const queryClient = useQueryClient();
   const [themeId, setThemeId] = useState<MenuThemeId>(resolveMenuTheme(currentTheme).id);
   const [color, setColor] = useState(currentColor || "#E84310");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => { setThemeId(resolveMenuTheme(currentTheme).id); }, [currentTheme]);
   useEffect(() => { setColor(currentColor || "#E84310"); }, [currentColor]);
+  useEffect(() => { const t = setTimeout(() => setReady(true), 350); return () => clearTimeout(t); }, []);
 
   const theme = useMemo(() => resolveMenuTheme(themeId), [themeId]);
   const items = previewItems && previewItems.length > 0 ? previewItems.slice(0, 3) : FALLBACK_ITEMS;
@@ -54,199 +60,381 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
   });
 
   return (
-    <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-      <div className="space-y-6">
+    <div className="grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start">
+      {/* ————— Coluna esquerda ————— */}
+      <div className="space-y-8 min-w-0">
         {/* Templates */}
-        <div>
-          <h2 className="font-display font-bold mb-1 flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-primary" /> Templates de layout
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Escolha como os itens aparecem para o cliente no cardápio público.
-          </p>
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {MENU_THEMES.map((t) => {
-              const active = t.id === themeId;
-              return (
-                <button
+        <section>
+          <SectionHeader
+            icon={<Smartphone className="w-4 h-4" />}
+            title="Templates de layout"
+            subtitle="Escolha como os itens aparecem para o cliente no cardápio público."
+          />
+
+          <LayoutGroup>
+            <div className="grid sm:grid-cols-2 2xl:grid-cols-3 gap-5">
+              {MENU_THEMES.map((t, i) => (
+                <TemplateCard
                   key={t.id}
-                  type="button"
-                  onClick={() => setThemeId(t.id)}
-                  aria-pressed={active}
-                  className={`relative text-left p-4 rounded-2xl border transition-all ${
-                    active ? "border-primary bg-primary/10" : "border-border bg-card/50 hover:border-primary/40"
-                  }`}
-                >
-                  {active && (
-                    <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-3 h-3 text-primary-foreground" />
-                    </span>
-                  )}
-                  <ThemeWireframe id={t.id} color={color} />
-                  <div className={`font-semibold text-sm ${t.id === "vibrant" ? "mt-5" : "mt-3"}`}>{t.name}</div>
-                  <div className={`text-xs text-muted-foreground ${t.id === "vibrant" ? "mt-2" : "mt-0.5"}`}>{t.description}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                  theme={t}
+                  index={i}
+                  color={color}
+                  items={items}
+                  active={t.id === themeId}
+                  recommended={RECOMMENDED.includes(t.id)}
+                  loading={!ready}
+                  onSelect={() => setThemeId(t.id)}
+                />
+              ))}
+            </div>
+          </LayoutGroup>
+        </section>
 
-        {/* Cor de destaque */}
-        <div>
-          <h2 className="font-display font-bold mb-1 flex items-center gap-2">
-            <Palette className="w-4 h-4 text-primary" /> Cor de destaque
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Usada em preços, botões e destaques do cardápio.
-          </p>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {ACCENT_PRESETS.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                title={p.name}
-                aria-label={p.name}
-                onClick={() => setColor(p.value)}
-                className={`w-10 h-10 rounded-xl border-2 transition-transform hover:scale-105 ${
-                  color.toLowerCase() === p.value.toLowerCase() ? "border-foreground" : "border-transparent"
-                }`}
-                style={{ backgroundColor: p.value }}
+        {/* Cor principal */}
+        <section>
+          <SectionHeader
+            icon={<Palette className="w-4 h-4" />}
+            title="Cor principal"
+            subtitle="Aplicada em botões, badges, categorias, preços, ícones e destaques."
+          />
+
+          <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 shadow-[0_20px_60px_-40px_hsl(0_0%_0%/0.9)]">
+            <div className="flex flex-wrap gap-3">
+              {ACCENT_PRESETS.map((p, i) => {
+                const selected = color.toLowerCase() === p.value.toLowerCase();
+                return (
+                  <motion.button
+                    key={p.value}
+                    type="button"
+                    title={p.name}
+                    aria-label={p.name}
+                    aria-pressed={selected}
+                    onClick={() => setColor(p.value)}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.03, type: "spring", stiffness: 340, damping: 22 }}
+                    whileHover={{ scale: 1.12, y: -2 }}
+                    whileTap={{ scale: 0.94 }}
+                    className="relative w-12 h-12 rounded-2xl"
+                    style={{
+                      backgroundColor: p.value,
+                      boxShadow: selected
+                        ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px ${p.value}, 0 10px 26px -12px ${p.value}`
+                        : `0 8px 20px -14px ${p.value}`,
+                    }}
+                  >
+                    <AnimatePresence>
+                      {selected && (
+                        <motion.span
+                          initial={{ scale: 0.4, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.4, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <Check className="w-5 h-5 text-white drop-shadow" strokeWidth={3} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  className="w-14 h-11 rounded-xl bg-transparent border border-border cursor-pointer"
+                  aria-label="Cor personalizada"
+                />
+              </div>
+              <Input
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-36 font-mono text-sm rounded-xl"
               />
-            ))}
+              <motion.div
+                key={color}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 text-xs text-muted-foreground"
+              >
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+                Prévia atualizada em tempo real
+              </motion.div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="w-12 h-10 rounded-lg bg-transparent border border-border cursor-pointer"
-              aria-label="Cor personalizada"
-            />
-            <Input value={color} onChange={(e) => setColor(e.target.value)} className="w-32 font-mono text-sm" />
-          </div>
-        </div>
+        </section>
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => save.mutate()} disabled={save.isPending || !dirty}>
-            {save.isPending ? "Salvando..." : dirty ? "Salvar personalização" : "Tudo salvo"}
-          </Button>
+        {/* Ações */}
+        <div className="flex flex-wrap gap-3">
+          <motion.div whileHover={{ scale: dirty ? 1.02 : 1 }} whileTap={{ scale: 0.98 }}>
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !dirty} className="rounded-xl px-6">
+              {save.isPending ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  Salvando...
+                </span>
+              ) : dirty ? "Salvar personalização" : "Tudo salvo"}
+            </Button>
+          </motion.div>
           {publicMenuUrl && (
-            <Button variant="outline" onClick={() => window.open(publicMenuUrl, "_blank")}>
-              <ExternalLink className="w-4 h-4 mr-1" /> Ver cardápio virtual
+            <Button variant="outline" className="rounded-xl" onClick={() => window.open(publicMenuUrl, "_blank")}>
+              <ExternalLink className="w-4 h-4 mr-2" /> Ver cardápio virtual
             </Button>
           )}
         </div>
       </div>
 
-      {/* Prévia */}
-      <div className="lg:sticky lg:top-6 h-fit">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Prévia</p>
-        <div className="mx-auto w-full max-w-[340px] rounded-[2rem] border-4 border-border bg-background overflow-hidden shadow-2xl">
-          <div className="h-6 bg-card flex items-center justify-center">
-            <div className="w-16 h-1.5 rounded-full bg-muted" />
-          </div>
-          <div className="h-20 relative" style={{ background: `linear-gradient(135deg, ${color}45, ${color}08)` }}>
-            <div className="absolute inset-x-0 bottom-0 px-3 pb-2">
-              <div className="font-display font-bold text-sm truncate">{restaurantName || "Seu restaurante"}</div>
-            </div>
-          </div>
-          <div className="p-3 space-y-3 max-h-[520px] overflow-y-auto">
-            <div className="flex gap-1.5">
-              <span className="px-3 py-1 rounded-full text-[11px] font-medium text-white" style={{ backgroundColor: color }}>
-                Destaques
-              </span>
-              <span className="px-3 py-1 rounded-full text-[11px] bg-secondary/60">Combos</span>
-            </div>
-            <div className={theme.categoryTitleClass}>Mais pedidos</div>
-            <div className={theme.listClass}>
-              {items.map((item, i) => (
-                <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-              ))}
-            </div>
-          </div>
-          <div className="p-3 border-t border-border">
-            <div className="w-full py-2.5 rounded-xl text-center text-sm font-bold text-white" style={{ backgroundColor: color }}>
-              Ver carrinho
-            </div>
-          </div>
+      {/* ————— Coluna direita: preview grande ————— */}
+      <div className="xl:sticky xl:top-6 h-fit">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em]">Prévia ao vivo</p>
+          <motion.span
+            key={theme.id}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
+            style={{ borderColor: color + "55", color, backgroundColor: color + "12" }}
+          >
+            {theme.name}
+          </motion.span>
+        </div>
+
+        <div className="relative">
+          <div
+            className="absolute -inset-10 rounded-[4rem] blur-3xl opacity-25 pointer-events-none"
+            style={{ background: `radial-gradient(circle at 50% 20%, ${color}, transparent 70%)` }}
+          />
+          <PhoneFrame>
+            <PhonePreview
+              theme={theme}
+              color={color}
+              items={items}
+              restaurantName={restaurantName}
+              loading={!ready}
+            />
+          </PhoneFrame>
         </div>
       </div>
     </div>
   );
 }
 
-function ThemeWireframe({ id, color }: { id: MenuThemeId; color: string }) {
-  const bar = (w: string, h = "h-1.5") => <div className={`${h} rounded-full bg-muted-foreground/30`} style={{ width: w }} />;
-  const block = <div className="rounded bg-muted-foreground/20" />;
+/* ——————————————————————————— UI pieces ——————————————————————————— */
 
-  if (id === "showcase") {
-    return (
-      <div className="h-24 rounded-xl bg-secondary/40 p-2 space-y-1.5">
-        <div className="h-10 rounded" style={{ backgroundColor: color + "40" }} />
-        <div className="space-y-1">{bar("70%")}{bar("40%")}</div>
-        <div className="h-1.5 w-10 rounded-full" style={{ backgroundColor: color }} />
-      </div>
-    );
-  }
-  if (id === "compact") {
-    return (
-      <div className="h-24 rounded-xl bg-secondary/40 p-2 flex flex-col justify-center gap-2">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center justify-between gap-2">
-            {bar("55%")}
-            <div className="h-1.5 w-6 rounded-full" style={{ backgroundColor: color }} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (id === "grid") {
-    return (
-      <div className="h-24 rounded-xl bg-secondary/40 p-2 grid grid-cols-2 gap-2">
-        {[0, 1].map((i) => (
-          <div key={i} className="space-y-1">
-            <div className="h-10 rounded" style={{ backgroundColor: color + "35" }} />
-            {bar("80%")}
-            <div className="h-1.5 w-6 rounded-full" style={{ backgroundColor: color }} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (id === "elegant") {
-    return (
-      <div className="h-24 rounded-xl bg-secondary/40 p-2 flex flex-col justify-center gap-2">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="flex items-center gap-2 pb-1.5 border-b border-muted-foreground/20">
-            <div className="w-5 h-5 rounded-full bg-muted-foreground/25" />
-            <div className="flex-1 space-y-1">{bar("70%")}</div>
-            <div className="h-1.5 w-5 rounded-full bg-muted-foreground/40" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (id === "vibrant") {
-    return (
-      <div className="h-28 rounded-xl bg-secondary/40 p-3 space-y-3">
-        {[0, 1].map((i) => (
-          <div key={i} className="flex items-center gap-3 p-2 rounded-2xl border-2" style={{ borderColor: color + "66", backgroundColor: color + "14" }}>
-            <div className="flex-1 space-y-1">{bar("60%")}<div className="h-3 w-10 rounded-full" style={{ backgroundColor: color }} /></div>
-            <div className="w-8 h-8 rounded-xl bg-muted-foreground/25" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  // classic
+function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
-    <div className="h-24 rounded-xl bg-secondary/40 p-2 space-y-2">
-      {[0, 1].map((i) => (
-        <div key={i} className="flex items-center gap-2">
-          <div className="flex-1 space-y-1">{bar("75%")}{bar("45%")}<div className="h-1.5 w-8 rounded-full" style={{ backgroundColor: color }} /></div>
-          <div className="w-9 h-9 rounded-lg bg-muted-foreground/25" />
-        </div>
+    <div className="mb-5">
+      <h2 className="font-display font-bold text-base flex items-center gap-2.5">
+        <span className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
+          {icon}
+        </span>
+        {title}
+      </h2>
+      <p className="text-sm text-muted-foreground mt-2 ml-[2.6rem]">{subtitle}</p>
+    </div>
+  );
+}
+
+function TemplateCard({
+  theme, index, color, items, active, recommended, loading, onSelect,
+}: {
+  theme: MenuTheme; index: number; color: string; items: MenuCardItem[];
+  active: boolean; recommended: boolean; loading: boolean; onSelect: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={active}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0, scale: active ? 1.02 : 1 }}
+      transition={{ delay: index * 0.05, type: "spring", stiffness: 260, damping: 26 }}
+      whileHover={{ y: -6, scale: active ? 1.03 : 1.015 }}
+      whileTap={{ scale: 0.985 }}
+      className="group relative text-left rounded-3xl border bg-card/60 backdrop-blur-xl p-4 overflow-hidden transition-colors"
+      style={{
+        borderColor: active ? "#D4AF37" : "hsl(var(--border) / 0.6)",
+        boxShadow: active
+          ? "0 0 0 1px rgba(212,175,55,0.35), 0 0 34px -14px rgba(212,175,55,0.45), 0 24px 60px -44px rgba(0,0,0,0.9)"
+          : "0 20px 50px -44px rgba(0,0,0,0.9)",
+      }}
+    >
+      {/* brilho suave no hover */}
+      <span
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: `radial-gradient(circle at 50% 0%, ${color}18, transparent 65%)` }}
+        aria-hidden
+      />
+
+      {recommended && (
+        <span className="absolute top-4 left-4 z-20 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/35">
+          <Sparkles className="w-3 h-3" /> Recomendado
+        </span>
+      )}
+
+      <AnimatePresence>
+        {active && (
+          <motion.span
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 480, damping: 22 }}
+            className="absolute top-4 right-4 z-20 w-7 h-7 rounded-full bg-[#D4AF37] flex items-center justify-center shadow-lg"
+          >
+            <Check className="w-4 h-4 text-black" strokeWidth={3} />
+          </motion.span>
+        )}
+      </AnimatePresence>
+
+      {/* mockup real do layout */}
+      <div className="relative z-10 flex justify-center pt-2">
+        <MiniPhone>
+          {loading ? (
+            <ThumbSkeleton />
+          ) : (
+            <div className="origin-top scale-[0.52] w-[192%] -mb-[92%]">
+              <MiniMenu theme={theme} color={color} items={items} />
+            </div>
+          )}
+        </MiniPhone>
+      </div>
+
+      <div className="relative z-10 mt-4">
+        <div className="font-semibold text-sm">{theme.name}</div>
+        <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{theme.description}</div>
+      </div>
+    </motion.button>
+  );
+}
+
+function MiniPhone({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative w-[168px] h-[210px] rounded-[1.6rem] border border-white/10 bg-[#0B0B0B] overflow-hidden shadow-[0_18px_40px_-24px_rgba(0,0,0,0.95)]">
+      <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-white/15 z-10" />
+      <div className="pt-5 h-full overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+function ThumbSkeleton() {
+  return (
+    <div className="p-3 space-y-2.5">
+      <div className="h-10 rounded-xl bg-muted/40 animate-pulse" />
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-12 rounded-xl bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
       ))}
+    </div>
+  );
+}
+
+/** Cardápio miniatura — usa o mesmo renderizador do cardápio público */
+function MiniMenu({ theme, color, items }: { theme: MenuTheme; color: string; items: MenuCardItem[] }) {
+  return (
+    <div className="px-3 pb-3">
+      <div className="h-14 rounded-xl mb-3 flex items-end p-2" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0d)` }}>
+        <div className="h-2 w-20 rounded-full bg-white/40" />
+      </div>
+      <div className="flex gap-1.5 mb-3">
+        <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</span>
+        <span className="px-2.5 py-1 rounded-full text-[10px] bg-secondary/60">Combos</span>
+      </div>
+      <div className={`${theme.categoryTitleClass} mb-2`} style={{ color }}>Mais pedidos</div>
+      <div className={theme.listClass}>
+        {items.slice(0, 3).map((item, i) => (
+          <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative mx-auto w-full max-w-[390px] rounded-[3rem] p-3 bg-gradient-to-b from-[#232323] to-[#0d0d0d] border border-white/10 shadow-[0_50px_100px_-50px_rgba(0,0,0,1)]">
+      <div className="relative rounded-[2.3rem] overflow-hidden bg-background border border-white/5">
+        {/* dynamic island */}
+        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-30 w-24 h-6 rounded-full bg-black border border-white/10" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function PhonePreview({
+  theme, color, items, restaurantName, loading,
+}: { theme: MenuTheme; color: string; items: MenuCardItem[]; restaurantName?: string | null; loading: boolean }) {
+  return (
+    <div className="flex flex-col h-[660px]">
+      {/* status bar */}
+      <div className="h-10 shrink-0" />
+
+      {/* header */}
+      <div className="h-28 relative shrink-0" style={{ background: `linear-gradient(135deg, ${color}55, ${color}0a)` }}>
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-3">
+          <div className="font-display font-bold text-lg truncate">{restaurantName || "Seu restaurante"}</div>
+          <div className="text-[11px] text-muted-foreground">Aberto agora · Entrega 30-45 min</div>
+        </div>
+      </div>
+
+      {/* busca */}
+      <div className="px-4 py-3 shrink-0">
+        <div className="flex items-center gap-2 h-10 rounded-xl bg-secondary/50 border border-border/60 px-3">
+          <Search className="w-4 h-4" style={{ color }} />
+          <span className="text-xs text-muted-foreground">Buscar no cardápio…</span>
+        </div>
+      </div>
+
+      {/* conteúdo */}
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="flex gap-2 mb-4">
+          <span className="px-3 py-1.5 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>Destaques</span>
+          <span className="px-3 py-1.5 rounded-full text-[11px] bg-secondary/60">Combos</span>
+          <span className="px-3 py-1.5 rounded-full text-[11px] bg-secondary/60">Bebidas</span>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div key="sk" exit={{ opacity: 0 }} className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-24 rounded-2xl bg-muted/30 animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={theme.id}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.28 }}
+            >
+              <div className={`${theme.categoryTitleClass} mb-3`} style={{ color }}>Mais pedidos</div>
+              <div className={theme.listClass}>
+                {items.map((item, i) => (
+                  <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* carrinho */}
+      <div className="p-4 border-t border-border/60 shrink-0">
+        <motion.div
+          key={color}
+          initial={{ scale: 0.98, opacity: 0.85 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-full py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold text-white"
+          style={{ backgroundColor: color, boxShadow: `0 14px 34px -18px ${color}` }}
+        >
+          <ShoppingBag className="w-4 h-4" /> Ver carrinho
+        </motion.div>
+      </div>
     </div>
   );
 }
