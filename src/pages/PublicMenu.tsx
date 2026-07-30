@@ -728,32 +728,44 @@ const PublicMenu = () => {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex flex-col"
           >
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowItemDetail(null)} />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowItemDetail(null)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="mt-auto relative bg-card border-t border-border rounded-t-3xl max-h-[90vh] flex flex-col"
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="mt-auto relative w-full sm:max-w-lg sm:mx-auto bg-[#141414] border-t sm:border border-white/[0.08] rounded-t-[28px] sm:rounded-[28px] sm:mb-6 max-h-[92vh] flex flex-col overflow-hidden shadow-[0_-30px_80px_-40px_rgba(0,0,0,1)]"
             >
               {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-muted" />
-              </div>
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-white/25" />
 
               <div className="overflow-y-auto flex-1">
-                {showItemDetail.image_url && (
-                  <img src={showItemDetail.image_url} alt="" className="w-full h-56 object-cover" />
-                )}
-                <div className="p-4 space-y-4">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">{showItemDetail.name}</h2>
-                    <p className="font-display text-lg font-bold mt-1" style={{ color: accentColor }}>
+                {showItemDetail.image_url ? (
+                  <div className="relative">
+                    <img src={showItemDetail.image_url} alt="" className="w-full h-64 sm:h-72 object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#141414] to-transparent" />
+                    <button
+                      onClick={() => setShowItemDetail(null)}
+                      aria-label="Fechar"
+                      className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/10 active:scale-90 transition-transform"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : <div className="h-6" />}
+                <div className="p-5 space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <h2 className="font-display text-[22px] font-bold tracking-tight leading-tight">{showItemDetail.name}</h2>
+                    <span
+                      className="font-display text-lg font-bold shrink-0 px-3 py-1.5 rounded-full border tabular-nums"
+                      style={{ color: accentColor, borderColor: accentColor + "33", backgroundColor: accentColor + "12" }}
+                    >
                       {fmt(Number(showItemDetail.price))}
-                    </p>
+                    </span>
                   </div>
 
                   {showItemDetail.description && (
-                    <p className="text-sm text-muted-foreground">{showItemDetail.description}</p>
+                    <p className="text-[13.5px] leading-relaxed text-muted-foreground">{showItemDetail.description}</p>
                   )}
+
 
                   {showItemDetail.ingredients && (
                     <div>
