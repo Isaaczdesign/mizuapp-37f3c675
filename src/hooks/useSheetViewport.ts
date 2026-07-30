@@ -159,6 +159,7 @@ export function useBodyScrollLock(locked: boolean) {
 export function useSheetViewport(open: boolean) {
   const vp = useVisualViewport();
   useBodyScrollLock(open);
+  const reduced = useReducedMotionPreference();
 
   return {
     position: "fixed" as const,
@@ -166,8 +167,14 @@ export function useSheetViewport(open: boolean) {
     right: 0,
     top: vp.offsetTop ? `${vp.offsetTop}px` : 0,
     height: vp.height ? `${vp.height}px` : "100dvh",
+    // Abertura/fechamento do teclado: acompanha a mudança de altura suavemente.
+    transition: reduced
+      ? undefined
+      : "height 260ms cubic-bezier(0.22, 0.61, 0.36, 1), top 260ms cubic-bezier(0.22, 0.61, 0.36, 1)",
+    willChange: "height",
   };
 }
+
 
 /** Container rolável mais próximo (o corpo do sheet). */
 function closestScroller(el: HTMLElement | null): HTMLElement | null {
