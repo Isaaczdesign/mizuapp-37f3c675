@@ -171,9 +171,16 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
 
 
   return (
-    <div className="grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start">
+    <div
+      className={
+        device === "desktop"
+          ? "flex flex-col gap-8"
+          : "grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start"
+      }
+    >
       {/* ————— Coluna esquerda ————— */}
-      <div className="space-y-8 min-w-0">
+      <div className={device === "desktop" ? "space-y-8 min-w-0 order-2" : "space-y-8 min-w-0"}>
+
         {/* Identidade visual */}
         <section>
           <SectionHeader
