@@ -659,7 +659,7 @@ const MenuAdmin = () => {
     queryKey: ["restaurant", rid],
     enabled: !!rid,
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code, menu_theme").eq("id", rid!).single();
+      const { data } = await supabase.from("restaurants").select("slug, name, logo_url, primary_color, short_code, menu_theme, menu_theme_mobile, menu_theme_desktop").eq("id", rid!).single();
       return data;
     },
   });
@@ -1088,6 +1088,8 @@ const MenuAdmin = () => {
               <MenuThemeTab
                 restaurantId={rid ?? undefined}
                 currentTheme={(restaurant as any)?.menu_theme}
+                currentThemeMobile={(restaurant as any)?.menu_theme_mobile}
+                currentThemeDesktop={(restaurant as any)?.menu_theme_desktop}
                 currentColor={(restaurant as any)?.primary_color}
                 restaurantName={(restaurant as any)?.name}
                 publicMenuUrl={publicMenuUrl}
