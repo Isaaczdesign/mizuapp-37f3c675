@@ -205,7 +205,7 @@ export default function ProductDetailSheet({
       aria-modal="true"
       aria-labelledby="product-title"
     >
-      <div className="fixed inset-0 h-[100lvh] bg-black/70 backdrop-blur-md" onClick={onClose} />
+      <div className="bg-black/70 backdrop-blur-md" style={sheetViewport} onClick={onClose} />
 
       <motion.div
         initial={{ y: "100%", opacity: 1 }}
