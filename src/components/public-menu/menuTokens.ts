@@ -43,6 +43,18 @@ export const R_CARD_SM = "rounded-2xl";
 export const R_CARD = "rounded-[20px]";
 export const R_BANNER = "rounded-[22px]";
 export const R_SHEET = "rounded-[24px]";
+export const R_TILE = "rounded-[14px]";
+export const R_FIELD = "rounded-[14px]";
+export const R_BUTTON = "rounded-[16px]";
+
+/** Ícones — tamanho, traço e container padronizados em todo o cardápio */
+export const ICON_STROKE = 1.75;
+export const ICON_SM = "w-4 h-4";
+export const ICON_MD = "w-[18px] h-[18px]";
+export const ICON_LG = "w-5 h-5";
+/** Container (tile) padrão de ícone dentro de cards e listas */
+export const ICON_TILE = `w-11 h-11 shrink-0 ${R_TILE} flex items-center justify-center border transition-colors duration-200`;
+
 
 /** Durações (ms) — microinterações rápidas, entradas discretas */
 export const D_MICRO = 0.15;
