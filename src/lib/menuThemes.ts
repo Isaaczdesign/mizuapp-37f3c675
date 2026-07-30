@@ -120,6 +120,21 @@ export function resolveMenuTheme(id?: string | null): MenuTheme {
   return MENU_THEMES.find((t) => t.id === key) ?? MENU_THEMES[0];
 }
 
+export type MenuDevice = "mobile" | "desktop";
+
+/**
+ * Resolve o template correto para o dispositivo atual.
+ * `menu_theme` continua sendo o fallback dos registros antigos.
+ */
+export function resolveDeviceTheme(
+  device: MenuDevice,
+  r?: { menu_theme?: string | null; menu_theme_mobile?: string | null; menu_theme_desktop?: string | null } | null,
+): MenuTheme {
+  const specific = device === "mobile" ? r?.menu_theme_mobile : r?.menu_theme_desktop;
+  return resolveMenuTheme(specific ?? r?.menu_theme);
+}
+
+
 export const ACCENT_PRESETS: { name: string; value: string }[] = [
   { name: "Laranja Mizu", value: "#E84310" },
   { name: "Areia Mizu", value: "#FFDC8B" },
