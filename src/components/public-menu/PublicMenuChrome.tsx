@@ -100,7 +100,7 @@ export function RestaurantHero({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
-                <h1 className="flex-1 font-display text-[19px] sm:text-2xl font-bold tracking-tight leading-tight line-clamp-2">
+                <h1 className="flex-1 font-display text-[19px] sm:text-2xl font-bold tracking-tight leading-[1.1] line-clamp-2">
                   {name}
                 </h1>
 
@@ -119,7 +119,7 @@ export function RestaurantHero({
               </div>
 
               <span
-                className={`mt-1 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
+                className={`mt-0.5 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
                   isOpen
                     ? "text-emerald-300 border-emerald-400/25 bg-emerald-400/10"
                     : "text-red-300 border-red-400/25 bg-red-400/10"
