@@ -60,9 +60,9 @@ const Index = () => {
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 bg-background/70 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <span className="font-display text-xl font-bold tracking-tight">
-            <span className="gradient-text">Kōban</span>
-          </span>
+          <a href="/" aria-label="Mizu — Gestão de Restaurantes" className="flex items-center">
+            <Logo className="h-8" />
+          </a>
           <div className="flex gap-3">
             <Button variant="ghost" size="sm" asChild>
               <a href="/auth">Entrar</a>
