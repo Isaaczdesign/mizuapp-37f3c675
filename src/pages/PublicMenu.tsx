@@ -15,7 +15,9 @@ import RecoverOrdersByWhatsapp from "@/components/RecoverOrdersByWhatsapp";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { paymentMethodLabel, resolveStoredPaymentMethod } from "@/lib/paymentMethods";
 import MenuItemCard from "@/components/public-menu/MenuItemCard";
-import { resolveMenuTheme } from "@/lib/menuThemes";
+import { resolveDeviceTheme } from "@/lib/menuThemes";
+import { useMenuDevice } from "@/hooks/useMenuDevice";
+
 import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
 import { ClosedNotice } from "@/components/public-menu/ClosedNotice";
 import { subscribeMenuUpdates } from "@/lib/menuRealtime";
