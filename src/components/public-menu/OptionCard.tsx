@@ -57,7 +57,7 @@ const OptionCard = ({
     }
   >
     <span
-      className={`w-12 h-12 sm:w-13 sm:h-13 shrink-0 ${R_TILE} flex items-center justify-center border transition-all duration-300 ease-out`}
+      className={`w-12 h-12 shrink-0 ${R_TILE} flex items-center justify-center border transition-all duration-300 ease-out`}
       style={{
         backgroundColor: selected ? `${accentColor}1f` : "rgba(255,255,255,0.04)",
         borderColor: selected ? `${accentColor}55` : "rgba(255,255,255,0.08)",
