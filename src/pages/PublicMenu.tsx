@@ -976,32 +976,50 @@ const PublicMenu = () => {
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-2 px-4 sm:px-5 pt-1 pb-4 border-b border-white/[0.06] overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2.5 px-4 sm:px-5 pt-2 pb-4 border-b border-white/[0.06] overflow-x-auto no-scrollbar">
                 {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => {
                   const done = checkoutStep > i + 1;
                   const active = checkoutStep === i + 1;
                   return (
-                    <div key={i} className="flex items-center gap-2 shrink-0">
-                      <div
-                        className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-200 ${
-                          done || active ? "text-black" : "bg-white/[0.06] text-white/40 border border-white/[0.08]"
-                        }`}
-                        style={done || active ? { backgroundColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}22` } : {}}
-                      >
-                        {done ? <Check className="w-3 h-3" strokeWidth={3} /> : i + 1}
-                      </div>
-                      <span
-                        className={`text-[11px] font-semibold tracking-tight transition-colors ${
-                          active ? "text-white" : done ? "text-white/60" : "text-white/35"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      {i < 3 && (
+                    <div key={i} className="flex items-center gap-2.5 shrink-0">
+                      <div className="flex items-center gap-2">
                         <div
-                          className="w-5 h-px rounded-full transition-colors"
-                          style={{ backgroundColor: done ? accentColor + "80" : "rgba(255,255,255,0.10)" }}
-                        />
+                          className={`relative w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${
+                            done || active
+                              ? "text-[#080909]"
+                              : "bg-white/[0.045] text-white/40 border border-white/[0.09]"
+                          } ${active ? "scale-105" : ""}`}
+                          style={
+                            done || active
+                              ? {
+                                  backgroundImage: `linear-gradient(145deg, ${accentColor}, ${accentColor}c4)`,
+                                  boxShadow: active
+                                    ? `0 0 0 4px ${accentColor}1f, 0 6px 18px -6px ${accentColor}`
+                                    : `0 0 0 3px ${accentColor}14`,
+                                }
+                              : {}
+                          }
+                        >
+                          {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : i + 1}
+                        </div>
+                        <span
+                          className={`text-[10.5px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 ${
+                            active ? "text-white" : done ? "text-white/55" : "text-white/30"
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                      {i < 3 && (
+                        <div className="w-6 h-[2px] rounded-full bg-white/[0.08] overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500 ease-out"
+                            style={{
+                              width: done ? "100%" : "0%",
+                              backgroundImage: `linear-gradient(90deg, ${accentColor}99, ${accentColor})`,
+                            }}
+                          />
+                        </div>
                       )}
                     </div>
                   );
