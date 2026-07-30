@@ -143,7 +143,87 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentColor,
     <div className="grid xl:grid-cols-[minmax(0,1fr)_460px] gap-8 items-start">
       {/* ————— Coluna esquerda ————— */}
       <div className="space-y-8 min-w-0">
+        {/* Identidade visual */}
+        <section>
+          <SectionHeader
+            icon={<ImageIcon className="w-4 h-4" />}
+            title="Identidade visual"
+            subtitle="Logo, banner e textos que o cliente vê no topo do cardápio público."
+          />
+
+          <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-6 shadow-[0_20px_60px_-40px_hsl(0_0%_0%/0.9)]">
+            {/* Logo */}
+            <div>
+              <Label>Logomarca</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Recomendado: imagem quadrada (512x512).</p>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="w-20 h-20 rounded-2xl border border-border bg-secondary/40 overflow-hidden flex items-center justify-center shrink-0">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-muted-foreground opacity-50" />
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors">
+                      <Upload className="w-4 h-4" /> {logoPreview ? "Trocar logo" : "Enviar logo"}
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={pickLogo} />
+                  </label>
+                  {logoPreview && (
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => { setLogoFile(null); setLogoPreview(null); setLogoRemoved(true); }}>
+                      <Trash2 className="w-4 h-4 mr-1.5" /> Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Banner */}
+            <div>
+              <Label>Banner (imagem de capa)</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Recomendado: 1600x600 px.</p>
+              <div className="mt-3 space-y-2">
+                <div className="w-full h-32 rounded-2xl border border-border bg-secondary/40 overflow-hidden flex items-center justify-center">
+                  {bannerPreview ? (
+                    <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Nenhum banner enviado</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm hover:bg-secondary/80 transition-colors w-fit">
+                      <Upload className="w-4 h-4" /> {bannerPreview ? "Trocar banner" : "Enviar banner"}
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={pickBanner} />
+                  </label>
+                  {bannerPreview && (
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => { setBannerFile(null); setBannerPreview(null); setBannerRemoved(true); }}>
+                      <Trash2 className="w-4 h-4 mr-1.5" /> Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Textos */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Descrição do restaurante</Label>
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1.5" placeholder="Ex: Sushi artesanal preparado na hora." />
+              </div>
+              <div>
+                <Label>Nota de retirada / consumo no local</Label>
+                <Input value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} className="mt-1.5" placeholder="Ex: Disponível para retirada e consumo no local" />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Templates */}
+
         <section>
           <SectionHeader
             icon={<Smartphone className="w-4 h-4" />}
