@@ -197,7 +197,7 @@ export default function ProductDetailSheet({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: D_MICRO }}
-      className="fixed inset-0 z-50 flex flex-col lg:items-center lg:justify-center lg:p-8"
+      className="fixed inset-x-0 top-0 h-[100dvh] z-50 flex flex-col lg:items-center lg:justify-center lg:p-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-title"

@@ -882,7 +882,7 @@ const PublicMenu = () => {
         {showCart && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             role="dialog" aria-modal="true" aria-label="Seu pedido"
-            className="fixed inset-0 z-50 flex flex-col lg:flex-row lg:justify-end">
+            className="fixed inset-x-0 top-0 h-[100dvh] z-50 flex flex-col lg:flex-row lg:justify-end">
             <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowCart(false)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
@@ -972,7 +972,7 @@ const PublicMenu = () => {
         {checkoutStep > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             role="dialog" aria-modal="true" aria-label="Finalizar pedido"
-            className="fixed inset-0 z-50 flex flex-col lg:items-center lg:justify-center lg:p-8">
+            className="fixed inset-x-0 top-0 h-[100dvh] z-50 flex flex-col lg:items-center lg:justify-center lg:p-8">
             <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setCheckoutStep(0)} />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
