@@ -227,24 +227,34 @@ export function MenuStickyBar({
       });
     };
     apply();
+    // Rotação no iOS entrega medidas desatualizadas: remedimos algumas vezes.
+    const timers: number[] = [];
+    const applyDeferred = () => {
+      apply();
+      [50, 150, 350, 600].forEach((ms) => timers.push(window.setTimeout(apply, ms)));
+    };
     const ro = new ResizeObserver(apply);
     ro.observe(el);
     window.addEventListener("resize", apply);
-    window.addEventListener("orientationchange", apply);
+    window.addEventListener("orientationchange", applyDeferred);
+    window.screen?.orientation?.addEventListener?.("change", applyDeferred);
     // Teclado do iOS: o visualViewport muda sem disparar `resize` da window.
     const vv = window.visualViewport;
     vv?.addEventListener("resize", apply);
     vv?.addEventListener("scroll", apply);
     return () => {
       cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
       ro.disconnect();
       window.removeEventListener("resize", apply);
-      window.removeEventListener("orientationchange", apply);
+      window.removeEventListener("orientationchange", applyDeferred);
+      window.screen?.orientation?.removeEventListener?.("change", applyDeferred);
       vv?.removeEventListener("resize", apply);
       vv?.removeEventListener("scroll", apply);
       document.documentElement.style.removeProperty("--menu-sticky-h");
     };
   }, [categories.length, search]);
+
 
 
   return (
