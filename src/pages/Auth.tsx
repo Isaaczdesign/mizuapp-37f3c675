@@ -176,27 +176,28 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
+    if (googleLoading || loading) return;
+    setGoogleLoading(true);
     try {
+      // Volta sempre para /auth (rota pública) — o efeito acima detecta a sessão
+      // e encaminha para /dashboard (ou onboarding) sem loops de redirecionamento.
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/auth`,
       });
       if (result.error) throw result.error;
-      // In full-page flows the browser redirects away; in popup/preview flows the
-      // session is already set and the auth listener will redirect to dashboard.
-      if (!result.redirected) {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
-          toast.success("Login realizado com Google!");
-          navigate("/dashboard", { replace: true });
-        }
+      if (result.redirected) return; // navegador vai redirecionar
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        toast.success("Login realizado com Google!");
+        navigate("/dashboard", { replace: true });
+      } else {
+        setGoogleLoading(false);
       }
     } catch (err: any) {
       toast.error(err?.message || "Não foi possível entrar com Google.");
-    } finally {
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
 
