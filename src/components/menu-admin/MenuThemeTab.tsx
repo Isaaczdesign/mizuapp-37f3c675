@@ -561,30 +561,19 @@ function TemplateCard({
         )}
       </AnimatePresence>
 
-      {/* mockup real do layout */}
+      {/* mockup esquemático do layout (sem breakpoints da janela) */}
       <div className="relative z-10 flex justify-center pt-2">
         {device === "desktop" ? (
           <MiniDesktop>
-            {loading ? (
-              <ThumbSkeleton />
-            ) : (
-              <div className="origin-top-left" style={{ width: 620, transform: "scale(0.4)" }}>
-                <MiniMenuDesktop theme={theme} color={color} items={items} />
-              </div>
-            )}
+            {loading ? <ThumbSkeleton /> : <MiniMenu theme={theme} color={color} items={items} device="desktop" />}
           </MiniDesktop>
         ) : (
           <MiniPhone>
-            {loading ? (
-              <ThumbSkeleton />
-            ) : (
-              <div className="origin-top-left" style={{ width: 336, transform: "scale(0.5)" }}>
-                <MiniMenu theme={theme} color={color} items={items} />
-              </div>
-            )}
+            {loading ? <ThumbSkeleton /> : <MiniMenu theme={theme} color={color} items={items} device="mobile" />}
           </MiniPhone>
         )}
       </div>
+
 
 
       <div className="relative z-10 mt-4">
