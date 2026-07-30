@@ -20,6 +20,7 @@ import {
   fmtBRL, computeShiftTotals, expectedByPaymentMethod, type OrderRow, type ShiftRow,
 } from "@/lib/shiftUtils";
 import { orderTypeLabel } from "@/lib/orderTypes";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 type Step = 0 | 1 | 2 | 3 | 4;
 const STEPS = [
@@ -235,18 +236,17 @@ export default function Expediente() {
 
   return (
     <AdminLayout>
-      <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold">🔒 <span className="gradient-text">Encerrar expediente</span></h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Aberto em {shift ? format(new Date(shift.opened_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "—"}
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => nav("/expediente/historico")}>
-            <History className="w-4 h-4 mr-1" /> Histórico
-          </Button>
-        </div>
+      <PageShell className="max-w-5xl gap-6">
+        <PageHeader
+          emoji="🔒"
+          title="Encerrar expediente"
+          subtitle={`Aberto em ${shift ? format(new Date(shift.opened_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "—"}`}
+          actions={
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => nav("/expediente/historico")}>
+              <History className="w-4 h-4 mr-1" /> Histórico
+            </Button>
+          }
+        />
 
         {/* Stepper */}
         <div className="glass-card p-4">
@@ -517,7 +517,7 @@ export default function Expediente() {
             </Button>
           </div>
         )}
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 }
