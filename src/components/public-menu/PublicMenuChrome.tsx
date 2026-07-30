@@ -232,7 +232,7 @@ export function MenuStickyBar({
   }, [categories.length, search]);
 
   return (
-    <div ref={barRef} className={`sticky top-0 z-40 mt-5 ${GLASS_SOFT}`}>
+    <div ref={barRef} className={`sticky top-0 z-40 mt-5 ${GLASS_SOFT} ${className}`}>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-2">
         <div
