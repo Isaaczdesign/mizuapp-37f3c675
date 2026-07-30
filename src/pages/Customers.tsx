@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, MessageSquare, Users, Ticket, Plus, Tag, Trash2, Power, PowerOff } from "lucide-react";
+import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import { toast } from "sonner";
 
 type Segment = "all" | "new" | "frequent" | "inactive_7d" | "inactive_30d";
@@ -602,7 +603,7 @@ const Customers = () => {
             )}
           </DialogContent>
         </Dialog>
-      </div>
+      </PageShell>
     </AdminLayout>
   );
 };
