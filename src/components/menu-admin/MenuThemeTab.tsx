@@ -691,12 +691,9 @@ function PhonePreview({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.28 }}
             >
-              <div className={`${theme.categoryTitleClass} mb-3`} style={{ color }}>Mais pedidos</div>
-              <div className={theme.listClass}>
-                {items.map((item, i) => (
-                  <MenuItemCard key={item.id} item={item} theme={theme} accentColor={color} index={i} animate={false} />
-                ))}
-              </div>
+              <div className="font-display text-lg font-bold mb-3" style={{ color }}>Mais pedidos</div>
+              <MenuThemeMock theme={theme} color={color} items={items} device="mobile" />
+
             </motion.div>
           )}
         </AnimatePresence>
