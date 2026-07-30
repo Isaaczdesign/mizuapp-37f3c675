@@ -951,7 +951,8 @@ const PublicMenu = () => {
 
 
                 {/* Order notes */}
-                <div className="pt-3 border-t border-white/[0.06]">
+                <div className="pt-3 border-t border-white/[0.06] scroll-mb-24">
+
                   <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
                     <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                   </label>
