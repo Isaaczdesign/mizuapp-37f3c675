@@ -12,6 +12,8 @@ import type { Database } from "@/integrations/supabase/types";
 import AdminLayout from "@/components/AdminLayout";
 import { Maximize2, Minimize2, Volume2, VolumeX, Printer, PrinterIcon, Undo2, Pin, PinOff, LayoutGrid, Rows3, Clock, Settings2 } from "lucide-react";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
+import { PageShell, PageHeader, SectionHeader, Segmented, Surface, EmptyState } from "@/components/dashboard/ui";
+
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 
@@ -433,122 +435,114 @@ const KDS = () => {
   }, [filteredOrders]);
 
   const content = (
-    <div className={`min-h-screen bg-background p-4 ${prefs.tvMode ? "text-lg" : ""}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h1 className={`font-display font-bold ${prefs.tvMode ? "text-4xl" : "text-2xl md:text-3xl"}`}>
-          🍳 <span className="gradient-text">Cozinha</span>
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 rounded-lg border border-border p-1 bg-card/50">
-            {TYPE_FILTERS.map(f => (
-              <button
-                key={f.key}
-                onClick={() => setPrefsPatch({ filter: f.key })}
-                className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                  prefs.filter === f.key ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-muted-foreground"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1 rounded-lg border border-border p-1 bg-card/50">
-            <button
-              onClick={() => setPrefsPatch({ view: "columns" })}
-              className={`px-2 py-1 rounded-md transition-colors ${prefs.view === "columns" ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-muted-foreground"}`}
-              title="Colunas por status"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPrefsPatch({ view: "tables" })}
-              className={`px-2 py-1 rounded-md transition-colors ${prefs.view === "tables" ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-muted-foreground"}`}
-              title="Agrupar por mesa"
-            >
-              <Rows3 className="w-4 h-4" />
-            </button>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => setPrefsPatch({ sound: !prefs.sound })} title={prefs.sound ? "Silenciar" : "Ativar som"}>
-            {prefs.sound ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setPrefsPatch({ autoPrint: !prefs.autoPrint })} title={prefs.autoPrint ? "Desativar impressão automática" : "Ativar impressão automática"}>
-            {prefs.autoPrint ? <Printer className="w-4 h-4 text-primary" /> : <PrinterIcon className="w-4 h-4" />}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} title="Configurar impressão">
-            <Settings2 className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={toggleFullscreen} title="Modo TV">
-            {prefs.tvMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </Button>
-          <span className="text-muted-foreground text-sm ml-2">{filteredOrders.length} ativos</span>
-        </div>
-      </div>
+    <PageShell fullHeight className={prefs.tvMode ? "text-lg" : undefined}>
+      <PageHeader
+        title="Cozinha"
+        subtitle={`${filteredOrders.length} pedido${filteredOrders.length === 1 ? "" : "s"} ativo${filteredOrders.length === 1 ? "" : "s"}`}
+        emoji="🍳"
+        actions={
+          <>
+            <Segmented
+              value={prefs.filter}
+              onChange={(v) => setPrefsPatch({ filter: v as TypeFilter })}
+              options={TYPE_FILTERS.map((f) => ({ key: f.key as string, label: f.label }))}
+              layoutId="kds-type-filter"
+            />
+            <Segmented
+              value={prefs.view}
+              onChange={(v) => setPrefsPatch({ view: v as ViewMode })}
+              options={[
+                { key: "columns", label: <LayoutGrid className="w-4 h-4" /> },
+                { key: "tables", label: <Rows3 className="w-4 h-4" /> },
+              ]}
+              layoutId="kds-view-mode"
+            />
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setPrefsPatch({ sound: !prefs.sound })} title={prefs.sound ? "Silenciar" : "Ativar som"}>
+              {prefs.sound ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setPrefsPatch({ autoPrint: !prefs.autoPrint })} title={prefs.autoPrint ? "Desativar impressão automática" : "Ativar impressão automática"}>
+              {prefs.autoPrint ? <Printer className="w-4 h-4 text-accent" /> : <PrinterIcon className="w-4 h-4" />}
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setSettingsOpen(true)} title="Configurar impressão">
+              <Settings2 className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={toggleFullscreen} title="Modo TV">
+              {prefs.tvMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+          </>
+        }
+      />
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : !currentShiftId ? (
-        <div className="glass-card p-8 text-center">
-          <p className="text-4xl mb-3">🌙</p>
-          <p className="font-display font-bold text-lg mb-1">Expediente encerrado</p>
-          <p className="text-sm text-muted-foreground">
-            A cozinha só recebe pedidos com o expediente aberto. Abra um novo expediente no painel para retomar o serviço.
-          </p>
-        </div>
+        <Surface className="p-8">
+          <EmptyState
+            icon={Clock}
+            title="Expediente encerrado"
+            description="A cozinha só recebe pedidos com o expediente aberto. Abra um novo expediente no painel para retomar o serviço."
+          />
+        </Surface>
       ) : prefs.view === "columns" ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-120px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0 lg:overflow-hidden">
           {columns.map((status) => {
             const config = statusConfig[status];
             const col = sortWithPins(filteredOrders.filter((o) => o.status === status));
             return (
-              <div key={status} className="flex flex-col">
-                <div className={`${config.color} text-primary-foreground rounded-t-xl px-4 py-2 font-display font-bold text-lg flex items-center justify-between`}>
-                  <span>{config.label}</span>
-                  <span className="bg-background/20 rounded-full w-8 h-8 flex items-center justify-center text-sm">{col.length}</span>
+              <Surface key={status} className="flex flex-col min-h-0 overflow-hidden p-0">
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-border/70 bg-secondary/40">
+                  <span className="flex items-center gap-2 font-display font-semibold tracking-tight text-sm">
+                    <span className={`w-2 h-2 rounded-full ${config.color}`} />
+                    {config.label}
+                  </span>
+                  <span className="rounded-full bg-secondary/80 border border-border/70 min-w-7 h-7 px-2 flex items-center justify-center text-xs font-semibold tabular-nums">
+                    {col.length}
+                  </span>
                 </div>
-                <div className="flex-1 overflow-y-auto bg-card/30 rounded-b-xl border border-border border-t-0 p-2 space-y-2">
+                <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
                   {col.map((order) => <OrderCard key={order.id} order={order} />)}
-                  {col.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhum pedido</p>}
+                  {col.length === 0 && <p className="text-center text-muted-foreground py-8 text-xs">Nenhum pedido</p>}
                 </div>
-              </div>
+              </Surface>
             );
           })}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 min-h-0 lg:overflow-y-auto">
           {tableGroups.grouped.length === 0 && tableGroups.others.length === 0 && (
-            <p className="text-center text-muted-foreground py-12">Nenhum pedido ativo</p>
+            <Surface className="p-8">
+              <EmptyState icon={LayoutGrid} title="Nenhum pedido ativo" description="Os pedidos aparecem aqui assim que chegarem do cardápio ou do painel." />
+            </Surface>
           )}
           {tableGroups.grouped.map(g => {
             const hasPinned = g.orders.some(o => pinned.has(o.id));
             const sorted = sortWithPins(g.orders);
             return (
-              <div key={g.id} className={`glass-card p-4 ${hasPinned ? "ring-2 ring-primary/50" : ""}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-display font-bold text-xl flex items-center gap-2">
-                    🍽️ Mesa {g.tableNumber}
-                    <span className="text-sm text-muted-foreground font-normal">
-                      · {g.orders.length} pedido{g.orders.length > 1 ? "s" : ""}
-                    </span>
-                  </h2>
-                </div>
+              <Surface key={g.id} className={`p-4 ${hasPinned ? "ring-2 ring-accent/40" : ""}`}>
+                <SectionHeader
+                  title={`Mesa ${g.tableNumber}`}
+                  subtitle={`${g.orders.length} pedido${g.orders.length > 1 ? "s" : ""}`}
+                  icon={Rows3}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {sorted.map(order => <OrderCard key={order.id} order={order} />)}
                 </div>
-              </div>
+              </Surface>
             );
           })}
           {tableGroups.others.length > 0 && (
-            <div className="glass-card p-4">
-              <h2 className="font-display font-bold text-xl mb-3">🥡 Retirada / Delivery</h2>
+            <Surface className="p-4">
+              <SectionHeader title="Retirada / Delivery" subtitle="Pedidos sem mesa" icon={LayoutGrid} />
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 {sortWithPins(tableGroups.others).map(order => <OrderCard key={order.id} order={order} />)}
               </div>
-            </div>
+            </Surface>
           )}
         </div>
       )}
+
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -675,7 +669,8 @@ const KDS = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
+
   );
 
   return prefs.tvMode ? content : <AdminLayout collapsible>{content}</AdminLayout>;
