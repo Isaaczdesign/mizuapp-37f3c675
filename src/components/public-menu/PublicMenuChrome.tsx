@@ -352,8 +352,9 @@ export function FloatingCartBar({
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 80, opacity: 0 }}
       transition={{ type: "spring", stiffness: 380, damping: 32 }}
-      className="fixed inset-x-0 z-50 px-4 sm:px-6 pointer-events-none lg:hidden"
+      className="fixed inset-x-0 z-50 px-4 sm:px-6 pointer-events-none lg:hidden transition-[bottom] duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)]"
       style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + 16px + ${keyboardInset}px)` }}
+
     >
       <motion.button
         type="button"
