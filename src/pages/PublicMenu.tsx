@@ -297,13 +297,9 @@ const PublicMenu = () => {
 
   const accentColor = restaurant?.primary_color ?? "#E84310";
   const menuTheme = resolveMenuTheme(restaurant?.menu_theme);
-  // tick de 30s para o status do hero acompanhar o horário em tempo real
-  const [clockTick, setClockTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setClockTick((t) => t + 1), 30_000);
-    return () => clearInterval(id);
-  }, []);
+  // status do hero acompanha o tick de relógio (30s)
   const openStatus = useMemo(() => getOpenStatus(operatingHours), [operatingHours, clockTick]);
+
 
   // chamado quando o horário de reabertura chega: recarrega o cardápio/estado
   const reopenedRef = useRef(false);
