@@ -154,6 +154,48 @@ export function useSheetViewport(open: boolean) {
   };
 }
 
+/** Container rolável mais próximo (o corpo do sheet). */
+function closestScroller(el: HTMLElement | null): HTMLElement | null {
+  let node: HTMLElement | null = el?.parentElement ?? null;
+  while (node && node !== document.body) {
+    const style = getComputedStyle(node);
+    if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight) return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+/**
+ * Reposiciona o campo focado dentro do container rolável do sheet, sem usar
+ * `scrollIntoView` (que rola ancestrais/página e causa o "pulo").
+ * Só rola quando o campo está realmente fora da área visível.
+ */
+export function revealFieldInScroller(el: HTMLElement | null, smooth = true) {
+  if (!el || !document.contains(el)) return;
+  const scroller = closestScroller(el);
+  if (!scroller) return;
+
+  const vv = window.visualViewport;
+  const viewTop = vv ? vv.offsetTop : 0;
+  const viewBottom = viewTop + (vv ? vv.height : window.innerHeight);
+  // Limita também à caixa do próprio scroller (o sheet pode não ocupar tudo).
+  const box = scroller.getBoundingClientRect();
+  const top = Math.max(viewTop, box.top);
+  const bottom = Math.min(viewBottom, box.bottom);
+  const rect = el.getBoundingClientRect();
+  const margin = 16;
+
+  let delta = 0;
+  if (rect.bottom > bottom - margin) delta = rect.bottom - (bottom - margin);
+  else if (rect.top < top + margin) delta = rect.top - (top + margin);
+  // Ao corrigir pelo rodapé, nunca rola além do topo do campo.
+  if (delta > 0) delta = Math.min(delta, Math.max(0, rect.top - (top + margin)));
+
+  if (Math.abs(delta) < 2) return;
+
+  scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: smooth ? "smooth" : "auto" });
+}
+
 /**
  * Mantém o campo focado sempre visível quando o teclado abre/fecha,
  * sem "saltos": cancela o scroll nativo do navegador e reposiciona
@@ -173,31 +215,9 @@ export function useKeyboardFocusScroll(active: boolean) {
     const reveal = (smooth = true) => {
       if (!focused || !document.contains(focused)) return;
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        if (!focused) return;
-        const vv = window.visualViewport;
-        const viewTop = vv ? vv.offsetTop : 0;
-        const viewBottom = viewTop + (vv ? vv.height : window.innerHeight);
-        const rect = focused.getBoundingClientRect();
-        const margin = 24;
-
-        // Container rolável mais próximo (o corpo do sheet).
-        let scroller: HTMLElement | null = focused.parentElement;
-        while (scroller && scroller !== document.body) {
-          const style = getComputedStyle(scroller);
-          if (/(auto|scroll)/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight) break;
-          scroller = scroller.parentElement;
-        }
-        if (!scroller || scroller === document.body) return;
-
-        let delta = 0;
-        if (rect.bottom > viewBottom - margin) delta = rect.bottom - (viewBottom - margin);
-        else if (rect.top < viewTop + margin) delta = rect.top - (viewTop + margin);
-        if (delta === 0) return;
-
-        scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: smooth ? "smooth" : "auto" });
-      });
+      raf = requestAnimationFrame(() => revealFieldInScroller(focused, smooth));
     };
+
 
     const onFocusIn = (e: FocusEvent) => {
       const target = e.target as Element | null;
