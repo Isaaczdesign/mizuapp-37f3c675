@@ -1541,6 +1541,7 @@ export type Database = {
         Args: { _restaurant_id?: string; _slug: string }
         Returns: boolean
       }
+      client_ip: { Args: never; Returns: string }
       create_public_order: {
         Args: {
           _coupon_code?: string
