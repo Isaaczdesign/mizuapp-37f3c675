@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { MotionConfig } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Onboarding from "@/components/Onboarding";
@@ -40,6 +40,14 @@ import AdminLogs from "./pages/admin-mizu/Logs";
 import AdminDeletedNotes from "./pages/admin-mizu/DeletedNotes";
 import AdminPlatformSettings from "./pages/admin-mizu/PlatformSettings";
 import { AdminCoupons, AdminNotifications } from "./pages/admin-mizu/Placeholders";
+import { isReservedSlug } from "@/lib/publicMenuUrl";
+
+/** Root-level restaurant menu: `/meu-restaurante`. Falls back to 404 for reserved paths. */
+function RootSlugMenu() {
+  const { slug } = useParams();
+  if (!slug || isReservedSlug(slug)) return <NotFound />;
+  return <PublicMenu />;
+}
 
 const queryClient = new QueryClient();
 
@@ -110,6 +118,7 @@ const App = () => (
             {import.meta.env.DEV && (
               <Route path="/dev/sheet-harness" element={<DevSheetHarness />} />
             )}
+            <Route path="/:slug" element={<RootSlugMenu />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

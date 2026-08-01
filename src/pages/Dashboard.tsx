@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 import { motion } from "framer-motion";
 import { Surface, SectionHeader, MetricCard, AnimatedValue, Trend, EmptyState, Skeleton, ChartTooltip, fadeUp, stagger } from "@/components/dashboard/ui";
+import { menuUrl } from "@/lib/publicMenuUrl";
 type Period = "today" | "week" | "month" | "custom";
 type OpenOrder = { id: string; status: string; order_type: string; total: number; created_at: string; table_id: string | null };
 
@@ -97,7 +98,7 @@ const Dashboard = () => {
     },
   });
 
-  const publicMenuUrl = setupStatus?.slug ? `${window.location.origin}/r/${setupStatus.slug}` : null;
+  const publicMenuUrl = setupStatus?.slug ? menuUrl(setupStatus.slug) : null;
 
   // Fetch operating hours + refresh clock every minute for closed-hours banner
   const { data: hoursData } = useQuery({

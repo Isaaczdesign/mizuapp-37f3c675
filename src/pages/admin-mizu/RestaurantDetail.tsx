@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { usePlatformRole, logPlatformAction } from "@/hooks/usePlatformRole";
+import { menuPath } from "@/lib/publicMenuUrl";
 
 type Restaurant = {
   id: string; name: string; slug: string; owner_name: string | null; owner_email: string | null;
@@ -184,7 +185,7 @@ export default function AdminRestaurantDetail() {
                 </Button>
               ))}
               <Button size="sm" variant="glass" asChild>
-                <a href={`/r/${restaurant.slug}`} target="_blank" rel="noopener noreferrer">Ver cardápio público</a>
+                <a href={menuPath(restaurant.slug)} target="_blank" rel="noopener noreferrer">Ver cardápio público</a>
               </Button>
             </div>
           )}

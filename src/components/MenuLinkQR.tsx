@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Copy, Download, QrCode, Sparkles, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { menuUrl } from "@/lib/publicMenuUrl";
 
 type Props = {
   slug: string;
@@ -32,7 +33,7 @@ export default function MenuLinkQR({
   useEffect(() => { setCode(shortCode ?? null); }, [shortCode]);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const fullUrl = `${origin}/r/${slug}`;
+  const fullUrl = menuUrl(slug, origin);
   const shortUrl = code ? `${origin}/q/${code}` : null;
   const primary = primaryColor && /^#[0-9A-Fa-f]{6}$/.test(primaryColor) ? primaryColor : "#E84310";
 

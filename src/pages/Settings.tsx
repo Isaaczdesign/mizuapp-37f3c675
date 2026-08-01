@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import DangerZone from "@/components/settings/DangerZone";
+import { menuUrl, isReservedSlug } from "@/lib/publicMenuUrl";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -120,6 +121,10 @@ const Settings = () => {
     if (!cleaned) { setSlugCheck({ status: "invalid", msg: "Slug obrigatório" }); return; }
     if (!/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/.test(cleaned)) {
       setSlugCheck({ status: "invalid", msg: "Use 3–40 caracteres: letras minúsculas, números e hífen" });
+      return;
+    }
+    if (isReservedSlug(cleaned)) {
+      setSlugCheck({ status: "invalid", msg: "Este endereço é reservado pelo sistema. Escolha outro." });
       return;
     }
     if (cleaned === currentSlug) { setSlugCheck({ status: "same" }); return; }
@@ -286,9 +291,11 @@ const Settings = () => {
               <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label>Slug (URL pública)</Label>
+              <Label>Endereço do cardápio</Label>
               <div className="mt-1 flex items-center gap-1 rounded-xl bg-secondary/50 border border-border px-3 py-2">
-                <span className="text-sm text-muted-foreground font-mono shrink-0">/r/</span>
+                <span className="text-sm text-muted-foreground font-mono shrink-0 truncate max-w-[55%]">
+                  {typeof window !== "undefined" ? window.location.host : ""}/
+                </span>
                 <Input
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -302,11 +309,13 @@ const Settings = () => {
                 {slugCheck.status === "available" && <span className="text-green-500">✓ Disponível — não esqueça de salvar</span>}
                 {slugCheck.status === "taken" && <span className="text-destructive">✕ {slugCheck.msg}</span>}
                 {slugCheck.status === "invalid" && <span className="text-destructive">✕ {slugCheck.msg}</span>}
-                {slugCheck.status === "same" && <span className="text-muted-foreground">Slug atual</span>}
+                {slugCheck.status === "same" && <span className="text-muted-foreground">Endereço atual</span>}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Este é o endereço do seu cardápio. Escolha algo curto e memorável (ex: <span className="font-mono">sushi-do-isaac</span>).
+                Link curto e memorável (ex: <span className="font-mono">{menuUrl("sushi-do-isaac").replace(/^https?:\/\//, "")}</span>).
+                Os links antigos <span className="font-mono">/r/{slug || "slug"}</span> continuam funcionando.
               </p>
+
             </div>
             <div className="rounded-xl border border-border bg-secondary/30 p-4 flex items-start gap-3">
               <Palette className="w-4 h-4 text-primary mt-0.5 shrink-0" />

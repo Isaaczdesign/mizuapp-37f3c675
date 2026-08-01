@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { menuPath } from "@/lib/publicMenuUrl";
 
 const ShortLink = () => {
   const { code } = useParams<{ code: string }>();
@@ -26,7 +27,7 @@ const ShortLink = () => {
     );
   }
   if (!slug) return <Navigate to="/" replace />;
-  return <Navigate to={`/r/${slug}`} replace />;
+  return <Navigate to={menuPath(slug)} replace />;
 };
 
 export default ShortLink;

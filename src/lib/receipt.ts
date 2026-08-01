@@ -236,7 +236,7 @@ function render(doc: jsPDF, order: ReceiptOrder, restaurant: ReceiptRestaurant, 
   sep();
   y += 1;
   center("Obrigado pela preferência!", 8, "bold", 4);
-  if (restaurant.slug) center(`Peça de novo: /r/${restaurant.slug}`, 6.5, "normal", 3.4);
+  if (restaurant.slug) center(`Peça de novo: /${restaurant.slug}`, 6.5, "normal", 3.4);
   center("Documento sem valor fiscal", 6, "normal", 3.4);
 
   return y + M;

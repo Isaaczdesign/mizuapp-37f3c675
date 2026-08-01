@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MpCardForm from "@/components/MpCardForm";
 import { saveRecentOrder } from "@/lib/publicMenuStorage";
+import { menuPath } from "@/lib/publicMenuUrl";
 
 interface TrackingOrder {
   id: string;
@@ -230,7 +231,7 @@ export default function OrderTracking() {
   const isTerminal = order.status === "completed" || order.status === "delivered";
   const flow = order.order_type === "delivery" ? DELIVERY_FLOW : DEFAULT_FLOW;
   const activeIdx = flow.findIndex((s) => s.key === order.status);
-  const menuUrl = order.restaurant_slug ? `/r/${order.restaurant_slug}` : null;
+  const menuUrl = order.restaurant_slug ? menuPath(order.restaurant_slug) : null;
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 max-w-lg mx-auto">

@@ -25,6 +25,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import MenuLinkQR from "@/components/MenuLinkQR";
 import { PageShell, PageHeader, Surface, SectionHeader } from "@/components/dashboard/ui";
+import { menuUrl } from "@/lib/publicMenuUrl";
 
 const TAG_OPTIONS = [
   { value: "best_seller", label: "🔥 Mais Vendido" },
@@ -676,7 +677,7 @@ const MenuAdmin = () => {
   });
 
 
-  const publicMenuUrl = restaurant?.slug ? `${window.location.origin}/r/${restaurant.slug}` : null;
+  const publicMenuUrl = restaurant?.slug ? menuUrl(restaurant.slug) : null;
 
   const copyLink = () => {
     if (publicMenuUrl) {
