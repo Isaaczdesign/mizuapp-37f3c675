@@ -6,6 +6,8 @@ type Props = {
   poster?: string | null;
   loop?: boolean;
   title?: string;
+  className?: string;
+  onAspectRatio?: (ratio: number) => void;
 };
 
 const isCoarsePointer = () =>
