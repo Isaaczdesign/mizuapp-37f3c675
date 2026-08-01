@@ -201,7 +201,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         ? "Aviso agendado. Ele aparecerá automaticamente na data escolhida."
         : "Aviso publicado. Ele aparece na hora no painel dos restaurantes."
     );
-    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("update");
+    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
     setScope("all"); setSelected([]); setSearch("");
     setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl("");
     load();
