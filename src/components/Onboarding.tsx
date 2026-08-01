@@ -15,6 +15,7 @@ import {
   ShoppingCart, ArrowRight, ArrowLeft, Check, Copy, Download,
   Palette, FileText, Plus, CheckCircle2, Sparkles,
 } from "lucide-react";
+import { loadOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from "@/lib/onboardingDraft";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
