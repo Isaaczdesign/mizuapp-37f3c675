@@ -68,7 +68,7 @@ export default function AdminRestaurants() {
         </div>
         <SegmentedControl
           value={status}
-          onChange={setStatus}
+          onChange={(v) => setStatus(v as "all" | "active" | "inactive")}
           options={[{ id: "all", label: "Todos" }, { id: "active", label: "Ativos" }, { id: "inactive", label: "Inativos" }]}
         />
       </Toolbar>
