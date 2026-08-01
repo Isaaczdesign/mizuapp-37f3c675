@@ -164,7 +164,9 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             </div>
 
             <div
-              className="flex animate-fade-up flex-col gap-3 pt-2 sm:flex-row sm:gap-2"
+              className={`flex animate-fade-up flex-col gap-3 pt-2 sm:flex-row sm:gap-2 ${
+                !hasCta ? "ml-[calc(2.5rem+0.75rem)]" : ""
+              }`}
               style={{ animationDelay: "140ms", opacity: 0 }}
             >
               {hasCta && (
