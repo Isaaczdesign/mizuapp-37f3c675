@@ -6,6 +6,7 @@ import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 import { Button } from "@/components/ui/button";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 import { Logo } from "@/components/Logo";
+import GuidedTour from "@/components/GuidedTour";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[] };
 
