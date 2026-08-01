@@ -877,10 +877,15 @@ const PublicMenu = () => {
             selectedVariation={selectedVariation}
             onSelectVariation={setSelectedVariation}
             selectedAddons={selectedAddons}
-            onToggleAddon={(a) =>
-              setSelectedAddons((prev) =>
-                prev.find((sa) => sa.id === a.id) ? prev.filter((sa) => sa.id !== a.id) : [...prev, a],
-              )
+            onAddonQty={(a, qty) =>
+              setSelectedAddons((prev) => {
+                const next = Math.max(0, Math.min(99, qty));
+                if (next === 0) return prev.filter((sa) => sa.id !== a.id);
+                if (prev.find((sa) => sa.id === a.id)) {
+                  return prev.map((sa) => (sa.id === a.id ? { ...sa, quantity: next } : sa));
+                }
+                return [...prev, { ...a, quantity: next }];
+              })
             }
             qty={detailQty}
             onQty={setDetailQty}
