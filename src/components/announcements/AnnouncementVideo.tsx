@@ -242,23 +242,33 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
           ? "flex h-full max-h-none items-center justify-center aspect-auto"
           : `max-h-[55vh] md:max-h-[62vh] ${className ?? ""}`
       }`}
-      style={fullscreen ? undefined : { aspectRatio: ratio ?? 4 / 3 }}
+      style={fullscreen ? undefined : { aspectRatio: ratio ?? 16 / 9 }}
     >
       <video
         ref={videoRef}
         src={src}
         poster={poster ?? undefined}
-        className="h-full w-full object-contain object-center"
+        className={`h-full w-full object-contain object-center transition-opacity duration-300 ${
+          ready || poster ? "opacity-100" : "opacity-0"
+        }`}
         playsInline
         {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         controls={false}
         muted={muted}
         loop={loop}
-        preload={shouldAutoplay.current ? "auto" : "metadata"}
+        preload="auto"
         onLoadedMetadata={(e) => {
           const v = e.currentTarget;
           if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
         }}
+        onLoadedData={() => setReady(true)}
+        onCanPlay={() => {
+          setReady(true);
+          setBuffering(false);
+        }}
+        onPlaying={() => setBuffering(false)}
+        onWaiting={() => setBuffering(true)}
+        onStalled={() => setBuffering(true)}
         onPlay={() => {
           setStarted(true);
           setPlaying(true);
@@ -267,9 +277,15 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
         onEnded={() => setPlaying(false)}
       />
 
+      {/* Carregando / bufferizando */}
+      {(!ready || buffering) && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-brand-ink/40">
+          <span className="h-10 w-10 animate-spin rounded-full border-2 border-accent/25 border-t-accent" />
+        </div>
+      )}
 
       {/* Thumbnail com play — some assim que o vídeo começa */}
-      {!started && (
+      {!started && ready && (
         <button
           type="button"
           onClick={toggle}
