@@ -89,7 +89,7 @@ export function RestaurantHero({
               <img
                 src={logoUrl}
                 alt=""
-                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[18px] object-cover shrink-0 ${BORDER}`}
+                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[18px] object-cover object-center shrink-0 ${BORDER}`}
               />
             ) : (
               <div
