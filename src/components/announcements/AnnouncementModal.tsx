@@ -92,7 +92,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
         >
           {/* Conteúdo — topo no mobile, esquerda no desktop */}
           <div className="relative order-1 flex flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
-            <div key={current.id ?? safeIndex} className="animate-fade-up space-y-2">
+            <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-2`}>
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
