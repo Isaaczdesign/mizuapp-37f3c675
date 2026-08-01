@@ -61,7 +61,7 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
           className={`relative grid grid-cols-1 ${hasMedia ? "md:grid-cols-[1fr_1.1fr] md:items-stretch" : ""}`}
         >
           {/* Conteúdo — topo no mobile, esquerda no desktop */}
-          <div className="relative order-1 flex flex-col justify-center space-y-4 px-5 py-5 md:order-1 md:px-6 md:py-8">
+          <div className="relative order-1 flex flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
             <div className="animate-fade-up space-y-2">
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
@@ -81,21 +81,22 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
                     <Icon className="h-5 w-5 text-accent" />
                   </div>
                 </div>
-                <h2 className="font-display text-xl font-semibold leading-snug">
-                  {data.title || "Título do aviso"}
-                </h2>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <h2 className="font-display text-xl font-semibold leading-snug">
+                    {data.title || "Título do aviso"}
+                  </h2>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {data.body || "Mensagem que o dono do restaurante vai ler."}
+                  </p>
+                  {publishedAt && (
+                    <p className="pt-1 text-[11px] font-medium text-muted-foreground/80">
+                      Publicado em {publishedAt}
+                    </p>
+                  )}
+                </div>
               </div>
-
-              <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {data.body || "Mensagem que o dono do restaurante vai ler."}
-              </p>
-
-              {publishedAt && (
-                <p className="pt-1 text-[11px] font-medium text-muted-foreground/80">
-                  Publicado em {publishedAt}
-                </p>
-              )}
             </div>
+
 
             <div
               className="flex animate-fade-up flex-col gap-3 pt-2 sm:flex-row sm:gap-2"
