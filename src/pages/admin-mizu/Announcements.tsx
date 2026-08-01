@@ -108,6 +108,8 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
+  // Pop-up existe apenas para atualizações.
+  const modalEnabled = updatesOnly && showModal;
 
   const load = async () => {
     const [{ data, error }, { data: viewData }] = await Promise.all([
