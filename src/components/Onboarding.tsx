@@ -901,32 +901,49 @@ export default function Onboarding() {
 
               {/* STEP 3: Payment */}
               {step === 3 && (
-                <div className="space-y-6">
-                  <div className="glass-card p-6 space-y-3">
-                    {PAYMENT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.id}
-                        onClick={() => togglePayment(opt.id)}
-                        className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
-                          paymentMethods.includes(opt.id)
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-border/80"
-                        }`}
-                      >
-                        <span className="text-2xl">{opt.icon}</span>
-                        <span className="font-medium text-sm flex-1 text-left">{opt.label}</span>
-                        {paymentMethods.includes(opt.id) && (
-                          <Check className="w-5 h-5 text-primary" />
-                        )}
-                      </button>
-                    ))}
+                <div className="space-y-4">
+                  <div className="glass-card p-4 sm:p-6 space-y-3">
+                    {PAYMENT_OPTIONS.map((opt, i) => {
+                      const active = paymentMethods.includes(opt.id);
+                      return (
+                        <motion.button
+                          key={opt.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.07 }}
+                          whileTap={{ scale: 0.985 }}
+                          onClick={() => togglePayment(opt.id)}
+                          className={`relative w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all ${
+                            active
+                              ? "border-primary/60 bg-primary/[0.07] shadow-[0_0_0_1px_hsl(var(--primary)/0.25)]"
+                              : "border-border hover:border-primary/30 hover:bg-secondary/40"
+                          }`}
+                        >
+                          <span className="text-2xl">{opt.icon}</span>
+                          <span className="flex-1">
+                            <span className="block font-medium text-sm">{opt.label}</span>
+                            <span className="block text-xs text-muted-foreground mt-0.5">{opt.hint}</span>
+                          </span>
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
+                              active ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                            }`}
+                          >
+                            {active && <Check className="w-3.5 h-3.5" />}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
                   </div>
+                  <p className="text-xs text-muted-foreground px-1">
+                    Pagamentos online expiram em 15 min sem confirmação e podem ser reembolsados pelo painel.
+                  </p>
                 </div>
               )}
 
               {/* STEP 4: Public Page & QR */}
               {step === 4 && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="glass-card p-6 space-y-5">
                     <div>
                       <Label className="text-xs text-muted-foreground">Link público</Label>
@@ -938,12 +955,22 @@ export default function Onboarding() {
                           {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         </Button>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Você pode personalizar esse endereço depois em Configurações.
+                      </p>
                     </div>
 
                     <div className="flex flex-col items-center gap-4">
-                      <div className="bg-white p-4 rounded-2xl">
-                        <QRCodeSVG id="onboarding-qr" value={publicUrl} size={180} />
-                      </div>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.92, rotate: -2 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 18 }}
+                        className="relative rounded-3xl p-[2px] bg-gradient-to-br from-primary/60 via-primary/10 to-accent/50"
+                      >
+                        <div className="bg-white p-4 rounded-[22px]">
+                          <QRCodeSVG id="onboarding-qr" value={publicUrl} size={180} />
+                        </div>
+                      </motion.div>
                       <Button variant="outline" size="sm" onClick={downloadQR}>
                         <Download className="w-4 h-4 mr-2" /> Baixar QR Code
                       </Button>
@@ -954,13 +981,19 @@ export default function Onboarding() {
 
               {/* STEP 5: Test Order */}
               {step === 5 && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="glass-card p-6 text-center space-y-4">
                     {!testStarted && (
                       <>
-                        <ShoppingCart className="w-12 h-12 text-primary mx-auto" />
+                        <motion.div
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                          className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10"
+                        >
+                          <ShoppingCart className="w-7 h-7 text-primary" />
+                        </motion.div>
                         <p className="text-sm text-muted-foreground">
-                          Clique abaixo para simular um pedido e ver como ele aparece no painel da cozinha.
+                          Simule um pedido e veja ele chegar no painel de pedidos, na cozinha (KDS) e nas notificações.
                         </p>
                         <Button onClick={handleTestOrder}>
                           <ShoppingCart className="w-4 h-4 mr-2" /> Simular Pedido
@@ -969,25 +1002,59 @@ export default function Onboarding() {
                     )}
 
                     {testStarted && !testComplete && (
-                      <div className="space-y-3">
-                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                      <div className="space-y-3 py-2">
+                        <div className="relative mx-auto h-14 w-14">
+                          <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+                          <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                          <motion.div
+                            className="absolute inset-0 rounded-full bg-primary/20 blur-xl"
+                            animate={{ opacity: [0.3, 0.8, 0.3] }}
+                            transition={{ duration: 1.6, repeat: Infinity }}
+                          />
+                        </div>
                         <p className="text-sm text-muted-foreground">Enviando pedido teste...</p>
                       </div>
                     )}
 
                     {testComplete && (
                       <div className="space-y-3">
-                        <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-                        <h3 className="font-display font-bold">Pedido recebido!</h3>
+                        <motion.div
+                          initial={{ scale: 0.6, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 14 }}
+                        >
+                          <CheckCircle2 className="w-14 h-14 text-primary mx-auto" />
+                        </motion.div>
+                        <h3 className="font-display text-lg font-bold">Pedido recebido!</h3>
                         <p className="text-sm text-muted-foreground">
-                          Na tela da cozinha (KDS), os pedidos aparecerão em tempo real. 
-                          Você está pronto para começar a vender!
+                          Tudo funcionando. Você está pronto para começar a vender.
                         </p>
                       </div>
                     )}
                   </div>
+
+                  <div className="glass-card p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary mb-3">
+                      Já liberado na sua conta
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {READY_FEATURES.map((f, i) => (
+                        <motion.div
+                          key={f}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 * i }}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          <span>{f}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
+
             </motion.div>
           </AnimatePresence>
         </div>
