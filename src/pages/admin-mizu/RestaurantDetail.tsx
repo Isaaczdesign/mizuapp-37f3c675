@@ -29,7 +29,7 @@ export default function AdminRestaurantDetail() {
   const [noteDraft, setNoteDraft] = useState("");
   const [logs, setLogs] = useState<{ id: string; action: string; created_at: string; reason: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [confirm, setConfirm] = useState<null | { title: string; body: string; run: () => Promise<void> }>(null);
+  const [confirm, setConfirm] = useState<null | { title: string; body: string; run: () => Promise<unknown> }>(null);
 
   const load = async () => {
     setLoading(true);
