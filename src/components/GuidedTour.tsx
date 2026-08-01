@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { QrCode, PlusCircle, ChefHat, LayoutDashboard, ArrowRight, ArrowLeft, Check, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { isTourPending, finishTour } from "@/lib/guidedTour";
+import { isTourPending, finishTour, getTourStep, setTourStep } from "@/lib/guidedTour";
 
 type TourStep = {
   route: string;
