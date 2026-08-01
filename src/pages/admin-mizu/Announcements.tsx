@@ -43,6 +43,9 @@ const VARIANTS: { id: string; label: string }[] = [
   { id: "maintenance", label: "Manutenção" },
 ];
 
+// Atualizações têm página própria; aqui ficam apenas os demais avisos.
+const PICKER_VARIANTS = VARIANTS.filter((v) => v.id !== "update");
+
 const fmt = (v: string | null) => (v ? new Date(v).toLocaleString("pt-BR") : "—");
 
 function statusOf(item: Announcement) {
@@ -87,7 +90,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [variant, setVariant] = useState("update");
+  const [variant, setVariant] = useState("info");
   const effectiveVariant = updatesOnly ? "update" : variant;
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
@@ -105,6 +108,8 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
+  // Pop-up existe apenas para atualizações.
+  const modalEnabled = updatesOnly && showModal;
 
   const load = async () => {
     const [{ data, error }, { data: viewData }] = await Promise.all([
@@ -148,7 +153,9 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         )
       : restaurants;
 
-  const visibleItems = updatesOnly ? items.filter((i) => i.variant === "update") : items;
+  const visibleItems = updatesOnly
+    ? items.filter((i) => i.variant === "update")
+    : items.filter((i) => i.variant !== "update");
 
   const viewsFor = (id: string) => views.filter((v) => v.announcement_id === id);
 
@@ -176,13 +183,13 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         ends_at: endsAt ? new Date(endsAt).toISOString() : null,
         target_scope: scope,
         target_restaurant_ids: scope === "restaurants" ? selected : [],
-        show_modal: showModal,
-        media_type: mediaType,
-        media_url: mediaUrl.trim() || null,
-        media_poster: mediaType === "video" ? mediaPoster.trim() || null : null,
+        show_modal: modalEnabled,
+        media_type: modalEnabled ? mediaType : "none",
+        media_url: modalEnabled ? mediaUrl.trim() || null : null,
+        media_poster: modalEnabled && mediaType === "video" ? mediaPoster.trim() || null : null,
         media_loop: mediaLoop,
-        cta_label: ctaLabel.trim() || null,
-        cta_url: ctaUrl.trim() || null,
+        cta_label: modalEnabled ? ctaLabel.trim() || null : null,
+        cta_url: modalEnabled ? ctaUrl.trim() || null : null,
       })
       .select()
       .single();
@@ -194,7 +201,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         ? "Aviso agendado. Ele aparecerá automaticamente na data escolhida."
         : "Aviso publicado. Ele aparece na hora no painel dos restaurantes."
     );
-    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("update");
+    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
     setScope("all"); setSelected([]); setSearch("");
     setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl("");
     load();
@@ -234,7 +241,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
           <Input placeholder="Título (ex.: Nova atualização do Mizu)" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
           <Textarea placeholder="Mensagem exibida ao dono do restaurante" value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={600} />
           <div className={`flex-wrap items-center gap-2 ${updatesOnly ? "hidden" : "flex"}`}>
-            {VARIANTS.map((v) => (
+            {PICKER_VARIANTS.map((v) => (
               <button
                 key={v.id}
                 onClick={() => setVariant(v.id)}
@@ -247,7 +254,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
             ))}
           </div>
 
-          <div className="space-y-3 rounded-lg border border-border p-3">
+          <div className={`space-y-3 rounded-lg border border-border p-3 ${updatesOnly ? "" : "hidden"}`}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <MonitorPlay className="h-4 w-4 text-primary" />
@@ -314,11 +321,11 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
             )}
           </div>
 
-          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          {updatesOnly ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2">
                 <Eye className="h-4 w-4 text-primary" />
-                <p className="text-xs font-semibold">Prévia no topo do painel</p>
+                <p className="text-xs font-semibold">Prévia do pop-up de atualização</p>
               </div>
               {showModal && (
                 <Button variant="outline" size="sm" onClick={() => setPreviewModal(true)}>
@@ -326,8 +333,15 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                 </Button>
               )}
             </div>
-            <AnnouncementCard title={title} body={body} variant={effectiveVariant} />
-          </div>
+          ) : (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold">Prévia no topo do painel</p>
+              </div>
+              <AnnouncementCard title={title} body={body} variant={effectiveVariant} />
+            </div>
+          )}
 
           <AnnouncementModal
             open={previewModal}
@@ -344,6 +358,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
               cta_url: ctaUrl,
             }}
           />
+
 
 
           <div className="space-y-2 rounded-lg border border-border p-3">

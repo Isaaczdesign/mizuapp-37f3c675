@@ -35,7 +35,7 @@ export default function PlatformAnnouncementBanner() {
   const { user } = useAuth();
   const [items, setItems] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<string[]>(() => readList(DISMISS_KEY));
-  const [modalItem, setModalItem] = useState<Announcement | null>(null);
+  const [modalItems, setModalItems] = useState<Announcement[]>([]);
   const restaurantIdRef = useRef<string | null>(null);
 
   const fetchAnnouncements = useCallback(async () => {
@@ -70,8 +70,8 @@ export default function PlatformAnnouncementBanner() {
     );
 
     const seenModals = readList(MODAL_KEY);
-    const next = list.find((a) => a.show_modal && !seenModals.includes(a.id));
-    if (next) setModalItem(next);
+    const pending = list.filter((a) => a.show_modal && !seenModals.includes(a.id));
+    if (pending.length > 0) setModalItems(pending);
   }, [user]);
 
   useEffect(() => {
@@ -94,11 +94,11 @@ export default function PlatformAnnouncementBanner() {
   }, [user, fetchAnnouncements]);
 
   const closeModal = () => {
-    if (modalItem) {
-      const next = [...new Set([...readList(MODAL_KEY), modalItem.id])];
+    if (modalItems.length > 0) {
+      const next = [...new Set([...readList(MODAL_KEY), ...modalItems.map((m) => m.id)])];
       localStorage.setItem(MODAL_KEY, JSON.stringify(next));
     }
-    setModalItem(null);
+    setModalItems([]);
   };
 
   const dismiss = async (id: string) => {
@@ -119,11 +119,11 @@ export default function PlatformAnnouncementBanner() {
 
   return (
     <>
-      {modalItem && (
+      {modalItems.length > 0 && (
         <AnnouncementModal
-          open={!!modalItem}
+          open={modalItems.length > 0}
           onOpenChange={(o) => !o && closeModal()}
-          data={modalItem}
+          items={modalItems}
         />
       )}
       {visible.length > 0 && (
