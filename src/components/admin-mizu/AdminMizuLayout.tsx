@@ -2,7 +2,7 @@ import { type ReactNode, useState } from "react";
 import { Link, NavLink, Navigate, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Store, Users, Package, CreditCard, Receipt, Ticket, LifeBuoy,
-  Bell, ScrollText, Settings, Menu, LogOut, ShieldAlert, Trash2,
+  Bell, ScrollText, Settings, Menu, LogOut, ShieldAlert, Trash2, Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
