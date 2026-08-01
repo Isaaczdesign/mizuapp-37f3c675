@@ -189,7 +189,7 @@ export default function PlatformAnnouncementBanner() {
                 title={a.title}
                 body={a.body}
                 variant={a.variant}
-                onDismiss={() => dismiss(a.id)}
+                onDismiss={() => dismiss(a)}
               />
             </div>
           ))}
