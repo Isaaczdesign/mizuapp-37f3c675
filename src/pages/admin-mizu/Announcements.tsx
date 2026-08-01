@@ -241,7 +241,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
           <Input placeholder="Título (ex.: Nova atualização do Mizu)" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
           <Textarea placeholder="Mensagem exibida ao dono do restaurante" value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={600} />
           <div className={`flex-wrap items-center gap-2 ${updatesOnly ? "hidden" : "flex"}`}>
-            {VARIANTS.map((v) => (
+            {PICKER_VARIANTS.map((v) => (
               <button
                 key={v.id}
                 onClick={() => setVariant(v.id)}
@@ -254,7 +254,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
             ))}
           </div>
 
-          <div className="space-y-3 rounded-lg border border-border p-3">
+          <div className={`space-y-3 rounded-lg border border-border p-3 ${updatesOnly ? "" : "hidden"}`}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <MonitorPlay className="h-4 w-4 text-primary" />
