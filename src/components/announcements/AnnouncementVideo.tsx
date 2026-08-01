@@ -32,6 +32,8 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
   const [muted, setMuted] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
+  const [ready, setReady] = useState(false);
+  const [buffering, setBuffering] = useState(false);
   const onAspectRatioRef = useRef(onAspectRatio);
 
   useEffect(() => {
