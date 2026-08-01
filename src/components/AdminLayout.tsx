@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 import { Logo } from "@/components/Logo";
 import GuidedTour from "@/components/GuidedTour";
+import PlatformAnnouncementBanner from "@/components/PlatformAnnouncementBanner";
+
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[]; end?: boolean };
 
@@ -138,7 +140,9 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.end}
             onClick={onNavigate}
+
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
                 isActive
@@ -298,7 +302,9 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           collapsible ? "pt-12 md:pt-0" : "pb-24 md:pb-0"
         }`}
       >
+        <PlatformAnnouncementBanner />
         {children}
+
       </main>
 
       <GuidedTour />
