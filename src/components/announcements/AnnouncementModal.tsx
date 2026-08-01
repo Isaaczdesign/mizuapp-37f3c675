@@ -53,6 +53,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
     if (open) {
       setIndex(0);
       setDir("next");
+      setMediaRatio(null);
     }
   }, [open]);
 
