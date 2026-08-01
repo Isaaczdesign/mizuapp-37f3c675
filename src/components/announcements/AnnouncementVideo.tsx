@@ -99,6 +99,11 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
     };
   }, [src, safePlay]);
 
+  // Notifica o pai sobre a proporção do vídeo (útil para ajustar o modal).
+  useEffect(() => {
+    if (ratio !== null && onAspectRatio) onAspectRatio(ratio);
+  }, [ratio, onAspectRatio]);
+
   // iOS pausa o vídeo ao sair da aba; retoma quando ela volta a ficar visível.
   useEffect(() => {
     const onVisible = () => {
