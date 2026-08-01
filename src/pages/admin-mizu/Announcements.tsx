@@ -11,7 +11,6 @@ import { Megaphone, Trash2, Users, Eye, CalendarClock, ChevronDown, MonitorPlay 
 import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
-import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 
 type Announcement = {
   id: string;
