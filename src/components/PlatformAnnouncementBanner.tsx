@@ -117,9 +117,10 @@ export default function PlatformAnnouncementBanner() {
     );
 
     const seenModals = readList(MODAL_KEY);
-    const pending = list.filter((a) => a.show_modal && !seenModals.includes(a.id));
+    // A chave inclui a data de publicação: ao reenviar/editar, o pop-up volta a aparecer.
+    const pending = list.filter((a) => a.show_modal && !seenModals.includes(modalKey(a)));
     if (pending.length > 0) {
-      setModalIds(pending.map((a) => a.id));
+      setModalIds(pending.map(modalKey));
       setModalItems(pending.flatMap(toModalItems));
     }
   }, [user]);
