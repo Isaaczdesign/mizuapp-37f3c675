@@ -55,6 +55,8 @@ const Settings = () => {
   const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
   const [address, setAddress] = useState<string>("");
   const [mpEnabled, setMpEnabled] = useState<boolean>(false);
+  const [mpPixEnabled, setMpPixEnabled] = useState<boolean>(true);
+  const [mpCardEnabled, setMpCardEnabled] = useState<boolean>(true);
   const [mpAccessToken, setMpAccessToken] = useState<string>("");
   const [mpPublicKey, setMpPublicKey] = useState<string>("");
   const [slug, setSlug] = useState<string>("");
@@ -102,6 +104,8 @@ const Settings = () => {
       setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
       setAddress(((restaurant as any).address ?? "") as string);
       setMpEnabled(((restaurant as any).mp_enabled ?? false) as boolean);
+      setMpPixEnabled(((restaurant as any).mp_pix_enabled ?? true) as boolean);
+      setMpCardEnabled(((restaurant as any).mp_card_enabled ?? true) as boolean);
       setMpAccessToken(((restaurant as any).mp_access_token ?? "") as string);
       setMpPublicKey(((restaurant as any).mp_public_key ?? "") as string);
       setSlug((restaurant as any).slug ?? "");
@@ -162,6 +166,8 @@ const Settings = () => {
         delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
         address: address || null,
         mp_enabled: mpEnabled,
+        mp_pix_enabled: mpPixEnabled,
+        mp_card_enabled: mpCardEnabled,
         mp_access_token: mpAccessToken.trim() || null,
         mp_public_key: mpPublicKey.trim() || null,
       };
@@ -452,18 +458,18 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* Mercado Pago (PIX online) */}
+          {/* Mercado Pago (pagamentos online) */}
           <div className="glass-card p-6 space-y-4">
             <div className="flex items-center gap-3 mb-2">
               <CreditCard className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Mercado Pago (PIX online)</h2>
+              <h2 className="font-display font-bold">Mercado Pago (pagamentos online)</h2>
             </div>
             <p className="text-xs text-muted-foreground -mt-2">
-              Ative para receber pagamentos PIX direto na sua conta Mercado Pago. Pegue suas credenciais em{" "}
+              Ative para receber PIX e cartão direto na sua conta Mercado Pago. Pegue suas credenciais em{" "}
               <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noreferrer" className="text-primary underline">
                 mercadopago.com.br/developers/panel
               </a>
-              . Use o <strong>Access Token de Produção</strong> (começa com <code>APP_USR-</code>) para receber PIX de verdade.
+              . Use o <strong>Access Token de Produção</strong> (começa com <code>APP_USR-</code>) para receber pagamentos de verdade.
             </p>
             {mpAccessToken.trim().startsWith("TEST-") && (
               <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-200 text-xs">
@@ -474,11 +480,32 @@ const Settings = () => {
             )}
             <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/40">
               <div>
-                <p className="font-medium text-sm">Aceitar PIX online</p>
+                <p className="font-medium text-sm">Ativar pagamentos online</p>
                 <p className="text-xs text-muted-foreground">Cliente paga na hora e o pedido chega marcado como pago.</p>
               </div>
               <Switch checked={mpEnabled} onCheckedChange={setMpEnabled} />
             </div>
+
+            <div className={`grid gap-3 sm:grid-cols-2 ${mpEnabled ? "" : "opacity-50 pointer-events-none"}`}>
+              <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/40">
+                <div>
+                  <p className="font-medium text-sm">Aceitar PIX</p>
+                  <p className="text-xs text-muted-foreground">QR Code na hora do checkout.</p>
+                </div>
+                <Switch checked={mpPixEnabled} onCheckedChange={setMpPixEnabled} />
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/40">
+                <div>
+                  <p className="font-medium text-sm">Aceitar cartão</p>
+                  <p className="text-xs text-muted-foreground">Crédito online em até 3x sem juros.</p>
+                </div>
+                <Switch checked={mpCardEnabled} onCheckedChange={setMpCardEnabled} />
+              </div>
+            </div>
+            {mpEnabled && !mpPixEnabled && !mpCardEnabled && (
+              <p className="text-[11px] text-amber-300">Ative pelo menos PIX ou cartão para o cliente conseguir pagar online.</p>
+            )}
+
             <div>
               <Label>Access Token (Produção)</Label>
               <Input
