@@ -48,12 +48,14 @@ export function ClosedNotice({
   closedMessage,
   onReopen,
   timezone = DEFAULT_TZ,
+  className,
 }: {
   operatingHours: OperatingHours | null | undefined;
   acceptingOff: boolean;
   closedMessage?: string | null;
   onReopen?: () => void;
   timezone?: string;
+  className?: string;
 }) {
   const [now, setNow] = useState(() => new Date());
 
