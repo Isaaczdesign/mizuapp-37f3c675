@@ -21,7 +21,6 @@ import Agenda from "./pages/Agenda";
 import Reviews from "./pages/Reviews";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
-import TestAnnouncement from "./pages/TestAnnouncement";
 import Profile from "./pages/Profile";
 import NotificationSettings from "./pages/NotificationSettings";
 import OrderTracking from "./pages/OrderTracking";
