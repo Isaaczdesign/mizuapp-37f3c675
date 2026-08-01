@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
+import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide } from "@/components/admin-mizu/AnnouncementSlidesEditor";
 import { Link } from "react-router-dom";
 
 type Announcement = {
@@ -108,6 +109,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
+  const [slides, setSlides] = useState<AnnouncementSlide[]>([]);
   // Pop-up existe apenas para atualizações.
   const modalEnabled = updatesOnly && showModal;
 
@@ -190,6 +192,20 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         media_loop: mediaLoop,
         cta_label: modalEnabled ? ctaLabel.trim() || null : null,
         cta_url: modalEnabled ? ctaUrl.trim() || null : null,
+        slides: modalEnabled
+          ? slides
+              .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
+              .map((sl) => ({
+                title: sl.title.trim(),
+                body: sl.body.trim(),
+                media_type: sl.media_url.trim() ? sl.media_type : "none",
+                media_url: sl.media_url.trim() || null,
+                media_poster: sl.media_type === "video" ? sl.media_poster.trim() || null : null,
+                media_loop: sl.media_loop,
+                cta_label: sl.cta_label.trim() || null,
+                cta_url: sl.cta_url.trim() || null,
+              }))
+          : [],
       })
       .select()
       .single();
@@ -203,7 +219,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
     );
     setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
     setScope("all"); setSelected([]); setSearch("");
-    setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl("");
+    setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl(""); setSlides([]);
     load();
   };
 
@@ -317,6 +333,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                   <Input placeholder="Texto do botão (opcional)" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
                   <Input placeholder="Link do botão (opcional)" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
                 </div>
+                <AnnouncementSlidesEditor slides={slides} onChange={setSlides} />
               </div>
             )}
           </div>
@@ -346,17 +363,22 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
           <AnnouncementModal
             open={previewModal}
             onOpenChange={setPreviewModal}
-            data={{
-              title,
-              body,
-              variant: effectiveVariant,
-              media_url: mediaUrl,
-              media_type: mediaType,
-              media_poster: mediaPoster,
-              media_loop: mediaLoop,
-              cta_label: ctaLabel,
-              cta_url: ctaUrl,
-            }}
+            items={[
+              {
+                title,
+                body,
+                variant: effectiveVariant,
+                media_url: mediaUrl,
+                media_type: mediaType,
+                media_poster: mediaPoster,
+                media_loop: mediaLoop,
+                cta_label: ctaLabel,
+                cta_url: ctaUrl,
+              },
+              ...slides
+                .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
+                .map((sl) => ({ ...sl, variant: effectiveVariant })),
+            ]}
           />
 
 
