@@ -62,7 +62,7 @@ export default function NotificationSettings() {
       setPermission(result);
       if (result === "granted") {
         toast.success("Notificações ativadas!");
-        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui." });
+        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui.", icon: "/mizu-icon.png", badge: "/mizu-icon.png" });
         save({ browser_push_enabled: true });
       } else if (result === "denied") {
         toast.error("Permissão negada. Clique no cadeado 🔒 na barra de endereço do navegador e permita 'Notificações'.");
@@ -109,7 +109,8 @@ export default function NotificationSettings() {
         try {
           const notif = new Notification("🔔 Novo Pedido!", {
             body: "Teste · Mesa 5 · Total: R$89,90",
-            icon: "/favicon.ico",
+            icon: "/mizu-icon.png",
+            badge: "/mizu-icon.png",
             tag: "test-order",
           });
           notif.onclick = () => {

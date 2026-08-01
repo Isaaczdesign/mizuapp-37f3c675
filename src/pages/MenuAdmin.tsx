@@ -1100,9 +1100,12 @@ const MenuAdmin = () => {
 
         {/* Item Dialog - Enhanced */}
         <Dialog open={!!itemDialog} onOpenChange={() => setItemDialog(null)}>
-          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{itemDialog?.mode === "create" ? "Novo Item" : "Editar Item"}</DialogTitle></DialogHeader>
-            <div className="space-y-4">
+          <DialogContent className="p-0 gap-0 flex flex-col overflow-hidden max-sm:w-screen max-sm:max-w-none max-sm:h-[100dvh] max-sm:rounded-none sm:max-w-lg sm:max-h-[85vh]">
+            <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
+              <DialogTitle>{itemDialog?.mode === "create" ? "Novo Item" : "Editar Item"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 overflow-y-auto flex-1 px-5 py-4 overscroll-contain">
+
               <div>
                 <Label>Nome *</Label>
                 <Input placeholder="Nome do item" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} className="mt-1" />
@@ -1111,7 +1114,7 @@ const MenuAdmin = () => {
                 <Label>Descrição</Label>
                 <Textarea placeholder="Descrição do item" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} className="mt-1" rows={2} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Preço (R$) *</Label>
                   <Input type="number" step="0.01" placeholder="0.00" value={itemForm.price} onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })} className="mt-1" />
@@ -1121,12 +1124,12 @@ const MenuAdmin = () => {
                   <Input type="number" step="0.01" placeholder="0.00" value={itemForm.cost_estimate} onChange={(e) => setItemForm({ ...itemForm, cost_estimate: e.target.value })} className="mt-1" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Margem % (0-1)</Label>
                   <Input type="number" step="0.01" min="0" max="1" placeholder="0.60" value={itemForm.margin_percent} onChange={(e) => setItemForm({ ...itemForm, margin_percent: e.target.value })} className="mt-1" />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end max-sm:pb-1">
                   {formProfit !== null && (
                     <p className="text-sm text-green-400 pb-2">💰 Lucro est.: {fmt(formProfit)}</p>
                   )}
@@ -1173,6 +1176,11 @@ const MenuAdmin = () => {
                 </>
               )}
 
+            </div>
+            <div
+              className="shrink-0 border-t border-border px-5 py-3 bg-card"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+            >
               <Button className="w-full" onClick={() => saveItem.mutate(itemDialog?.mode)} disabled={!itemForm.name || !itemForm.price || saveItem.isPending}>
                 {saveItem.isPending ? "Salvando..." : "Salvar"}
               </Button>
