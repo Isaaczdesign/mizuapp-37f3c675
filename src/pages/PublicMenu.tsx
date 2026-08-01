@@ -620,7 +620,7 @@ const PublicMenu = () => {
       if (!created?.tracking_token) throw new Error("Falha ao criar pedido");
 
       // If PIX online + restaurante tem Mercado Pago habilitado, dispara criação da cobrança
-      if (paymentMethod === "pix" && (restaurant as any).mp_enabled) {
+      if (paymentMethod === "pix" && (restaurant as any).mp_enabled && ((restaurant as any).mp_pix_enabled ?? true)) {
         try {
           await supabase.functions.invoke("create-mp-payment", {
             body: { tracking_token: created.tracking_token },
