@@ -117,10 +117,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
               : ""
           }`}
         >
-          {/* Conteúdo — topo no mobile (abaixo do vídeo widescreen), esquerda no desktop */}
+          {/* Conteúdo — no mobile sempre abaixo da mídia; esquerda no desktop */}
           <div
-            className={`relative flex min-w-0 flex-col justify-center gap-6 px-6 py-6 md:order-1 md:px-9 md:py-9 ${
-              hasMedia && isWideLandscape ? "order-2" : "order-1"
+            className={`relative flex min-w-0 flex-col justify-center gap-5 px-5 py-5 md:order-1 md:gap-6 md:px-9 md:py-9 ${
+              hasMedia ? "order-2" : "order-1"
             }`}
           >
             <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-3`}>
