@@ -92,7 +92,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={`w-[calc(100%-2rem)] max-h-[92vh] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
-          hasMedia ? "max-w-[880px] sm:max-w-[880px]" : "max-w-[440px] sm:max-w-[440px]"
+          hasMedia
+            ? isWideLandscape
+              ? "max-w-[1024px] sm:max-w-[1024px]"
+              : "max-w-[880px] sm:max-w-[880px]"
+            : "max-w-[440px] sm:max-w-[440px]"
         }`}
       >
         {/* Brilho da marca */}
