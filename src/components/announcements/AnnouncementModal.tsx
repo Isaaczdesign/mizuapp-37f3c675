@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ANNOUNCEMENT_ICONS } from "@/components/announcements/AnnouncementCard";
 import { Megaphone, ArrowUpRight } from "lucide-react";
 import logoMark from "@/assets/mizu-logo-mark.png";
+import AnnouncementVideo from "@/components/announcements/AnnouncementVideo";
 
 export type AnnouncementModalData = {
   title: string;
@@ -10,6 +11,8 @@ export type AnnouncementModalData = {
   variant: string;
   media_url?: string | null;
   media_type?: string | null;
+  media_poster?: string | null;
+  media_loop?: boolean | null;
   cta_label?: string | null;
   cta_url?: string | null;
 };
@@ -47,14 +50,11 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
                   loading="lazy"
                 />
               ) : (
-                <video
-                  src={media}
-                  className="aspect-square w-full bg-brand-ink object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  controls
+                <AnnouncementVideo
+                  src={media!}
+                  poster={data.media_poster}
+                  loop={data.media_loop ?? true}
+                  title={data.title}
                 />
               )}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
