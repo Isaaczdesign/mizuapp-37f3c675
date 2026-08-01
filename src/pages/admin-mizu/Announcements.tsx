@@ -68,6 +68,12 @@ export function AdminNotifications() {
   const [search, setSearch] = useState("");
   const [views, setViews] = useState<ViewRow[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(true);
+  const [mediaType, setMediaType] = useState<"none" | "image" | "video">("none");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [ctaLabel, setCtaLabel] = useState("");
+  const [ctaUrl, setCtaUrl] = useState("");
+  const [previewModal, setPreviewModal] = useState(false);
 
   const load = async () => {
     const [{ data, error }, { data: viewData }] = await Promise.all([
