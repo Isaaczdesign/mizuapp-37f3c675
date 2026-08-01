@@ -134,6 +134,7 @@ const App = () => (
     </TooltipProvider>
     </MotionConfig>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
