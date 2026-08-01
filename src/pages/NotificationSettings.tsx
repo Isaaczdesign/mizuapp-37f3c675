@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Bell, BellOff, Volume2, Monitor, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
+import { NOTIFICATION_ICON, NOTIFICATION_BADGE } from "@/lib/notificationAssets";
+
 
 const POSITIONS: { id: PopupPosition; label: string }[] = [
   { id: "top-left", label: "Superior esquerda" },
@@ -62,7 +64,7 @@ export default function NotificationSettings() {
       setPermission(result);
       if (result === "granted") {
         toast.success("Notificações ativadas!");
-        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui.", icon: "/mizu-icon.png", badge: "/mizu-icon.png" });
+        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui.", icon: NOTIFICATION_ICON, badge: NOTIFICATION_BADGE });
         save({ browser_push_enabled: true });
       } else if (result === "denied") {
         toast.error("Permissão negada. Clique no cadeado 🔒 na barra de endereço do navegador e permita 'Notificações'.");
@@ -109,8 +111,9 @@ export default function NotificationSettings() {
         try {
           const notif = new Notification("🔔 Novo Pedido!", {
             body: "Teste · Mesa 5 · Total: R$89,90",
-            icon: "/mizu-icon.png",
-            badge: "/mizu-icon.png",
+            icon: NOTIFICATION_ICON,
+            badge: NOTIFICATION_BADGE,
+
             tag: "test-order",
           });
           notif.onclick = () => {

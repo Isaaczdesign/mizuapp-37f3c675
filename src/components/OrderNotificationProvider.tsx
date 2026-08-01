@@ -7,6 +7,8 @@ import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight,
 import { Button } from "@/components/ui/button";
 import { useNotificationPrefs, PopupPosition } from "@/hooks/useNotificationPrefs";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
+import { NOTIFICATION_ICON, NOTIFICATION_BADGE } from "@/lib/notificationAssets";
+
 
 interface NewOrderPayload {
   id: string;
@@ -97,8 +99,9 @@ export default function OrderNotificationProvider() {
 
       const notif = new Notification(isCanceled ? "❌ Pedido cancelado" : "🔔 Novo Pedido!", {
         body,
-        icon: "/mizu-icon.png",
-            badge: "/mizu-icon.png",
+        icon: NOTIFICATION_ICON,
+        badge: NOTIFICATION_BADGE,
+
         tag: `order-${order.id}-${order.kind ?? "new"}`,
         requireInteraction: true,
       });
