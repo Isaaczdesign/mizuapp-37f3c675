@@ -11,6 +11,7 @@ import { Megaphone, Trash2, Users, Eye, CalendarClock, ChevronDown, MonitorPlay 
 import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
+import MediaUploader from "@/components/admin-mizu/MediaUploader";
 
 type Announcement = {
   id: string;
@@ -72,6 +73,8 @@ export function AdminNotifications() {
   const [showModal, setShowModal] = useState(true);
   const [mediaType, setMediaType] = useState<"none" | "image" | "video">("none");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaPoster, setMediaPoster] = useState("");
+  const [mediaLoop, setMediaLoop] = useState(true);
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
@@ -236,11 +239,36 @@ export function AdminNotifications() {
                   ))}
                 </div>
                 {mediaType !== "none" && (
-                  <Input
-                    placeholder={mediaType === "video" ? "URL do vídeo (.mp4)" : "URL da imagem (quadrada, ex.: 800x800)"}
-                    value={mediaUrl}
-                    onChange={(e) => setMediaUrl(e.target.value)}
-                  />
+                  <div className="space-y-2">
+                    <MediaUploader
+                      kind={mediaType}
+                      value={mediaUrl}
+                      onChange={setMediaUrl}
+                      label={mediaType === "video" ? "Vídeo do pop-up" : "Imagem do pop-up"}
+                    />
+                    <Input
+                      placeholder={
+                        mediaType === "video" ? "Ou cole a URL do vídeo (.mp4)" : "Ou cole a URL da imagem"
+                      }
+                      value={mediaUrl}
+                      onChange={(e) => setMediaUrl(e.target.value)}
+                    />
+                    {mediaType === "video" && (
+                      <>
+                        <MediaUploader
+                          kind="image"
+                          value={mediaPoster}
+                          onChange={setMediaPoster}
+                          label="Miniatura do vídeo (opcional)"
+                          hint="Aparece antes do play — JPG/PNG quadrado"
+                        />
+                        <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                          <p className="text-xs text-muted-foreground">Repetir vídeo automaticamente (loop)</p>
+                          <Switch checked={mediaLoop} onCheckedChange={setMediaLoop} aria-label="Loop do vídeo" />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Input placeholder="Texto do botão (opcional)" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
