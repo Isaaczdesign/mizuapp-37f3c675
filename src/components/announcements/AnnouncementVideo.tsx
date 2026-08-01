@@ -263,7 +263,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
         playsInline
         {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         controls={false}
-        defaultMuted
+        {...({ muted: undefined } as Record<string, undefined>)}
         loop={loop}
         preload="auto"
         onVolumeChange={(e) => setMuted(e.currentTarget.muted)}
