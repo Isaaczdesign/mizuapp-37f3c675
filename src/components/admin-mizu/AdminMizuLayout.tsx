@@ -17,7 +17,9 @@ const NAV: { to: string; label: string; icon: any; end?: boolean; superAdminOnly
   { to: "/admin-mizu/pagamentos", label: "Pagamentos", icon: Receipt },
   { to: "/admin-mizu/cupons", label: "Cupons", icon: Ticket },
   { to: "/admin-mizu/suporte", label: "Suporte", icon: LifeBuoy },
-  { to: "/admin-mizu/notificacoes", label: "Notificações", icon: Bell },
+  { to: "/admin-mizu/notificacoes", label: "Notificações", icon: Bell, end: true },
+  { to: "/admin-mizu/notificacoes/atualizacoes", label: "Atualizações", icon: Megaphone },
+
   { to: "/admin-mizu/observacoes-excluidas", label: "Obs. excluídas", icon: Trash2, superAdminOnly: true },
   { to: "/admin-mizu/logs", label: "Logs", icon: ScrollText },
   { to: "/admin-mizu/configuracoes", label: "Configurações", icon: Settings },
