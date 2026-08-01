@@ -10,6 +10,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { Plus, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
+import { tableMenuUrl } from "@/lib/publicMenuUrl";
+
 
 const Tables = () => {
   const { profile } = useAuth();
