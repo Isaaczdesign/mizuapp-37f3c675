@@ -6,6 +6,8 @@ type Props = {
   poster?: string | null;
   loop?: boolean;
   title?: string;
+  className?: string;
+  onAspectRatio?: (ratio: number) => void;
 };
 
 const isCoarsePointer = () =>
@@ -21,7 +23,7 @@ const saveData = () => {
 };
 
 /** Vídeo do pop-up: thumbnail, autoplay controlado, loop opcional e reprodução estável no iOS. */
-export default function AnnouncementVideo({ src, poster, loop = true, title }: Props) {
+export default function AnnouncementVideo({ src, poster, loop = true, title, className, onAspectRatio }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wasPlayingRef = useRef(false);
@@ -30,6 +32,16 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
   const [muted, setMuted] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
+  const onAspectRatioRef = useRef(onAspectRatio);
+
+  useEffect(() => {
+    onAspectRatioRef.current = onAspectRatio;
+  }, [onAspectRatio]);
+
+  // Notifica o pai sobre a proporção do vídeo (útil para ajustar o modal).
+  useEffect(() => {
+    if (ratio !== null) onAspectRatioRef.current?.(ratio);
+  }, [ratio]);
 
   // Autoplay só quando faz sentido: desktop, sem economia de dados e sem "reduzir animações".
   const shouldAutoplay = useRef(false);
@@ -96,6 +108,11 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
       video.pause();
     };
   }, [src, safePlay]);
+
+  // Notifica o pai sobre a proporção do vídeo (útil para ajustar o modal).
+  useEffect(() => {
+    if (ratio !== null && onAspectRatio) onAspectRatio(ratio);
+  }, [ratio, onAspectRatio]);
 
   // iOS pausa o vídeo ao sair da aba; retoma quando ela volta a ficar visível.
   useEffect(() => {
@@ -217,7 +234,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
       className={`group relative w-full overflow-hidden bg-brand-ink ${
         fullscreen
           ? "flex h-full max-h-none items-center justify-center aspect-auto"
-          : "max-h-[55vh] md:max-h-[62vh]"
+          : `max-h-[55vh] md:max-h-[62vh] ${className ?? ""}`
       }`}
       style={fullscreen ? undefined : { aspectRatio: ratio ?? 4 / 3 }}
     >

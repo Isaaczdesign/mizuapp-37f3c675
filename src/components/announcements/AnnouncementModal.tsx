@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ANNOUNCEMENT_ICONS } from "@/components/announcements/AnnouncementCard";
@@ -46,11 +46,14 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const list = items && items.length > 0 ? items : data ? [data] : [];
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState<"next" | "prev">("next");
+  const [mediaRatio, setMediaRatio] = useState<number | null>(null);
+  const handleAspectRatio = useCallback((ratio: number) => setMediaRatio(ratio), []);
 
   useEffect(() => {
     if (open) {
       setIndex(0);
       setDir("next");
+      setMediaRatio(null);
     }
   }, [open]);
 
@@ -62,11 +65,16 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const media = usePlatformMediaUrl(rawMedia);
   const poster = usePlatformMediaUrl(current?.media_poster ?? null);
 
+  useEffect(() => {
+    setMediaRatio(null);
+  }, [current?.id, safeIndex]);
+
   if (!current) return null;
 
   const goTo = (i: number) => {
     setDir(i > safeIndex ? "next" : "prev");
     setIndex(i);
+    setMediaRatio(null);
   };
   const enterAnim = dir === "next" ? "animate-slide-next" : "animate-slide-prev";
 
@@ -74,6 +82,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const rawType = current.media_type ?? "none";
   const type = rawType === "image" || rawType === "video" ? rawType : rawMedia ? "image" : "none";
   const hasMedia = !!media && type !== "none";
+  const isPortrait = mediaRatio ? mediaRatio < 1 : type === "video";
   const publishedAt = formatDate(current.starts_at ?? current.created_at);
   const isLast = safeIndex >= total - 1;
   const hasCta = !!current.cta_url?.trim();
@@ -81,7 +90,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`w-[calc(100%-2rem)] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
+        className={`w-[calc(100%-2rem)] max-h-[92vh] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
           hasMedia ? "max-w-[880px] sm:max-w-[880px]" : "max-w-[440px] sm:max-w-[440px]"
         }`}
       >
@@ -93,8 +102,12 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
         />
 
         <div
-          className={`relative grid min-w-0 grid-cols-1 ${
-            hasMedia ? "md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-stretch" : ""
+          className={`relative grid min-w-0 grid-cols-1 overflow-y-auto max-h-full ${
+            hasMedia
+              ? isPortrait
+                ? "md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] md:items-stretch"
+                : "md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-stretch"
+              : ""
           }`}
         >
           {/* Conteúdo — topo no mobile, esquerda no desktop */}
@@ -204,15 +217,27 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
           {hasMedia && (
             <div
               key={`${current.id ?? safeIndex}-media`}
-              className={`relative order-2 flex min-h-48 min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2`}
+              className={`relative order-2 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
+                isPortrait ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]" : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
+              }`}
             >
               {type === "image" ? (
                 <img
                   key={media}
                   src={media}
                   alt={current.title}
-                  className="block max-h-[55vh] min-h-48 w-full object-contain object-center md:max-h-[62vh]"
+                  className={`block w-full object-contain object-center ${
+                    isPortrait
+                      ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
+                      : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
+                  }`}
                   decoding="async"
+                  onLoad={(e) => {
+                    const t = e.currentTarget;
+                    if (t.naturalWidth && t.naturalHeight) {
+                      setMediaRatio(t.naturalWidth / t.naturalHeight);
+                    }
+                  }}
                 />
               ) : (
                 <AnnouncementVideo
@@ -221,6 +246,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   poster={poster}
                   loop={current.media_loop ?? true}
                   title={current.title}
+                  className={
+                    isPortrait ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]" : "max-h-[55vh] md:max-h-[62vh]"
+                  }
+                  onAspectRatio={handleAspectRatio}
                 />
               )}
             </div>
