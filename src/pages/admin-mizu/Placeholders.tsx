@@ -18,16 +18,5 @@ export function AdminCoupons() {
   );
 }
 
-export function AdminNotifications() {
-  return (
-    <AdminMizuLayout title="Notificações administrativas" description="Alertas gerados a partir de dados reais da plataforma.">
-      <div className="rounded-xl border border-dashed border-border p-10 text-center">
-        <Bell className="mx-auto h-6 w-6 text-primary" />
-        <p className="mt-3 text-sm text-muted-foreground">
-          Nenhuma notificação no momento. Assim que houver eventos elegíveis (novo restaurante, teste próximo do fim,
-          assinatura cancelada), eles aparecerão aqui — sem alertas fictícios.
-        </p>
-      </div>
-    </AdminMizuLayout>
-  );
-}
+export { AdminNotifications } from "./Announcements";
+
