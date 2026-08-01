@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
+import { resolvePlatformMediaUrl } from "@/lib/platformMedia";
 
 type Announcement = {
   id: string;
@@ -66,6 +67,35 @@ function toModalItems(a: Announcement) {
   return [base, ...extras];
 }
 
+async function preloadModalItems(items: ReturnType<typeof toModalItems>) {
+  const resolved = await Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      media_url: await resolvePlatformMediaUrl(item.media_url),
+      media_poster: await resolvePlatformMediaUrl(item.media_poster),
+    }))
+  );
+
+  await Promise.all(
+    resolved.map(
+      (item) =>
+        new Promise<void>((done) => {
+          if (item.media_type !== "image" || !item.media_url) {
+            done();
+            return;
+          }
+          const image = new Image();
+          image.onload = () => done();
+          image.onerror = () => done();
+          image.src = item.media_url;
+          if (image.complete) done();
+        })
+    )
+  );
+
+  return resolved;
+}
+
 const DISMISS_KEY = "mizu:dismissed-announcements";
 const MODAL_KEY = "mizu:seen-announcement-modals";
 
@@ -123,8 +153,10 @@ export default function PlatformAnnouncementBanner() {
     // A chave inclui a data de publicação: ao reenviar/editar, o pop-up volta a aparecer.
     const pending = list.filter((a) => a.show_modal && !seenModals.includes(modalKey(a)));
     if (pending.length > 0) {
-      setModalIds(pending.map(modalKey));
-      setModalItems(pending.flatMap(toModalItems));
+      const nextModalIds = pending.map(modalKey);
+      const nextModalItems = await preloadModalItems(pending.flatMap(toModalItems));
+      setModalIds(nextModalIds);
+      setModalItems(nextModalItems);
     }
   }, [user]);
 
