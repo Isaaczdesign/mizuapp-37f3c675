@@ -410,7 +410,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                   <>
                     <div>
                       <FieldLabel>Mídia principal</FieldLabel>
-                      <ChipGroup
+                      <ChipGroup<"none" | "image" | "video">
                         value={mediaType}
                         onChange={setMediaType}
                         options={[
@@ -469,7 +469,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
               icon={Users}
               description="Escolha quais restaurantes recebem."
             >
-              <ChipGroup
+              <ChipGroup<"all" | "restaurants">
                 value={scope}
                 onChange={setScope}
                 options={[
@@ -580,7 +580,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
           bodyClassName="space-y-3"
         >
           <div className="flex flex-wrap items-center gap-2">
-            <SegmentedControl
+            <SegmentedControl<"all" | StatusKey>
               value={historyFilter}
               onChange={setHistoryFilter}
               options={[
