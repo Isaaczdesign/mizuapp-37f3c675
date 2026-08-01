@@ -1141,13 +1141,38 @@ export default function Onboarding() {
       <div className="sticky bottom-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
 
-          <Button
-            variant="ghost"
-            onClick={() => setStep(Math.max(0, step - 1))}
-            disabled={step === 0}
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              onClick={() => setStep(Math.max(0, step - 1))}
+              disabled={step === 0}
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" disabled={loading} title="Recomeçar do zero" aria-label="Recomeçar do zero">
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Recomeçar a configuração?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Isso apaga o rascunho salvo automaticamente e volta o onboarding para o início.
+                    Dados já salvos no restaurante (nome, horários, cardápio) permanecem no painel.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRestart}>Recomeçar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
+
 
           <div className="flex items-center gap-2">
             {step < STEPS.length - 1 && restaurantId && (
