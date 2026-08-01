@@ -1205,7 +1205,9 @@ export type Database = {
           menu_theme_desktop: string | null
           menu_theme_mobile: string | null
           mp_access_token: string | null
+          mp_card_enabled: boolean
           mp_enabled: boolean
+          mp_pix_enabled: boolean
           mp_public_key: string | null
           name: string
           owner_email: string | null
@@ -1236,7 +1238,9 @@ export type Database = {
           menu_theme_desktop?: string | null
           menu_theme_mobile?: string | null
           mp_access_token?: string | null
+          mp_card_enabled?: boolean
           mp_enabled?: boolean
+          mp_pix_enabled?: boolean
           mp_public_key?: string | null
           name: string
           owner_email?: string | null
@@ -1267,7 +1271,9 @@ export type Database = {
           menu_theme_desktop?: string | null
           menu_theme_mobile?: string | null
           mp_access_token?: string | null
+          mp_card_enabled?: boolean
           mp_enabled?: boolean
+          mp_pix_enabled?: boolean
           mp_public_key?: string | null
           name?: string
           owner_email?: string | null
@@ -1891,9 +1897,9 @@ export type Database = {
           is_active: boolean
           logo_url: string
           menu_theme: string
-          menu_theme_desktop: string
-          menu_theme_mobile: string
+          mp_card_enabled: boolean
           mp_enabled: boolean
+          mp_pix_enabled: boolean
           name: string
           operating_hours: Json
           owner_phone: string
