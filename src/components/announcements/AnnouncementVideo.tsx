@@ -263,9 +263,10 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
         playsInline
         {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         controls={false}
-        muted={muted}
+        defaultMuted
         loop={loop}
         preload="auto"
+        onVolumeChange={(e) => setMuted(e.currentTarget.muted)}
         onLoadedMetadata={(e) => {
           const v = e.currentTarget;
           if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
