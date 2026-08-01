@@ -321,11 +321,11 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
             )}
           </div>
 
-          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          {updatesOnly ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2">
                 <Eye className="h-4 w-4 text-primary" />
-                <p className="text-xs font-semibold">Prévia no topo do painel</p>
+                <p className="text-xs font-semibold">Prévia do pop-up de atualização</p>
               </div>
               {showModal && (
                 <Button variant="outline" size="sm" onClick={() => setPreviewModal(true)}>
@@ -333,8 +333,15 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                 </Button>
               )}
             </div>
-            <AnnouncementCard title={title} body={body} variant={effectiveVariant} />
-          </div>
+          ) : (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold">Prévia no topo do painel</p>
+              </div>
+              <AnnouncementCard title={title} body={body} variant={effectiveVariant} />
+            </div>
+          )}
 
           <AnnouncementModal
             open={previewModal}
@@ -351,6 +358,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
               cta_url: ctaUrl,
             }}
           />
+
 
 
           <div className="space-y-2 rounded-lg border border-border p-3">
