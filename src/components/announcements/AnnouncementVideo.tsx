@@ -224,7 +224,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
       className={`group relative w-full overflow-hidden bg-brand-ink ${
         fullscreen
           ? "flex h-full max-h-none items-center justify-center aspect-auto"
-          : "max-h-[55vh] md:max-h-[62vh]"
+          : `max-h-[55vh] md:max-h-[62vh] ${className ?? ""}`
       }`}
       style={fullscreen ? undefined : { aspectRatio: ratio ?? 4 / 3 }}
     >
