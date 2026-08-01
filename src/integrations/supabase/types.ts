@@ -1094,8 +1094,13 @@ export type Database = {
           body: string
           created_at: string
           created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
           ends_at: string | null
           id: string
+          media_type: string
+          media_url: string | null
+          show_modal: boolean
           starts_at: string
           target_restaurant_ids: string[]
           target_scope: string
@@ -1108,8 +1113,13 @@ export type Database = {
           body: string
           created_at?: string
           created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
           ends_at?: string | null
           id?: string
+          media_type?: string
+          media_url?: string | null
+          show_modal?: boolean
           starts_at?: string
           target_restaurant_ids?: string[]
           target_scope?: string
@@ -1122,8 +1132,13 @@ export type Database = {
           body?: string
           created_at?: string
           created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
           ends_at?: string | null
           id?: string
+          media_type?: string
+          media_url?: string | null
+          show_modal?: boolean
           starts_at?: string
           target_restaurant_ids?: string[]
           target_scope?: string
