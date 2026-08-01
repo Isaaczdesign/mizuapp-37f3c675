@@ -44,9 +44,13 @@ function formatDate(value?: string | null) {
 export default function AnnouncementModal({ open, onOpenChange, data, items }: Props) {
   const list = items && items.length > 0 ? items : data ? [data] : [];
   const [index, setIndex] = useState(0);
+  const [dir, setDir] = useState<"next" | "prev">("next");
 
   useEffect(() => {
-    if (open) setIndex(0);
+    if (open) {
+      setIndex(0);
+      setDir("next");
+    }
   }, [open]);
 
   const total = list.length;
@@ -54,10 +58,17 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const current = list[safeIndex];
   if (!current) return null;
 
+  const goTo = (i: number) => {
+    setDir(i > safeIndex ? "next" : "prev");
+    setIndex(i);
+  };
+  const enterAnim = dir === "next" ? "animate-slide-next" : "animate-slide-prev";
+
   const Icon = ANNOUNCEMENT_ICONS[current.variant] ?? Megaphone;
   const media = current.media_url?.trim();
-  const type = current.media_type ?? "none";
-  const hasMedia = !!media && (type === "image" || type === "video");
+  const rawType = current.media_type ?? "none";
+  const type = rawType === "image" || rawType === "video" ? rawType : media ? "image" : "none";
+  const hasMedia = !!media && type !== "none";
   const publishedAt = formatDate(current.starts_at ?? current.created_at);
   const isLast = safeIndex >= total - 1;
   const hasCta = !!current.cta_url?.trim();
