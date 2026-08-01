@@ -695,6 +695,75 @@ export type Database = {
         }
         Relationships: []
       }
+      order_item_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          menu_item_id: string | null
+          order_item_id: string
+          rating: number
+          restaurant_id: string
+          review_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          menu_item_id?: string | null
+          order_item_id: string
+          rating: number
+          restaurant_id: string
+          review_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          menu_item_id?: string | null
+          order_item_id?: string
+          rating?: number
+          restaurant_id?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_item_reviews_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_reviews_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_reviews_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_reviews_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_reviews_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "order_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           id: string
@@ -736,6 +805,68 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          order_id: string
+          rating: number
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          order_id: string
+          rating: number
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          order_id?: string
+          rating?: number
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_reviews_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_reviews_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1883,6 +2014,23 @@ export type Database = {
           total: number
         }[]
       }
+      get_public_order_items: {
+        Args: { _token: string }
+        Returns: {
+          id: string
+          name: string
+          quantity: number
+        }[]
+      }
+      get_public_order_review: {
+        Args: { _token: string }
+        Returns: {
+          comment: string
+          created_at: string
+          items: Json
+          rating: number
+        }[]
+      }
       get_public_restaurant_by_slug: {
         Args: { _slug: string }
         Returns: {
@@ -1984,6 +2132,15 @@ export type Database = {
         Returns: {
           slug: string
         }[]
+      }
+      submit_order_review: {
+        Args: {
+          _comment?: string
+          _items?: Json
+          _rating: number
+          _token: string
+        }
+        Returns: string
       }
       validate_public_coupon: {
         Args: { _code: string; _restaurant_id: string }
