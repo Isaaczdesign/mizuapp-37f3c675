@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Bell, BellOff, Volume2, Monitor, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
+import { NOTIFICATION_ICON, NOTIFICATION_BADGE } from "@/lib/notificationAssets";
+
 
 const POSITIONS: { id: PopupPosition; label: string }[] = [
   { id: "top-left", label: "Superior esquerda" },
