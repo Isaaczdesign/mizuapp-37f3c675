@@ -1,11 +1,13 @@
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ANNOUNCEMENT_ICONS } from "@/components/announcements/AnnouncementCard";
-import { Megaphone, ArrowUpRight } from "lucide-react";
+import { Megaphone, ArrowUpRight, ArrowRight } from "lucide-react";
 import logoMark from "@/assets/mizu-logo-mark.png";
 import AnnouncementVideo from "@/components/announcements/AnnouncementVideo";
 
 export type AnnouncementModalData = {
+  id?: string;
   title: string;
   body: string;
   variant: string;
@@ -22,7 +24,10 @@ export type AnnouncementModalData = {
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: AnnouncementModalData;
+  /** Um único aviso. */
+  data?: AnnouncementModalData;
+  /** Vários avisos exibidos em sequência no mesmo pop-up. */
+  items?: AnnouncementModalData[];
 };
 
 function formatDate(value?: string | null) {
@@ -36,12 +41,26 @@ function formatDate(value?: string | null) {
   }).format(date);
 }
 
-export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
-  const Icon = ANNOUNCEMENT_ICONS[data.variant] ?? Megaphone;
-  const media = data.media_url?.trim();
-  const type = data.media_type ?? "none";
+export default function AnnouncementModal({ open, onOpenChange, data, items }: Props) {
+  const list = items && items.length > 0 ? items : data ? [data] : [];
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (open) setIndex(0);
+  }, [open]);
+
+  const total = list.length;
+  const safeIndex = Math.min(index, Math.max(total - 1, 0));
+  const current = list[safeIndex];
+  if (!current) return null;
+
+  const Icon = ANNOUNCEMENT_ICONS[current.variant] ?? Megaphone;
+  const media = current.media_url?.trim();
+  const type = current.media_type ?? "none";
   const hasMedia = !!media && (type === "image" || type === "video");
-  const publishedAt = formatDate(data.starts_at ?? data.created_at);
+  const publishedAt = formatDate(current.starts_at ?? current.created_at);
+  const isLast = safeIndex >= total - 1;
+  const hasCta = !!current.cta_url?.trim();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -62,12 +81,17 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
         >
           {/* Conteúdo — topo no mobile, esquerda no desktop */}
           <div className="relative order-1 flex flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
-            <div className="animate-fade-up space-y-2">
+            <div key={current.id ?? safeIndex} className="animate-fade-up space-y-2">
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                   Novidade Mizu
                 </span>
+                {total > 1 && (
+                  <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {safeIndex + 1} de {total}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-start gap-3 pt-1">
@@ -83,10 +107,10 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   <h2 className="font-display text-xl font-semibold leading-snug">
-                    {data.title || "Título do aviso"}
+                    {current.title || "Título do aviso"}
                   </h2>
                   <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                    {data.body || "Mensagem que o dono do restaurante vai ler."}
+                    {current.body || "Mensagem que o dono do restaurante vai ler."}
                   </p>
                   {publishedAt && (
                     <p className="pt-1 text-[11px] font-medium text-muted-foreground/80">
@@ -97,31 +121,65 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
               </div>
             </div>
 
-
             <div
               className="flex animate-fade-up flex-col gap-3 pt-2 sm:flex-row sm:gap-2"
               style={{ animationDelay: "140ms", opacity: 0 }}
             >
-              {data.cta_url?.trim() && (
+              {hasCta && (
                 <Button
                   asChild
                   className="h-11 rounded-xl border-0 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:brightness-110"
                   style={{ backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }}
                 >
-                  <a href={data.cta_url} target="_blank" rel="noopener noreferrer">
-                    {data.cta_label?.trim() || "Saiba mais"}
+                  <a href={current.cta_url!} target="_blank" rel="noopener noreferrer">
+                    {current.cta_label?.trim() || "Saiba mais"}
                     <ArrowUpRight className="ml-1 h-4 w-4" />
                   </a>
                 </Button>
               )}
-              <Button
-                variant="outline"
-                className="h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
-                onClick={() => onOpenChange(false)}
-              >
-                {data.cta_url?.trim() ? "Agora não" : "Entendi"}
-              </Button>
+              {isLast ? (
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
+                  onClick={() => onOpenChange(false)}
+                >
+                  {hasCta ? "Agora não" : "Entendi"}
+                </Button>
+              ) : (
+                <Button
+                  variant={hasCta ? "outline" : "default"}
+                  className={
+                    hasCta
+                      ? "h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
+                      : "h-11 rounded-xl border-0 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:brightness-110"
+                  }
+                  style={
+                    hasCta
+                      ? undefined
+                      : { backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }
+                  }
+                  onClick={() => setIndex(safeIndex + 1)}
+                >
+                  Próxima novidade
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              )}
             </div>
+
+            {total > 1 && (
+              <div className="flex items-center gap-1.5 pt-1">
+                {list.map((item, i) => (
+                  <button
+                    key={item.id ?? i}
+                    aria-label={`Ver novidade ${i + 1}`}
+                    onClick={() => setIndex(i)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === safeIndex ? "w-6 bg-accent" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Mídia — base no mobile, direita no desktop */}
@@ -129,17 +187,19 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
             <div className="relative order-2 flex animate-fade-in items-center justify-center overflow-hidden bg-brand-ink md:order-2">
               {type === "image" ? (
                 <img
+                  key={media}
                   src={media}
-                  alt={data.title}
+                  alt={current.title}
                   className="max-h-[55vh] w-full object-contain object-center md:max-h-[62vh]"
                   loading="lazy"
                 />
               ) : (
                 <AnnouncementVideo
+                  key={media}
                   src={media!}
-                  poster={data.media_poster}
-                  loop={data.media_loop ?? true}
-                  title={data.title}
+                  poster={current.media_poster}
+                  loop={current.media_loop ?? true}
+                  title={current.title}
                 />
               )}
             </div>
