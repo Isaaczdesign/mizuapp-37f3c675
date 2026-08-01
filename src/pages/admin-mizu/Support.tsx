@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
+import NoteActions from "@/components/admin-mizu/NoteActions";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Note = { id: string; body: string; status: string; created_at: string; restaurant_id: string | null };
@@ -10,17 +11,22 @@ export default function AdminSupport() {
   const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      const [n, r] = await Promise.all([
-        supabase.from("platform_notes").select("id, body, status, created_at, restaurant_id").order("created_at", { ascending: false }).limit(100),
-        supabase.from("restaurants").select("id, name"),
-      ]);
-      setNotes((n.data ?? []) as Note[]);
-      setNames(Object.fromEntries((r.data ?? []).map((x) => [x.id, x.name])));
-      setLoading(false);
-    })();
+  const load = useCallback(async () => {
+    const [n, r] = await Promise.all([
+      supabase
+        .from("platform_notes")
+        .select("id, body, status, created_at, restaurant_id")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase.from("restaurants").select("id, name"),
+    ]);
+    setNotes((n.data ?? []) as Note[]);
+    setNames(Object.fromEntries((r.data ?? []).map((x) => [x.id, x.name])));
+    setLoading(false);
   }, []);
+
+  useEffect(() => { void load(); }, [load]);
 
   return (
     <AdminMizuLayout title="Suporte" description="Observações internas e pendências por conta — invisíveis para os restaurantes.">
@@ -36,7 +42,10 @@ export default function AdminSupport() {
             <div key={n.id} className="rounded-xl border border-border p-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{n.restaurant_id ? names[n.restaurant_id] ?? "Restaurante removido" : "Geral"}</span>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{n.status}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{n.status}</span>
+                  <NoteActions noteId={n.id} body={n.body} onDone={load} />
+                </div>
               </div>
               <p className="mt-1 text-muted-foreground">{n.body}</p>
               <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}</p>

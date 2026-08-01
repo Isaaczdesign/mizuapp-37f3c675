@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
+import NoteActions from "@/components/admin-mizu/NoteActions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,7 +40,7 @@ export default function AdminRestaurantDetail() {
       supabase.from("profiles").select("user_id, display_name").eq("restaurant_id", id),
       supabase.from("orders").select("id", { count: "exact", head: true }).eq("restaurant_id", id),
       supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("restaurant_id", id),
-      supabase.from("platform_notes").select("id, body, created_at").eq("restaurant_id", id).order("created_at", { ascending: false }),
+      supabase.from("platform_notes").select("id, body, created_at").eq("restaurant_id", id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("platform_admin_logs").select("id, action, created_at, reason").eq("entity_id", id).order("created_at", { ascending: false }).limit(20),
     ]);
     setRestaurant((r.data as Restaurant) ?? null);
@@ -201,7 +202,10 @@ export default function AdminRestaurantDetail() {
             {notes.length === 0 && <li className="text-muted-foreground">Nenhuma observação registrada.</li>}
             {notes.map((n) => (
               <li key={n.id} className="rounded-lg border border-border p-2.5">
-                <p>{n.body}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="min-w-0 flex-1 break-words">{n.body}</p>
+                  <NoteActions noteId={n.id} body={n.body} onDone={load} />
+                </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}</p>
               </li>
             ))}
