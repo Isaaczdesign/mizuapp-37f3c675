@@ -102,7 +102,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
         />
 
         <div
-          className={`relative grid min-w-0 grid-cols-1 overflow-hidden ${
+          className={`relative grid min-w-0 grid-cols-1 overflow-y-auto max-h-full ${
             hasMedia
               ? isPortrait
                 ? "md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] md:items-stretch"
