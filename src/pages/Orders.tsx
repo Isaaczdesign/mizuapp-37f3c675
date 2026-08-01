@@ -814,26 +814,51 @@ const Orders = () => {
               <span>Total</span>
               <span className="gradient-text">R${Number(selectedOrder.total).toFixed(2)}</span>
             </div>
-            <Button
-              variant="hero"
-              className="w-full gap-2"
-              onClick={async () => {
-                const { data: r } = await supabase
-                  .from("restaurants")
-                  .select("name, slug, owner_phone")
-                  .eq("id", restaurantId!)
-                  .single();
-                generateReceiptPDF(selectedOrder, {
-                  name: r?.name ?? "Restaurante",
-                  slug: r?.slug ?? null,
-                  phone: r?.owner_phone ?? null,
-                });
-                toast.success("Recibo gerado!");
-              }}
-            >
-              <FileText className="w-4 h-4" />
-              Gerar recibo (PDF)
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={async () => {
+                  const { data: r } = await supabase
+                    .from("restaurants")
+                    .select("name, slug, owner_phone, address, logo_url")
+                    .eq("id", restaurantId!)
+                    .single();
+                  await generateReceiptPDF(selectedOrder, {
+                    name: r?.name ?? "Restaurante",
+                    slug: r?.slug ?? null,
+                    phone: r?.owner_phone ?? null,
+                    address: r?.address ?? null,
+                    logoUrl: r?.logo_url ?? null,
+                  });
+                  toast.success("Nota gerada!");
+                }}
+              >
+                <FileText className="w-4 h-4" />
+                Baixar PDF
+              </Button>
+              <Button
+                variant="hero"
+                className="w-full gap-2"
+                onClick={async () => {
+                  const { data: r } = await supabase
+                    .from("restaurants")
+                    .select("name, slug, owner_phone, address, logo_url")
+                    .eq("id", restaurantId!)
+                    .single();
+                  await printReceiptPDF(selectedOrder, {
+                    name: r?.name ?? "Restaurante",
+                    slug: r?.slug ?? null,
+                    phone: r?.owner_phone ?? null,
+                    address: r?.address ?? null,
+                    logoUrl: r?.logo_url ?? null,
+                  });
+                }}
+              >
+                <Printer className="w-4 h-4" />
+                Imprimir
+              </Button>
+            </div>
           </div>
         </div>
       )}
