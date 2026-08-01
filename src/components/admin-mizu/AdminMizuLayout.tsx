@@ -2,7 +2,7 @@ import { type ReactNode, useState } from "react";
 import { Link, NavLink, Navigate, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Store, Users, Package, CreditCard, Receipt, Ticket, LifeBuoy,
-  Bell, ScrollText, Settings, Menu, LogOut, ShieldAlert,
+  Bell, ScrollText, Settings, Menu, LogOut, ShieldAlert, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -18,14 +18,16 @@ const NAV = [
   { to: "/admin-mizu/cupons", label: "Cupons", icon: Ticket },
   { to: "/admin-mizu/suporte", label: "Suporte", icon: LifeBuoy },
   { to: "/admin-mizu/notificacoes", label: "Notificações", icon: Bell },
+  { to: "/admin-mizu/observacoes-excluidas", label: "Obs. excluídas", icon: Trash2, superAdminOnly: true },
   { to: "/admin-mizu/logs", label: "Logs", icon: ScrollText },
   { to: "/admin-mizu/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
+  const { isSuperAdmin } = usePlatformRole();
   return (
     <nav className="space-y-1">
-      {NAV.map((item) => (
+      {NAV.filter((item) => !item.superAdminOnly || isSuperAdmin).map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
