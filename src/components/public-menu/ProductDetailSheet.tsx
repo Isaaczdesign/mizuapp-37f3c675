@@ -28,14 +28,14 @@ export type DetailItem = {
  */
 export default function ProductDetailSheet({
   item, accentColor, selectedVariation, onSelectVariation,
-  selectedAddons, onToggleAddon, qty, onQty, onClose, onAdd,
+  selectedAddons, onAddonQty, qty, onQty, onClose, onAdd,
 }: {
   item: DetailItem;
   accentColor: string;
   selectedVariation: Variation | null;
   onSelectVariation: (v: Variation | null) => void;
-  selectedAddons: Addon[];
-  onToggleAddon: (a: Addon) => void;
+  selectedAddons: SelectedAddon[];
+  onAddonQty: (a: Addon, quantity: number) => void;
   qty: number;
   onQty: (n: number) => void;
   onClose: () => void;
@@ -48,7 +48,7 @@ export default function ProductDetailSheet({
     selectedVariation?.absolute_price != null
       ? Number(selectedVariation.absolute_price)
       : Number(item.price) + (selectedVariation?.price_delta ?? 0);
-  const addonsPrice = selectedAddons.reduce((s, a) => s + Number(a.price), 0);
+  const addonsPrice = selectedAddons.reduce((s, a) => s + Number(a.price) * a.quantity, 0);
   const totalPrice = (basePrice + addonsPrice) * qty;
 
   const media = item.image_url ? (
