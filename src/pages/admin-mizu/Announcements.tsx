@@ -40,6 +40,34 @@ type Announcement = {
   created_at: string;
   target_scope: string;
   target_restaurant_ids: string[] | null;
+  show_modal?: boolean | null;
+  media_type?: string | null;
+  media_url?: string | null;
+  media_poster?: string | null;
+  media_loop?: boolean | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
+  slides?: DbSlide[] | null;
+};
+
+type DbSlide = {
+  title?: string | null;
+  body?: string | null;
+  media_type?: string | null;
+  media_url?: string | null;
+  media_poster?: string | null;
+  media_loop?: boolean | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
+};
+
+/** Converte uma data ISO para o formato aceito pelo input datetime-local. */
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 type RestaurantOption = { id: string; name: string; slug: string };
