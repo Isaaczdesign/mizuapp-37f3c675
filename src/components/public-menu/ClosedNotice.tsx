@@ -48,12 +48,14 @@ export function ClosedNotice({
   closedMessage,
   onReopen,
   timezone = DEFAULT_TZ,
+  className,
 }: {
   operatingHours: OperatingHours | null | undefined;
   acceptingOff: boolean;
   closedMessage?: string | null;
   onReopen?: () => void;
   timezone?: string;
+  className?: string;
 }) {
   const [now, setNow] = useState(() => new Date());
 
@@ -89,7 +91,7 @@ export function ClosedNotice({
     : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-4">
+    <div className={className ?? "max-w-3xl mx-auto px-4 sm:px-6 mt-4"}>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
