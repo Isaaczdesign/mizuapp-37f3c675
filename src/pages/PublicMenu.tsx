@@ -1397,12 +1397,14 @@ const PublicMenu = () => {
                   {(() => {
                     const pm = restaurant.payment_methods;
                     const mpOn = Boolean((restaurant as any).mp_enabled);
+                    const mpPixOn = mpOn && ((restaurant as any).mp_pix_enabled ?? true);
+                    const mpCardOn = mpOn && ((restaurant as any).mp_card_enabled ?? true);
                     const canUseOnlinePayment = grandTotal >= onlinePaymentMinAmount;
                     const available: { key: string; label: string; hint?: string; icon: typeof CreditCard }[] = [];
                     const enabled = (k: string) =>
                       Array.isArray(pm) ? pm.includes(k) : pm && typeof pm === "object" ? Boolean(pm[k]) : true;
-                    if (enabled("pix")) available.push({ key: "pix", icon: QrCode, label: mpOn ? "PIX (online)" : "PIX", hint: mpOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
-                    if (mpOn) available.push({ key: "credit_card_online", icon: CreditCard, label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
+                    if (enabled("pix")) available.push({ key: "pix", icon: QrCode, label: mpPixOn ? "PIX (online)" : "PIX", hint: mpPixOn ? (canUseOnlinePayment ? "QR Code na próxima tela" : "Mínimo R$ 1,00") : undefined });
+                    if (mpCardOn) available.push({ key: "credit_card_online", icon: CreditCard, label: "Cartão de Crédito (online)", hint: canUseOnlinePayment ? "até 3x sem juros" : "Mínimo R$ 1,00" });
                     const isDelivery = orderType === "delivery";
                     if (enabled("credit_card") || enabled("card")) available.push({ key: "credit_card", icon: CreditCard, label: isDelivery ? "Pagar na entrega" : "Cartão de Crédito (no local)", hint: isDelivery ? "Cartão na maquininha do entregador" : undefined });
                     if (enabled("debit_card")) available.push({ key: "debit_card", icon: CreditCard, label: isDelivery ? "Cartão de Débito (na entrega)" : "Cartão de Débito (no local)" });
