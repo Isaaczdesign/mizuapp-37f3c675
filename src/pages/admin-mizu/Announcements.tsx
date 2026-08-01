@@ -220,6 +220,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
     setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
     setScope("all"); setSelected([]); setSearch("");
     setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl(""); setSlides([]);
+    clearSlidesDraft();
     load();
   };
 
