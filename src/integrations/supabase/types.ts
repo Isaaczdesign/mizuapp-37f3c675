@@ -866,6 +866,213 @@ export type Database = {
           },
         ]
       }
+      platform_admin_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      platform_notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          restaurant_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          restaurant_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          restaurant_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_notes_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_notes_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_plans: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          interval: string
+          is_active: boolean
+          is_recommended: boolean
+          limits: Json
+          name: string
+          price_cents: number
+          sort_order: number
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          is_recommended?: boolean
+          limits?: Json
+          name: string
+          price_cents?: number
+          sort_order?: number
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          is_recommended?: boolean
+          limits?: Json
+          name?: string
+          price_cents?: number
+          sort_order?: number
+          trial_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          created_at: string
+          default_trial_days: number
+          id: string
+          logo_url: string | null
+          maintenance_enabled: boolean
+          maintenance_message: string | null
+          maintenance_until: string | null
+          platform_name: string
+          privacy_url: string | null
+          signups_enabled: boolean
+          support_email: string | null
+          support_whatsapp: string | null
+          terms_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_trial_days?: number
+          id?: string
+          logo_url?: string | null
+          maintenance_enabled?: boolean
+          maintenance_message?: string | null
+          maintenance_until?: string | null
+          platform_name?: string
+          privacy_url?: string | null
+          signups_enabled?: boolean
+          support_email?: string | null
+          support_whatsapp?: string | null
+          terms_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_trial_days?: number
+          id?: string
+          logo_url?: string | null
+          maintenance_enabled?: boolean
+          maintenance_message?: string | null
+          maintenance_until?: string | null
+          platform_name?: string
+          privacy_url?: string | null
+          signups_enabled?: boolean
+          support_email?: string | null
+          support_whatsapp?: string | null
+          terms_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_user_roles: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1701,6 +1908,13 @@ export type Database = {
         }[]
       }
       get_user_restaurant_id: { Args: { _user_id: string }; Returns: string }
+      has_platform_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1708,6 +1922,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_platform_staff: { Args: { _user_id: string }; Returns: boolean }
       is_public_restaurant_active: {
         Args: { _restaurant_id: string }
         Returns: boolean
@@ -1720,6 +1936,18 @@ export type Database = {
         Args: { _action: string; _entity_type: string; _metadata?: Json }
         Returns: undefined
       }
+      log_platform_action: {
+        Args: {
+          _action: string
+          _entity_id?: string
+          _entity_type: string
+          _new?: Json
+          _old?: Json
+          _reason?: string
+        }
+        Returns: undefined
+      }
+      platform_overview_stats: { Args: { _since?: string }; Returns: Json }
       recalc_customer_stats: {
         Args: { _customer_id: string }
         Returns: undefined
@@ -1755,6 +1983,7 @@ export type Database = {
         | "canceled"
         | "out_for_delivery"
         | "delivered"
+      platform_role: "super_admin" | "admin" | "support"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1894,6 +2123,7 @@ export const Constants = {
         "out_for_delivery",
         "delivered",
       ],
+      platform_role: ["super_admin", "admin", "support"],
     },
   },
 } as const
