@@ -1103,6 +1103,7 @@ export type Database = {
           media_type: string
           media_url: string | null
           show_modal: boolean
+          slides: Json
           starts_at: string
           target_restaurant_ids: string[]
           target_scope: string
@@ -1124,6 +1125,7 @@ export type Database = {
           media_type?: string
           media_url?: string | null
           show_modal?: boolean
+          slides?: Json
           starts_at?: string
           target_restaurant_ids?: string[]
           target_scope?: string
@@ -1145,6 +1147,7 @@ export type Database = {
           media_type?: string
           media_url?: string | null
           show_modal?: boolean
+          slides?: Json
           starts_at?: string
           target_restaurant_ids?: string[]
           target_scope?: string

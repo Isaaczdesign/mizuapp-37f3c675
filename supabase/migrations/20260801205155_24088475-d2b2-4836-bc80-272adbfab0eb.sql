@@ -1,0 +1,1 @@
+ALTER TABLE public.platform_announcements ADD COLUMN IF NOT EXISTS slides jsonb NOT NULL DEFAULT '[]'::jsonb;
