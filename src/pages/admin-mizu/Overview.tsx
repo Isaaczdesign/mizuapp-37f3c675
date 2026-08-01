@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SectionCard, StatCard, SegmentedControl, EmptyState, Notice } from "@/components/admin-mizu/ui";
+import { Store, CheckCircle2, PauseCircle, Users, ShoppingBag, Clock, Wallet, CreditCard, PieChart } from "lucide-react";
 
 const RANGES = [
-  { id: "today", label: "Hoje", days: 0 },
-  { id: "7d", label: "7 dias", days: 7 },
-  { id: "30d", label: "30 dias", days: 30 },
-  { id: "month", label: "Mês atual", days: -1 },
-  { id: "all", label: "Tudo", days: -2 },
+  { id: "today", label: "Hoje" },
+  { id: "7d", label: "7 dias" },
+  { id: "30d", label: "30 dias" },
+  { id: "month", label: "Mês atual" },
+  { id: "all", label: "Tudo" },
 ];
 
 type Stats = Record<string, number | Record<string, number>>;
@@ -25,13 +26,26 @@ function sinceFor(id: string): string | null {
   return new Date(now.getTime() - days * 86400000).toISOString();
 }
 
-function Card({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Distribution({ data }: { data: Record<string, number> }) {
+  const entries = Object.entries(data);
+  const total = entries.reduce((a, [, v]) => a + Number(v), 0) || 1;
   return (
-    <div className="rounded-xl border border-border p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-2xl font-semibold">{value}</p>
-      {hint && <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>}
-    </div>
+    <ul className="space-y-3">
+      {entries.map(([k, v]) => (
+        <li key={k}>
+          <div className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="truncate capitalize text-muted-foreground">{k}</span>
+            <span className="tabular-nums font-medium">
+              {v}
+              <span className="ml-1.5 text-xs text-muted-foreground">{Math.round((Number(v) / total) * 100)}%</span>
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted/60">
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(Number(v) / total) * 100}%` }} />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -62,70 +76,61 @@ export default function AdminOverview() {
     <AdminMizuLayout
       title="Visão geral da plataforma"
       description="Métricas consolidadas de todos os restaurantes da Mizu."
-      actions={
-        <div className="flex flex-wrap gap-1.5">
-          {RANGES.map((r) => (
-            <Button key={r.id} size="sm" variant={range === r.id ? "hero" : "glass"} onClick={() => setRange(r.id)}>
-              {r.label}
-            </Button>
-          ))}
-        </div>
-      }
+      actions={<SegmentedControl value={range} onChange={setRange} options={RANGES} />}
     >
       {error && (
-        <p className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          Não foi possível carregar as métricas: {error}
-        </p>
+        <div className="mb-5">
+          <Notice tone="danger">Não foi possível carregar as métricas: {error}</Notice>
+        </div>
       )}
 
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-[112px] rounded-2xl" />)}
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Card label="Restaurantes" value={String(n("restaurants_total"))} hint={`${n("restaurants_new")} novos no período`} />
-            <Card label="Ativos" value={String(n("restaurants_active"))} />
-            <Card label="Inativos / suspensos" value={String(n("restaurants_inactive"))} />
-            <Card label="Usuários" value={String(n("users_total"))} hint={`${n("users_new")} novos no período`} />
-            <Card label="Pedidos processados" value={String(n("orders_total"))} />
-            <Card label="Pedidos no período" value={String(n("orders_period"))} />
-            <Card label="Volume transacionado" value={brl(n("gmv_period"))} hint="Soma dos pedidos não cancelados" />
-            <Card label="Assinaturas" value={String(Object.values(byStatus).reduce((a, b) => a + Number(b), 0))} />
+        <div className="space-y-8">
+          <div>
+            <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Contas</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard accent icon={Store} label="Restaurantes" value={String(n("restaurants_total"))} hint={`${n("restaurants_new")} novos no período`} />
+              <StatCard icon={CheckCircle2} label="Ativos" value={String(n("restaurants_active"))} />
+              <StatCard icon={PauseCircle} label="Inativos / suspensos" value={String(n("restaurants_inactive"))} />
+              <StatCard icon={Users} label="Usuários" value={String(n("users_total"))} hint={`${n("users_new")} novos no período`} />
+            </div>
+          </div>
+
+          <div>
+            <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Movimento</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard icon={ShoppingBag} label="Pedidos processados" value={String(n("orders_total"))} hint="Histórico completo" />
+              <StatCard icon={Clock} label="Pedidos no período" value={String(n("orders_period"))} />
+              <StatCard accent icon={Wallet} label="Volume transacionado" value={brl(n("gmv_period"))} hint="Pedidos não cancelados" />
+              <StatCard icon={CreditCard} label="Assinaturas" value={String(Object.values(byStatus).reduce((a, b) => a + Number(b), 0))} />
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-border p-4">
-              <h2 className="text-sm font-semibold">Assinaturas por plano</h2>
+            <SectionCard title="Assinaturas por plano" description="Distribuição do catálogo comercial">
               {Object.keys(byPlan).length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">Nenhuma assinatura registrada ainda.</p>
+                <EmptyState icon={PieChart} title="Nenhuma assinatura registrada" description="Os planos contratados aparecerão aqui." />
               ) : (
-                <ul className="mt-3 space-y-1.5 text-sm">
-                  {Object.entries(byPlan).map(([k, v]) => (
-                    <li key={k} className="flex justify-between"><span className="text-muted-foreground">{k}</span><span>{v}</span></li>
-                  ))}
-                </ul>
+                <Distribution data={byPlan} />
               )}
-            </div>
-            <div className="rounded-xl border border-border p-4">
-              <h2 className="text-sm font-semibold">Assinaturas por status</h2>
+            </SectionCard>
+            <SectionCard title="Assinaturas por status" description="Situação de cobrança das contas">
               {Object.keys(byStatus).length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">Nenhuma assinatura registrada ainda.</p>
+                <EmptyState icon={PieChart} title="Nenhuma assinatura registrada" description="Os status de cobrança aparecerão aqui." />
               ) : (
-                <ul className="mt-3 space-y-1.5 text-sm">
-                  {Object.entries(byStatus).map(([k, v]) => (
-                    <li key={k} className="flex justify-between"><span className="text-muted-foreground">{k}</span><span>{v}</span></li>
-                  ))}
-                </ul>
+                <Distribution data={byStatus} />
               )}
-            </div>
+            </SectionCard>
           </div>
 
-          <p className="text-xs text-muted-foreground">
+          <Notice>
             MRR, inadimplência e conversão de teste aparecerão aqui assim que os dados de cobrança forem integrados —
             a estrutura já está preparada e nenhuma métrica é estimada.
-          </p>
+          </Notice>
         </div>
       )}
     </AdminMizuLayout>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
@@ -11,7 +11,8 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Store, ShoppingBag, UtensilsCrossed, Users, CreditCard, ExternalLink } from "lucide-react";
+import { SectionCard, StatCard, StatusPill, EmptyState, Notice } from "@/components/admin-mizu/ui";
 import { usePlatformRole, logPlatformAction } from "@/hooks/usePlatformRole";
 import { menuPath } from "@/lib/publicMenuUrl";
 
@@ -105,7 +106,7 @@ export default function AdminRestaurantDetail() {
   if (loading) {
     return (
       <AdminMizuLayout title="Restaurante">
-        <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div>
+        <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
       </AdminMizuLayout>
     );
   }
@@ -113,119 +114,170 @@ export default function AdminRestaurantDetail() {
   if (!restaurant) {
     return (
       <AdminMizuLayout title="Restaurante não encontrado">
-        <p className="text-sm text-muted-foreground">O registro não existe ou você não tem permissão para vê-lo.</p>
-        <Button className="mt-4" variant="glass" asChild><Link to="/admin-mizu/restaurantes">Voltar</Link></Button>
+        <EmptyState
+          icon={Store}
+          title="Registro indisponível"
+          description="O registro não existe ou você não tem permissão para vê-lo."
+          action={<Button variant="glass" asChild><Link to="/admin-mizu/restaurantes">Voltar à lista</Link></Button>}
+        />
       </AdminMizuLayout>
     );
   }
+
+  const Item = ({ label, value }: { label: string; value: ReactNode }) => (
+    <div className="flex items-start justify-between gap-4 border-b border-border/50 py-2 last:border-0">
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 text-right text-sm">{value}</dd>
+    </div>
+  );
 
   return (
     <AdminMizuLayout
       title={restaurant.name}
       description={`/${restaurant.slug} · cadastrado em ${new Date(restaurant.created_at).toLocaleDateString("pt-BR")}`}
-      actions={<Button variant="glass" size="sm" asChild><Link to="/admin-mizu/restaurantes"><ArrowLeft className="mr-1.5 h-4 w-4" /> Voltar</Link></Button>}
+      actions={
+        <>
+          <StatusPill tone={restaurant.is_active ? "success" : "danger"}>
+            {restaurant.is_active ? "Ativo" : "Suspenso"}
+          </StatusPill>
+          <Button variant="glass" size="sm" asChild>
+            <Link to="/admin-mizu/restaurantes"><ArrowLeft className="mr-1.5 h-4 w-4" /> Voltar</Link>
+          </Button>
+        </>
+      }
     >
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={ShoppingBag} label="Pedidos" value={String(counts.orders)} />
+        <StatCard icon={UtensilsCrossed} label="Produtos" value={String(counts.items)} />
+        <StatCard icon={Users} label="Usuários vinculados" value={String(members.length)} />
+        <StatCard
+          accent
+          icon={CreditCard}
+          label="Plano"
+          value={String(subscription?.plan ?? "—")}
+          hint={
+            subscription?.expires_at
+              ? `Vence em ${new Date(String(subscription.expires_at)).toLocaleDateString("pt-BR")}`
+              : "Sem vencimento definido"
+          }
+        />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-border p-4">
-          <h2 className="text-sm font-semibold">Dados do estabelecimento</h2>
-          <dl className="mt-3 space-y-1.5 text-sm">
-            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Responsável</dt><dd>{restaurant.owner_name || "—"}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">E-mail</dt><dd className="truncate">{restaurant.owner_email || "—"}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">WhatsApp</dt><dd>{restaurant.owner_phone || "—"}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Endereço</dt><dd className="text-right">{restaurant.address || "—"}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Status</dt><dd>{restaurant.is_active ? "Ativo" : "Suspenso"}</dd></div>
+        <SectionCard title="Dados do estabelecimento" bodyClassName="pt-1">
+          <dl>
+            <Item label="Responsável" value={restaurant.owner_name || "—"} />
+            <Item label="E-mail" value={<span className="break-all">{restaurant.owner_email || "—"}</span>} />
+            <Item label="WhatsApp" value={restaurant.owner_phone || "—"} />
+            <Item label="Endereço" value={restaurant.address || "—"} />
+            <Item
+              label="Status"
+              value={<StatusPill tone={restaurant.is_active ? "success" : "danger"}>{restaurant.is_active ? "Ativo" : "Suspenso"}</StatusPill>}
+            />
           </dl>
-        </section>
+        </SectionCard>
 
-        <section className="rounded-xl border border-border p-4">
-          <h2 className="text-sm font-semibold">Uso da plataforma</h2>
-          <dl className="mt-3 space-y-1.5 text-sm">
-            <div className="flex justify-between"><dt className="text-muted-foreground">Pedidos</dt><dd>{counts.orders}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Produtos</dt><dd>{counts.items}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Usuários vinculados</dt><dd>{members.length}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Plano</dt><dd>{String(subscription?.plan ?? "—")}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Status da assinatura</dt><dd>{String(subscription?.status ?? "—")}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Vencimento</dt>
-              <dd>{subscription?.expires_at ? new Date(String(subscription.expires_at)).toLocaleDateString("pt-BR") : "—"}</dd></div>
+        <SectionCard title="Assinatura" bodyClassName="pt-1">
+          <dl>
+            <Item label="Plano" value={String(subscription?.plan ?? "—")} />
+            <Item label="Status" value={String(subscription?.status ?? "—")} />
+            <Item
+              label="Vencimento"
+              value={subscription?.expires_at ? new Date(String(subscription.expires_at)).toLocaleDateString("pt-BR") : "—"}
+            />
+            <Item label="Pedidos processados" value={counts.orders} />
+            <Item label="Produtos no cardápio" value={counts.items} />
           </dl>
-        </section>
+        </SectionCard>
 
-        <section className="rounded-xl border border-border p-4 lg:col-span-2">
-          <h2 className="text-sm font-semibold">Ações administrativas</h2>
+        <SectionCard
+          title="Ações administrativas"
+          description="Toda ação é registrada em auditoria."
+          className="lg:col-span-2"
+        >
           {!isAdmin ? (
-            <p className="mt-2 text-sm text-muted-foreground">Seu papel permite apenas consulta.</p>
+            <Notice>Seu papel permite apenas consulta.</Notice>
           ) : (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant={restaurant.is_active ? "glass" : "hero"}
-                onClick={() =>
-                  setConfirm({
-                    title: restaurant.is_active ? "Suspender restaurante?" : "Reativar restaurante?",
-                    body: restaurant.is_active
-                      ? "O cardápio público deixará de aceitar pedidos. Nenhum dado é apagado."
-                      : "O cardápio público voltará a ficar disponível.",
-                    run: () => setActive(!restaurant.is_active),
-                  })
-                }
-              >
-                {restaurant.is_active ? "Suspender" : "Reativar"}
-              </Button>
-              <Button size="sm" variant="glass" onClick={() => setConfirm({ title: "Estender vencimento em 7 dias?", body: "A data de expiração da assinatura será adiada.", run: () => extendTrial(7) })}>
-                Estender 7 dias
-              </Button>
-              {["trial", "basic", "pro"].map((p) => (
+            <>
+              <div className="flex flex-wrap gap-2">
                 <Button
-                  key={p}
                   size="sm"
-                  variant="glass"
-                  onClick={() => setConfirm({ title: `Alterar plano para "${p}"?`, body: "A mudança impacta imediatamente os limites deste cliente.", run: () => changePlan(p) })}
+                  variant={restaurant.is_active ? "glass" : "hero"}
+                  onClick={() =>
+                    setConfirm({
+                      title: restaurant.is_active ? "Suspender restaurante?" : "Reativar restaurante?",
+                      body: restaurant.is_active
+                        ? "O cardápio público deixará de aceitar pedidos. Nenhum dado é apagado."
+                        : "O cardápio público voltará a ficar disponível.",
+                      run: () => setActive(!restaurant.is_active),
+                    })
+                  }
                 >
-                  Plano {p}
+                  {restaurant.is_active ? "Suspender" : "Reativar"}
                 </Button>
-              ))}
-              <Button size="sm" variant="glass" asChild>
-                <a href={menuPath(restaurant.slug)} target="_blank" rel="noopener noreferrer">Ver cardápio público</a>
-              </Button>
-            </div>
+                <Button size="sm" variant="glass" onClick={() => setConfirm({ title: "Estender vencimento em 7 dias?", body: "A data de expiração da assinatura será adiada.", run: () => extendTrial(7) })}>
+                  Estender 7 dias
+                </Button>
+                <Button size="sm" variant="glass" asChild>
+                  <a href={menuPath(restaurant.slug)} target="_blank" rel="noopener noreferrer">
+                    Ver cardápio público <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                  </a>
+                </Button>
+              </div>
+
+              <div className="mt-4 border-t border-border/60 pt-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Alterar plano</p>
+                <div className="flex flex-wrap gap-2">
+                  {["trial", "basic", "pro"].map((p) => (
+                    <Button
+                      key={p}
+                      size="sm"
+                      variant="glass"
+                      disabled={String(subscription?.plan ?? "") === p}
+                      onClick={() => setConfirm({ title: `Alterar plano para "${p}"?`, body: "A mudança impacta imediatamente os limites deste cliente.", run: () => changePlan(p) })}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
-          <p className="mt-3 text-[11px] text-muted-foreground">
+          <p className="mt-4 text-[11px] text-muted-foreground">
             Exclusão definitiva não é permitida pelo painel — utilizamos suspensão e arquivamento para preservar histórico.
           </p>
-        </section>
+        </SectionCard>
 
-        <section className="rounded-xl border border-border p-4">
-          <h2 className="text-sm font-semibold">Observações internas</h2>
-          <p className="text-[11px] text-muted-foreground">Não visível para o restaurante.</p>
-          <Textarea value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} rows={3} className="mt-3" placeholder="Registrar pendência, contato ou problema técnico" />
+        <SectionCard title="Observações internas" description="Não visível para o restaurante.">
+          <Textarea value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} rows={3} placeholder="Registrar pendência, contato ou problema técnico" />
           <Button size="sm" className="mt-2" variant="hero" onClick={addNote} disabled={!noteDraft.trim()}>Salvar observação</Button>
           <ul className="mt-4 space-y-2 text-sm">
-            {notes.length === 0 && <li className="text-muted-foreground">Nenhuma observação registrada.</li>}
+            {notes.length === 0 && <li className="text-xs text-muted-foreground">Nenhuma observação registrada.</li>}
             {notes.map((n) => (
-              <li key={n.id} className="rounded-lg border border-border p-2.5">
+              <li key={n.id} className="rounded-xl border border-border bg-background/40 p-3">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 flex-1 break-words">{n.body}</p>
+                  <p className="min-w-0 flex-1 break-words leading-relaxed">{n.body}</p>
                   <NoteActions noteId={n.id} body={n.body} onDone={load} />
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}</p>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}</p>
               </li>
             ))}
           </ul>
-        </section>
+        </SectionCard>
 
-        <section className="rounded-xl border border-border p-4">
-          <h2 className="text-sm font-semibold">Histórico administrativo</h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {logs.length === 0 && <li className="text-muted-foreground">Nenhuma alteração administrativa registrada.</li>}
+        <SectionCard title="Histórico administrativo" description="Últimas 20 ações nesta conta.">
+          <ul className="space-y-2 text-sm">
+            {logs.length === 0 && <li className="text-xs text-muted-foreground">Nenhuma alteração administrativa registrada.</li>}
             {logs.map((l) => (
-              <li key={l.id} className="flex justify-between gap-3 border-b border-border pb-2 last:border-0">
-                <span>{l.action}{l.reason ? ` · ${l.reason}` : ""}</span>
-                <span className="shrink-0 text-[11px] text-muted-foreground">{new Date(l.created_at).toLocaleString("pt-BR")}</span>
+              <li key={l.id} className="flex items-start justify-between gap-3 border-b border-border/50 pb-2 last:border-0">
+                <span className="min-w-0 break-words">{l.action}{l.reason ? ` · ${l.reason}` : ""}</span>
+                <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{new Date(l.created_at).toLocaleString("pt-BR")}</span>
               </li>
             ))}
           </ul>
-        </section>
+        </SectionCard>
       </div>
+
 
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
