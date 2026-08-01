@@ -677,11 +677,6 @@ export default function Onboarding() {
               {/* STEP 1: Hours */}
               {step === 1 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Horários de Funcionamento</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Defina quando seu restaurante está aberto.</p>
-                  </div>
-
                   <div className="glass-card p-6 space-y-4">
                     <div className="space-y-3">
                       {DAY_KEYS.map((key, i) => (
@@ -752,11 +747,6 @@ export default function Onboarding() {
               {/* STEP 2: Menu */}
               {step === 2 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Monte seu Cardápio</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Escolha como quer adicionar seus itens.</p>
-                  </div>
-
                   {!menuImported && !menuChoice && (
                     <div className="grid gap-4 sm:grid-cols-2">
                       <button
@@ -912,11 +902,6 @@ export default function Onboarding() {
               {/* STEP 3: Payment */}
               {step === 3 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Formas de Pagamento</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Selecione como seus clientes podem pagar.</p>
-                  </div>
-
                   <div className="glass-card p-6 space-y-3">
                     {PAYMENT_OPTIONS.map((opt) => (
                       <button
@@ -942,11 +927,6 @@ export default function Onboarding() {
               {/* STEP 4: Public Page & QR */}
               {step === 4 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Sua Página Pública</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Compartilhe com seus clientes.</p>
-                  </div>
-
                   <div className="glass-card p-6 space-y-5">
                     <div>
                       <Label className="text-xs text-muted-foreground">Link público</Label>
@@ -975,11 +955,6 @@ export default function Onboarding() {
               {/* STEP 5: Test Order */}
               {step === 5 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Faça um Pedido Teste</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Simule como seus clientes vão pedir.</p>
-                  </div>
-
                   <div className="glass-card p-6 text-center space-y-4">
                     {!testStarted && (
                       <>
