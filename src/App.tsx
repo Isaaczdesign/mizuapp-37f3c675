@@ -117,6 +117,8 @@ const App = () => (
             <Route path="/admin-mizu/cupons" element={<AdminCoupons />} />
             <Route path="/admin-mizu/suporte" element={<AdminSupport />} />
             <Route path="/admin-mizu/notificacoes" element={<AdminNotifications />} />
+            <Route path="/admin-mizu/notificacoes/atualizacoes" element={<AdminNotifications mode="updates" />} />
+
             <Route path="/admin-mizu/observacoes-excluidas" element={<AdminDeletedNotes />} />
             <Route path="/admin-mizu/logs" element={<AdminLogs />} />
             <Route path="/admin-mizu/configuracoes" element={<AdminPlatformSettings />} />
