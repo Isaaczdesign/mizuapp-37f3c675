@@ -83,6 +83,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const type = rawType === "image" || rawType === "video" ? rawType : rawMedia ? "image" : "none";
   const hasMedia = !!media && type !== "none";
   const isPortrait = mediaRatio ? mediaRatio < 1 : type === "video";
+  const isWideLandscape = mediaRatio !== null && mediaRatio >= 1.6;
   const publishedAt = formatDate(current.starts_at ?? current.created_at);
   const isLast = safeIndex >= total - 1;
   const hasCta = !!current.cta_url?.trim();
