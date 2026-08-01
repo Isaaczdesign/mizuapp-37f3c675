@@ -157,7 +157,7 @@ const PublicMenu = () => {
   const [couponError, setCouponError] = useState<string | null>(null);
 
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
-  const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<(Addon & { quantity: number })[]>([]);
   const [detailQty, setDetailQty] = useState(1);
 
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
