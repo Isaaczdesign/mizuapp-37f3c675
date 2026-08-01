@@ -104,6 +104,8 @@ const Settings = () => {
       setDeliveryFee(String((restaurant as any).delivery_fee ?? 0));
       setAddress(((restaurant as any).address ?? "") as string);
       setMpEnabled(((restaurant as any).mp_enabled ?? false) as boolean);
+      setMpPixEnabled(((restaurant as any).mp_pix_enabled ?? true) as boolean);
+      setMpCardEnabled(((restaurant as any).mp_card_enabled ?? true) as boolean);
       setMpAccessToken(((restaurant as any).mp_access_token ?? "") as string);
       setMpPublicKey(((restaurant as any).mp_public_key ?? "") as string);
       setSlug((restaurant as any).slug ?? "");
