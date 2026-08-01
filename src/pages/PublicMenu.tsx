@@ -467,9 +467,11 @@ const PublicMenu = () => {
     const basePrice = selectedVariation?.absolute_price != null
       ? Number(selectedVariation.absolute_price)
       : Number(item.price) + (selectedVariation?.price_delta ?? 0);
-    const addonsPrice = selectedAddons.reduce((s, a) => s + Number(a.price), 0);
+    const chosenAddons = selectedAddons.filter((a) => a.quantity > 0);
+    const addonsPrice = chosenAddons.reduce((s, a) => s + Number(a.price) * a.quantity, 0);
     const totalPrice = basePrice + addonsPrice;
-    const cartKey = `${item.id}-${selectedVariation?.id ?? "base"}-${selectedAddons.map((a) => a.id).sort().join(",")}`;
+    const cartKey = `${item.id}-${selectedVariation?.id ?? "base"}-${chosenAddons
+      .map((a) => `${a.id}x${a.quantity}`).sort().join(",")}`;
 
     setCart((prev) => {
       const existing = prev.find((i) => i.cartKey === cartKey);
@@ -479,8 +481,8 @@ const PublicMenu = () => {
         name: item.name + (selectedVariation ? ` (${selectedVariation.name})` : ""),
         price: totalPrice, quantity: detailQty, variationName: selectedVariation?.name,
         variationId: selectedVariation?.id ?? null,
-        addonIds: selectedAddons.map((a) => a.id),
-        selectedAddons: selectedAddons.map((a) => ({ name: a.name, price: Number(a.price) })),
+        addonIds: chosenAddons.map((a) => ({ id: a.id, quantity: a.quantity })),
+        selectedAddons: chosenAddons.map((a) => ({ name: a.name, price: Number(a.price), quantity: a.quantity })),
         image_url: item.image_url,
       }];
     });
