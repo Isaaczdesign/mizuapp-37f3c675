@@ -83,6 +83,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const type = rawType === "image" || rawType === "video" ? rawType : rawMedia ? "image" : "none";
   const hasMedia = !!media && type !== "none";
   const isPortrait = mediaRatio ? mediaRatio < 1 : type === "video";
+  const isWideLandscape = mediaRatio !== null && mediaRatio >= 1.6;
   const publishedAt = formatDate(current.starts_at ?? current.created_at);
   const isLast = safeIndex >= total - 1;
   const hasCta = !!current.cta_url?.trim();
@@ -91,7 +92,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={`w-[calc(100%-2rem)] max-h-[92vh] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
-          hasMedia ? "max-w-[880px] sm:max-w-[880px]" : "max-w-[440px] sm:max-w-[440px]"
+          hasMedia
+            ? isWideLandscape
+              ? "max-w-[1024px] sm:max-w-[1024px]"
+              : "max-w-[880px] sm:max-w-[880px]"
+            : "max-w-[440px] sm:max-w-[440px]"
         }`}
       >
         {/* Brilho da marca */}
@@ -106,7 +111,9 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             hasMedia
               ? isPortrait
                 ? "md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] md:items-stretch"
-                : "md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-stretch"
+                : isWideLandscape
+                  ? "md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] md:items-stretch"
+                  : "md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-stretch"
               : ""
           }`}
         >
@@ -218,7 +225,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             <div
               key={`${current.id ?? safeIndex}-media`}
               className={`relative order-2 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
-                isPortrait ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]" : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
+                isPortrait
+                  ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
+                  : isWideLandscape
+                    ? "min-h-[50vh] max-h-[60vh] md:max-h-[78vh]"
+                    : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
               }`}
             >
               {type === "image" ? (
@@ -229,7 +240,9 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   className={`block w-full object-contain object-center ${
                     isPortrait
                       ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
-                      : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
+                      : isWideLandscape
+                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
                   }`}
                   decoding="async"
                   onLoad={(e) => {
@@ -247,7 +260,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   loop={current.media_loop ?? true}
                   title={current.title}
                   className={
-                    isPortrait ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]" : "max-h-[55vh] md:max-h-[62vh]"
+                    isPortrait
+                      ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]"
+                      : isWideLandscape
+                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        : "max-h-[55vh] md:max-h-[62vh]"
                   }
                   onAspectRatio={handleAspectRatio}
                 />
