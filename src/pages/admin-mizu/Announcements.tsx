@@ -157,10 +157,11 @@ export function AdminNotifications() {
     toast.success(
       startsAt && new Date(startsAt) > new Date()
         ? "Aviso agendado. Ele aparecerá automaticamente na data escolhida."
-        : "Aviso publicado. Os restaurantes verão ao recarregar a página."
+        : "Aviso publicado. Ele aparece na hora no painel dos restaurantes."
     );
     setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("update");
     setScope("all"); setSelected([]); setSearch("");
+    setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl("");
     load();
   };
 
