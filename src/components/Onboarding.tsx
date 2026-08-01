@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { motion, AnimatePresence } from "framer-motion";
+import { menuUrl, menuPath } from "@/lib/publicMenuUrl";
 import {
   Store, Upload, Clock, UtensilsCrossed, CreditCard, QrCode,
   ShoppingCart, ArrowRight, ArrowLeft, Check, Copy, Download,
@@ -177,9 +178,7 @@ export default function Onboarding() {
 
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
-  const publicUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/r/${slug}`
-    : `/r/${slug}`;
+  const publicUrl = typeof window !== "undefined" ? menuUrl(slug) : menuPath(slug);
 
   // ---- Step 1: Create Restaurant ----
   const handleCreateRestaurant = async () => {
