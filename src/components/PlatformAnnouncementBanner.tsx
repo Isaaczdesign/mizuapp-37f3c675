@@ -70,8 +70,8 @@ export default function PlatformAnnouncementBanner() {
     );
 
     const seenModals = readList(MODAL_KEY);
-    const next = list.find((a) => a.show_modal && !seenModals.includes(a.id));
-    if (next) setModalItem(next);
+    const pending = list.filter((a) => a.show_modal && !seenModals.includes(a.id));
+    if (pending.length > 0) setModalItems(pending);
   }, [user]);
 
   useEffect(() => {
