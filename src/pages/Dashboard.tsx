@@ -97,7 +97,7 @@ const Dashboard = () => {
     },
   });
 
-  const publicMenuUrl = setupStatus?.slug ? `${window.location.origin}/r/${setupStatus.slug}` : null;
+  const publicMenuUrl = setupStatus?.slug ? menuUrl(setupStatus.slug) : null;
 
   // Fetch operating hours + refresh clock every minute for closed-hours banner
   const { data: hoursData } = useQuery({

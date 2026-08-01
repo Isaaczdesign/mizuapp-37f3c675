@@ -184,7 +184,7 @@ export default function AdminRestaurantDetail() {
                 </Button>
               ))}
               <Button size="sm" variant="glass" asChild>
-                <a href={`/r/${restaurant.slug}`} target="_blank" rel="noopener noreferrer">Ver cardápio público</a>
+                <a href={menuPath(restaurant.slug)} target="_blank" rel="noopener noreferrer">Ver cardápio público</a>
               </Button>
             </div>
           )}

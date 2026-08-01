@@ -26,7 +26,7 @@ const ShortLink = () => {
     );
   }
   if (!slug) return <Navigate to="/" replace />;
-  return <Navigate to={`/r/${slug}`} replace />;
+  return <Navigate to={menuPath(slug)} replace />;
 };
 
 export default ShortLink;

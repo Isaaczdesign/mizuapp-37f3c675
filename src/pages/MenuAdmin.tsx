@@ -676,7 +676,7 @@ const MenuAdmin = () => {
   });
 
 
-  const publicMenuUrl = restaurant?.slug ? `${window.location.origin}/r/${restaurant.slug}` : null;
+  const publicMenuUrl = restaurant?.slug ? menuUrl(restaurant.slug) : null;
 
   const copyLink = () => {
     if (publicMenuUrl) {
