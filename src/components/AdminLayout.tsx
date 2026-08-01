@@ -296,6 +296,9 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         {children}
       </main>
 
+      <GuidedTour />
+
+
 
       {/* Global order notifications */}
       <OrderNotificationProvider />
