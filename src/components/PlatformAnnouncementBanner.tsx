@@ -94,11 +94,11 @@ export default function PlatformAnnouncementBanner() {
   }, [user, fetchAnnouncements]);
 
   const closeModal = () => {
-    if (modalItem) {
-      const next = [...new Set([...readList(MODAL_KEY), modalItem.id])];
+    if (modalItems.length > 0) {
+      const next = [...new Set([...readList(MODAL_KEY), ...modalItems.map((m) => m.id)])];
       localStorage.setItem(MODAL_KEY, JSON.stringify(next));
     }
-    setModalItem(null);
+    setModalItems([]);
   };
 
   const dismiss = async (id: string) => {
