@@ -5,6 +5,7 @@ import { ANNOUNCEMENT_ICONS } from "@/components/announcements/AnnouncementCard"
 import { Megaphone, ArrowUpRight, ArrowRight } from "lucide-react";
 import logoMark from "@/assets/mizu-logo-mark.png";
 import AnnouncementVideo from "@/components/announcements/AnnouncementVideo";
+import { usePlatformMediaUrl } from "@/lib/platformMedia";
 
 export type AnnouncementModalData = {
   id?: string;
