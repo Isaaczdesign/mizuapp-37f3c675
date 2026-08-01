@@ -55,6 +55,8 @@ const Settings = () => {
   const [avgDeliveryMinutes, setAvgDeliveryMinutes] = useState<string>("30");
   const [address, setAddress] = useState<string>("");
   const [mpEnabled, setMpEnabled] = useState<boolean>(false);
+  const [mpPixEnabled, setMpPixEnabled] = useState<boolean>(true);
+  const [mpCardEnabled, setMpCardEnabled] = useState<boolean>(true);
   const [mpAccessToken, setMpAccessToken] = useState<string>("");
   const [mpPublicKey, setMpPublicKey] = useState<string>("");
   const [slug, setSlug] = useState<string>("");
