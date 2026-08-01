@@ -210,7 +210,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   src={media}
                   alt={current.title}
                   className="max-h-[55vh] w-full object-contain object-center md:max-h-[62vh]"
-                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <AnnouncementVideo
