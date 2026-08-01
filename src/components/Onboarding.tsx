@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Store, Upload, Clock, UtensilsCrossed, CreditCard, QrCode,
   ShoppingCart, ArrowRight, ArrowLeft, Check, Copy, Download,
-  Palette, FileText, Plus, CheckCircle2, Sparkles,
+  Palette, FileText, Plus, CheckCircle2, Sparkles, RotateCcw,
 } from "lucide-react";
 import { loadOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from "@/lib/onboardingDraft";
 import { markTourPending } from "@/lib/guidedTour";
