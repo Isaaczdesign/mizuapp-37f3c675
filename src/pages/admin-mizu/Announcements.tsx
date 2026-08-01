@@ -109,7 +109,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
-  const [slides, setSlides] = useState<AnnouncementSlide[]>([]);
+  const [slides, setSlides] = useState<AnnouncementSlide[]>(() => loadSlidesDraft());
   // Pop-up existe apenas para atualizações.
   const modalEnabled = updatesOnly && showModal;
 
