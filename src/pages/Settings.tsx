@@ -14,6 +14,7 @@ import { Save, Crown, User, MessageSquare, Palette, CreditCard, UtensilsCrossed,
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
+import DangerZone from "@/components/settings/DangerZone";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -553,6 +554,8 @@ const Settings = () => {
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
+
+          <DangerZone />
         </div>
       </PageShell>
     </AdminLayout>
