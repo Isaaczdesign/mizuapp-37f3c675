@@ -16,6 +16,8 @@ type Announcement = {
   show_modal: boolean;
   cta_label: string | null;
   cta_url: string | null;
+  starts_at: string | null;
+  created_at: string | null;
 };
 
 const DISMISS_KEY = "mizu:dismissed-announcements";
