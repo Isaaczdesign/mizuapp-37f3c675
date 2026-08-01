@@ -39,7 +39,7 @@ export default function AdminRestaurantDetail() {
       supabase.from("profiles").select("user_id, display_name").eq("restaurant_id", id),
       supabase.from("orders").select("id", { count: "exact", head: true }).eq("restaurant_id", id),
       supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("restaurant_id", id),
-      supabase.from("platform_notes").select("id, body, created_at").eq("restaurant_id", id).order("created_at", { ascending: false }),
+      supabase.from("platform_notes").select("id, body, created_at").eq("restaurant_id", id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("platform_admin_logs").select("id, action, created_at, reason").eq("entity_id", id).order("created_at", { ascending: false }).limit(20),
     ]);
     setRestaurant((r.data as Restaurant) ?? null);
