@@ -65,16 +65,40 @@ function toBase64(buf: Uint8Array): string {
   return btoa(bin);
 }
 
+const ALLOWED_PREFIXES = [
+  `${SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/public/`,
+  `${SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/sign/`,
+];
+
+function assertAllowedFileUrl(raw: string): string {
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    throw new Error("URL do arquivo inválida");
+  }
+  if (u.protocol !== "https:") throw new Error("URL do arquivo inválida");
+  const normalized = u.toString();
+  if (!ALLOWED_PREFIXES.some((p) => normalized.startsWith(p))) {
+    throw new Error("URL do arquivo não permitida — envie o arquivo pelo upload do sistema");
+  }
+  return normalized;
+}
+
 async function fetchFile(url: string): Promise<{ bytes: Uint8Array; mime: string }> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Falha ao baixar arquivo: ${res.status}`);
+  const safeUrl = assertAllowedFileUrl(url);
+  const res = await fetch(safeUrl, { redirect: "error" });
+  if (!res.ok) throw new Error("Falha ao baixar o arquivo enviado");
   const ct = (res.headers.get("content-type") || "").split(";")[0].trim();
   let mime = ct;
   if (!mime || mime === "application/octet-stream") {
-    if (/\.pdf(\?|$)/i.test(url)) mime = "application/pdf";
-    else if (/\.png(\?|$)/i.test(url)) mime = "image/png";
-    else if (/\.webp(\?|$)/i.test(url)) mime = "image/webp";
+    if (/\.pdf(\?|$)/i.test(safeUrl)) mime = "application/pdf";
+    else if (/\.png(\?|$)/i.test(safeUrl)) mime = "image/png";
+    else if (/\.webp(\?|$)/i.test(safeUrl)) mime = "image/webp";
     else mime = "image/jpeg";
+  }
+  if (mime !== "application/pdf" && !mime.startsWith("image/")) {
+    throw new Error("Tipo de arquivo não suportado");
   }
   return { bytes: new Uint8Array(await res.arrayBuffer()), mime };
 }
