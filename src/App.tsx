@@ -63,6 +63,7 @@ const App = () => (
           <ActiveOrderFab />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/demonstracao" element={<Demonstracao />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-password/success" element={<PasswordResetSuccess />} />
