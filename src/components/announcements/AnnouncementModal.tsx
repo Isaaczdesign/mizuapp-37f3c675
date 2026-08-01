@@ -216,7 +216,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                 <AnnouncementVideo
                   key={media}
                   src={media!}
-                  poster={current.media_poster}
+                  poster={poster}
                   loop={current.media_loop ?? true}
                   title={current.title}
                 />
