@@ -1178,10 +1178,10 @@ export default function Onboarding() {
             {step < STEPS.length - 1 && restaurantId && (
               <Button
                 variant="outline"
-                onClick={handleSkip}
+                onClick={() => (step === 2 ? setStep(step + 1) : handleSkip())}
                 disabled={loading}
               >
-                Pular por agora
+                {step === 2 ? "Pular etapa" : "Pular por agora"}
               </Button>
             )}
             <Button
