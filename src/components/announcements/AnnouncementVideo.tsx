@@ -32,6 +32,16 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
   const [muted, setMuted] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
+  const onAspectRatioRef = useRef(onAspectRatio);
+
+  useEffect(() => {
+    onAspectRatioRef.current = onAspectRatio;
+  }, [onAspectRatio]);
+
+  // Notifica o pai sobre a proporção do vídeo (útil para ajustar o modal).
+  useEffect(() => {
+    if (ratio !== null) onAspectRatioRef.current?.(ratio);
+  }, [ratio]);
 
   // Autoplay só quando faz sentido: desktop, sem economia de dados e sem "reduzir animações".
   const shouldAutoplay = useRef(false);
