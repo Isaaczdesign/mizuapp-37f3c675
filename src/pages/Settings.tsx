@@ -166,6 +166,8 @@ const Settings = () => {
         delivery_enabled: deliveryEnabled, delivery_fee: Number(deliveryFee) || 0,
         address: address || null,
         mp_enabled: mpEnabled,
+        mp_pix_enabled: mpPixEnabled,
+        mp_card_enabled: mpCardEnabled,
         mp_access_token: mpAccessToken.trim() || null,
         mp_public_key: mpPublicKey.trim() || null,
       };
