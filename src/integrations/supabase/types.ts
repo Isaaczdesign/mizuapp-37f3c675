@@ -1042,6 +1042,8 @@ export type Database = {
           ends_at: string | null
           id: string
           starts_at: string
+          target_restaurant_ids: string[]
+          target_scope: string
           title: string
           updated_at: string
           variant: string
@@ -1054,6 +1056,8 @@ export type Database = {
           ends_at?: string | null
           id?: string
           starts_at?: string
+          target_restaurant_ids?: string[]
+          target_scope?: string
           title: string
           updated_at?: string
           variant?: string
@@ -1066,6 +1070,8 @@ export type Database = {
           ends_at?: string | null
           id?: string
           starts_at?: string
+          target_restaurant_ids?: string[]
+          target_scope?: string
           title?: string
           updated_at?: string
           variant?: string
