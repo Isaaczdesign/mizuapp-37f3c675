@@ -11,6 +11,8 @@ import { Save, Crown, User, IdCard, Bell, Settings as SettingsIcon } from "lucid
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import DangerZone from "@/components/settings/DangerZone";
+import ChangePassword from "@/components/settings/ChangePassword";
+
 
 const planLabels: Record<string, string> = { free: "Gratuito", starter: "Starter", pro: "Profissional", enterprise: "Enterprise" };
 const statusLabels: Record<string, string> = { active: "Ativo", inactive: "Inativo", trial: "Trial", expired: "Expirado" };
