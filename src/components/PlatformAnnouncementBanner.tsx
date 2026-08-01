@@ -35,7 +35,7 @@ export default function PlatformAnnouncementBanner() {
   const { user } = useAuth();
   const [items, setItems] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<string[]>(() => readList(DISMISS_KEY));
-  const [modalItem, setModalItem] = useState<Announcement | null>(null);
+  const [modalItems, setModalItems] = useState<Announcement[]>([]);
   const restaurantIdRef = useRef<string | null>(null);
 
   const fetchAnnouncements = useCallback(async () => {
