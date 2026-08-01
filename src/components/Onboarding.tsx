@@ -1061,8 +1061,9 @@ export default function Onboarding() {
       </div>
 
       {/* Footer Navigation */}
-      <div className="border-t border-border px-4 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+      <div className="sticky bottom-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+
           <Button
             variant="ghost"
             onClick={() => setStep(Math.max(0, step - 1))}
