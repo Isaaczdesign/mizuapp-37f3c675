@@ -91,6 +91,14 @@ export default {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "slide-next": {
+          "0%": { opacity: "0", transform: "translateX(28px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-prev": {
+          "0%": { opacity: "0", transform: "translateX(-28px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-12px)" },
