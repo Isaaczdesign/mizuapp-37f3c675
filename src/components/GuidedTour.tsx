@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { QrCode, PlusCircle, ChefHat, LayoutDashboard, ArrowRight, ArrowLeft, Check, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { isTourPending, finishTour } from "@/lib/guidedTour";
+import { isTourPending, finishTour, getTourStep, setTourStep } from "@/lib/guidedTour";
 
 type TourStep = {
   route: string;
@@ -55,16 +55,19 @@ export default function GuidedTour() {
   useEffect(() => {
     if (user?.id && isTourPending(user.id)) {
       setActive(true);
-      setIndex(0);
+      setIndex(Math.min(getTourStep(user.id), TOUR_STEPS.length - 1));
+    } else {
+      setActive(false);
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    if (!active) return;
-    const target = TOUR_STEPS[index].route;
+  const goTo = (next: number) => {
+    const clamped = Math.max(0, Math.min(next, TOUR_STEPS.length - 1));
+    setIndex(clamped);
+    setTourStep(user?.id, clamped);
+    const target = TOUR_STEPS[clamped].route;
     if (location.pathname !== target) navigate(target);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, index]);
+  };
 
   const close = (completed: boolean) => {
     finishTour(user?.id);
@@ -123,7 +126,7 @@ export default function GuidedTour() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIndex((i) => Math.max(0, i - 1))}
+                onClick={() => goTo(index - 1)}
                 disabled={index === 0}
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
@@ -133,7 +136,7 @@ export default function GuidedTour() {
                   Concluir <Check className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button size="sm" onClick={() => setIndex((i) => i + 1)}>
+                <Button size="sm" onClick={() => goTo(index + 1)}>
                   Próximo <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
