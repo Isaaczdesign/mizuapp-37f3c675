@@ -217,20 +217,25 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
       className={`group relative w-full overflow-hidden bg-brand-ink ${
         fullscreen
           ? "flex h-full max-h-none items-center justify-center aspect-auto"
-          : "aspect-[4/3] max-h-[52vh] sm:aspect-square sm:max-h-none"
+          : "max-h-[62vh]"
       }`}
+      style={fullscreen ? undefined : { aspectRatio: ratio ?? 4 / 3 }}
     >
       <video
         ref={videoRef}
         src={src}
         poster={poster ?? undefined}
-        className={`h-full w-full object-center ${fullscreen ? "object-contain" : "object-cover"}`}
+        className="h-full w-full object-contain object-center"
         playsInline
         {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         controls={false}
         muted={muted}
         loop={loop}
         preload={shouldAutoplay.current ? "auto" : "metadata"}
+        onLoadedMetadata={(e) => {
+          const v = e.currentTarget;
+          if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
+        }}
         onPlay={() => {
           setStarted(true);
           setPlaying(true);
@@ -238,6 +243,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
       />
+
 
       {/* Thumbnail com play — some assim que o vídeo começa */}
       {!started && (
