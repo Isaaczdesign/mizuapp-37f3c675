@@ -16,6 +16,12 @@ import {
   Palette, FileText, Plus, CheckCircle2, Sparkles,
 } from "lucide-react";
 import { loadOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from "@/lib/onboardingDraft";
+import { markTourPending } from "@/lib/guidedTour";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
