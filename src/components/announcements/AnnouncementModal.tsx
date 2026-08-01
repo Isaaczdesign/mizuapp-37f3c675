@@ -58,10 +58,10 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
         />
 
         <div
-          className={`relative grid ${hasMedia ? "md:grid-cols-[1fr_1.1fr] md:items-stretch" : ""}`}
+          className={`relative grid grid-cols-1 ${hasMedia ? "md:grid-cols-[1fr_1.1fr] md:items-stretch" : ""}`}
         >
-          {/* Conteúdo — esquerda */}
-          <div className="relative order-2 space-y-4 px-6 pb-6 pt-6 md:order-1 md:flex md:flex-col md:justify-center md:py-8">
+          {/* Conteúdo — topo no mobile, esquerda no desktop */}
+          <div className="relative order-1 flex flex-col justify-center space-y-4 px-5 py-5 md:order-1 md:px-6 md:py-8">
             <div className="animate-fade-up space-y-2">
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
@@ -98,7 +98,7 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
             </div>
 
             <div
-              className="flex animate-fade-up flex-col gap-2 pt-1 sm:flex-row"
+              className="flex animate-fade-up flex-col gap-3 pt-2 sm:flex-row sm:gap-2"
               style={{ animationDelay: "140ms", opacity: 0 }}
             >
               {data.cta_url?.trim() && (
@@ -123,14 +123,14 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
             </div>
           </div>
 
-          {/* Mídia — direita */}
+          {/* Mídia — base no mobile, direita no desktop */}
           {hasMedia && (
-            <div className="relative order-1 flex animate-fade-in items-center justify-center overflow-hidden bg-brand-ink md:order-2">
+            <div className="relative order-2 flex animate-fade-in items-center justify-center overflow-hidden bg-brand-ink md:order-2">
               {type === "image" ? (
                 <img
                   src={media}
                   alt={data.title}
-                  className="max-h-[62vh] w-full object-contain object-center"
+                  className="max-h-[55vh] w-full object-contain object-center md:max-h-[62vh]"
                   loading="lazy"
                 />
               ) : (
