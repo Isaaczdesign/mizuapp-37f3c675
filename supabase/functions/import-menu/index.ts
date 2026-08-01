@@ -65,9 +65,11 @@ function toBase64(buf: Uint8Array): string {
   return btoa(bin);
 }
 
-const ALLOWED_PREFIXES = [
-  `${SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/public/`,
-  `${SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/sign/`,
+const STORAGE_HOST = new URL(SUPABASE_URL).host;
+const ALLOWED_PATH_PREFIXES = [
+  "/storage/v1/object/public/menu-images/",
+  "/storage/v1/object/sign/menu-images/",
+  "/storage/v1/object/authenticated/menu-images/",
 ];
 
 function assertAllowedFileUrl(raw: string): string {
@@ -77,12 +79,16 @@ function assertAllowedFileUrl(raw: string): string {
   } catch {
     throw new Error("URL do arquivo inválida");
   }
-  if (u.protocol !== "https:") throw new Error("URL do arquivo inválida");
-  const normalized = u.toString();
-  if (!ALLOWED_PREFIXES.some((p) => normalized.startsWith(p))) {
+  // Host must be exactly the project's own storage host (blocks SSRF to
+  // internal/third-party hosts, look-alike subdomains and userinfo tricks).
+  if (u.protocol !== "https:" || u.host !== STORAGE_HOST || u.username || u.password) {
     throw new Error("URL do arquivo não permitida — envie o arquivo pelo upload do sistema");
   }
-  return normalized;
+  const path = decodeURIComponent(u.pathname);
+  if (path.includes("..") || !ALLOWED_PATH_PREFIXES.some((p) => path.startsWith(p))) {
+    throw new Error("URL do arquivo não permitida — envie o arquivo pelo upload do sistema");
+  }
+  return u.toString();
 }
 
 async function fetchFile(url: string): Promise<{ bytes: Uint8Array; mime: string }> {
