@@ -378,7 +378,34 @@ export default function Onboarding() {
     }
   };
 
+  // ---- Restart onboarding from scratch (clears autosaved draft) ----
+  const handleRestart = () => {
+    clearOnboardingDraft(user?.id);
+    setStep(restaurantId ? 1 : 0);
+    setPrimaryColor("#F97316");
+    setHours(defaultHours);
+    setPickupEnabled(false);
+    setDineInEnabled(true);
+    setDeliveryEnabled(false);
+    setDeliveryFee("0");
+    setMenuChoice(null);
+    setMenuFile(null);
+    setMenuImported(false);
+    setMenuStage("idle");
+    setMenuJob(null);
+    setPaymentMethods(["cash"]);
+    setTestStarted(false);
+    setTestComplete(false);
+    if (!restaurantId) {
+      setName("");
+      setLogoFile(null);
+      setLogoPreview(null);
+    }
+    toast.success("Configuração reiniciada. Vamos começar do zero!");
+  };
+
   // ---- Skip onboarding ----
+
   const handleSkip = async () => {
     if (!user) return;
     setLoading(true);
