@@ -484,9 +484,9 @@ export default function Onboarding() {
   };
 
   const slideVariants = {
-    enter: { opacity: 0, x: 40 },
-    center: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -40 },
+    enter: { opacity: 0, y: 24, filter: "blur(6px)" },
+    center: { opacity: 1, y: 0, filter: "blur(0px)" },
+    exit: { opacity: 0, y: -18, filter: "blur(6px)" },
   };
 
   if (initialLoading) {
@@ -497,24 +497,66 @@ export default function Onboarding() {
     );
   }
 
+  const current = STEPS[step];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="relative min-h-screen bg-background flex flex-col overflow-hidden">
+      {/* Ambient premium background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <motion.div
+          aria-hidden
+          className="absolute -top-40 -left-32 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]"
+          animate={{ opacity: [0.35, 0.7, 0.35], scale: [1, 1.12, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute -bottom-40 -right-24 h-[460px] w-[460px] rounded-full bg-accent/10 blur-[130px]"
+          animate={{ opacity: [0.25, 0.6, 0.25], scale: [1.08, 1, 1.08] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+
       {/* Header */}
-      <div className="border-b border-border px-4 py-4">
+      <div className="border-b border-border/60 backdrop-blur-xl bg-background/70 px-4 py-5">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-display text-lg font-bold">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+              <Sparkles className="w-3 h-3" /> Setup guiado
+            </span>
+          </motion.div>
+          <h1 className="font-display text-xl sm:text-2xl font-bold mt-3 tracking-tight">
             Bem-vindo à <span className="gradient-text">Mizu</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Você está {progress}% pronto para vender
-          </p>
-          <Progress value={progress} className="mt-3 h-2" />
+          <div className="mt-1 flex items-baseline gap-2">
+            <motion.span
+              key={progress}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-display text-lg font-bold text-primary tabular-nums"
+            >
+              {progress}%
+            </motion.span>
+            <p className="text-sm text-muted-foreground">pronto para vender</p>
+          </div>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary/70">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-primary via-primary to-accent"
+              initial={false}
+              animate={{ width: `${progress}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            />
+          </div>
         </div>
       </div>
 
       {/* Step indicators */}
-      <div className="border-b border-border px-4 py-3 overflow-x-auto">
-        <div className="max-w-2xl mx-auto flex gap-1">
+      <div className="border-b border-border/60 px-4 py-3 overflow-x-auto no-scrollbar">
+        <div className="max-w-2xl mx-auto flex gap-1.5">
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             const isDone = i < step;
@@ -522,13 +564,21 @@ export default function Onboarding() {
             return (
               <div
                 key={i}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                  isCurrent ? "bg-primary/10 text-primary" :
-                  isDone ? "text-primary/60" : "text-muted-foreground"
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  isCurrent ? "text-primary" : isDone ? "text-primary/60" : "text-muted-foreground"
                 }`}
               >
-                {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{s.label}</span>
+                {isCurrent && (
+                  <motion.span
+                    layoutId="onb-step-pill"
+                    className="absolute inset-0 rounded-full bg-primary/10 border border-primary/25"
+                    transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                  />
+                )}
+                <span className="relative flex items-center gap-1.5">
+                  {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{s.label}</span>
+                </span>
               </div>
             );
           })}
@@ -545,15 +595,27 @@ export default function Onboarding() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
+              <div className="mb-6 flex items-start gap-3">
+                <motion.div
+                  initial={{ scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                  className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary"
+                >
+                  <current.icon className="w-5 h-5" />
+                </motion.div>
+                <div>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">{current.title}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{current.subtitle}</p>
+                </div>
+              </div>
+
               {/* STEP 0: Identity */}
               {step === 0 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Identidade do Restaurante</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Configure o nome, logo e cor do seu restaurante.</p>
-                  </div>
+
 
                   <div className="glass-card p-6 space-y-5">
                     <div>
