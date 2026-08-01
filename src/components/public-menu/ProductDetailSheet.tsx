@@ -130,16 +130,18 @@ export default function ProductDetailSheet({
             Adicionais
           </legend>
           <div className="space-y-2">
-            {item.addons!.map((a) => (
-              <Choice
-                key={a.id}
-                selected={!!selectedAddons.find((sa) => sa.id === a.id)}
-                accentColor={accentColor}
-                onClick={() => onToggleAddon(a)}
-                label={a.name}
-                value={`+${fmt(Number(a.price))}`}
-              />
-            ))}
+            {item.addons!.map((a) => {
+              const q = selectedAddons.find((sa) => sa.id === a.id)?.quantity ?? 0;
+              return (
+                <AddonRow
+                  key={a.id}
+                  addon={a}
+                  quantity={q}
+                  accentColor={accentColor}
+                  onChange={(n) => onAddonQty(a, n)}
+                />
+              );
+            })}
           </div>
         </fieldset>
       )}
