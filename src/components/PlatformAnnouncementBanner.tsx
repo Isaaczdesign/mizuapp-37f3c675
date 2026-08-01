@@ -69,6 +69,9 @@ function toModalItems(a: Announcement) {
 const DISMISS_KEY = "mizu:dismissed-announcements";
 const MODAL_KEY = "mizu:seen-announcement-modals";
 
+/** Identidade do pop-up por publicação — muda quando o aviso é reenviado ou editado. */
+const modalKey = (a: Announcement) => `${a.id}@${a.starts_at ?? ""}`;
+
 function readList(key: string): string[] {
   try {
     return JSON.parse(localStorage.getItem(key) ?? "[]");
@@ -117,9 +120,10 @@ export default function PlatformAnnouncementBanner() {
     );
 
     const seenModals = readList(MODAL_KEY);
-    const pending = list.filter((a) => a.show_modal && !seenModals.includes(a.id));
+    // A chave inclui a data de publicação: ao reenviar/editar, o pop-up volta a aparecer.
+    const pending = list.filter((a) => a.show_modal && !seenModals.includes(modalKey(a)));
     if (pending.length > 0) {
-      setModalIds(pending.map((a) => a.id));
+      setModalIds(pending.map(modalKey));
       setModalItems(pending.flatMap(toModalItems));
     }
   }, [user]);
@@ -152,21 +156,21 @@ export default function PlatformAnnouncementBanner() {
     setModalItems([]);
   };
 
-  const dismiss = async (id: string) => {
-    const next = [...new Set([...readList(DISMISS_KEY), id])];
+  const dismiss = async (a: Announcement) => {
+    const next = [...new Set([...readList(DISMISS_KEY), modalKey(a)])];
     localStorage.setItem(DISMISS_KEY, JSON.stringify(next));
     setDismissed(next);
     if (user) {
       await supabase
         .from("platform_announcement_views")
         .update({ dismissed_at: new Date().toISOString() })
-        .eq("announcement_id", id)
+        .eq("announcement_id", a.id)
         .eq("user_id", user.id);
     }
   };
 
   // Avisos de atualização aparecem só no pop-up, não no topo do painel.
-  const visible = items.filter((a) => !dismissed.includes(a.id) && a.variant !== "update");
+  const visible = items.filter((a) => !dismissed.includes(modalKey(a)) && a.variant !== "update");
 
   return (
     <>
@@ -185,7 +189,7 @@ export default function PlatformAnnouncementBanner() {
                 title={a.title}
                 body={a.body}
                 variant={a.variant}
-                onDismiss={() => dismiss(a.id)}
+                onDismiss={() => dismiss(a)}
               />
             </div>
           ))}

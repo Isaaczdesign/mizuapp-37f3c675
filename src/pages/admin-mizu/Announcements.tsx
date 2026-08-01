@@ -20,12 +20,14 @@ import {
   Sparkles,
   Search,
   PencilLine,
+  Send,
+  X,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
-import AnnouncementSlidesEditor, { AnnouncementSlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
+import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
 import { Link } from "react-router-dom";
 import { SectionCard, StatCard, StatusPill, EmptyState, SegmentedControl } from "@/components/admin-mizu/ui";
 
@@ -40,6 +42,34 @@ type Announcement = {
   created_at: string;
   target_scope: string;
   target_restaurant_ids: string[] | null;
+  show_modal?: boolean | null;
+  media_type?: string | null;
+  media_url?: string | null;
+  media_poster?: string | null;
+  media_loop?: boolean | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
+  slides?: DbSlide[] | null;
+};
+
+type DbSlide = {
+  title?: string | null;
+  body?: string | null;
+  media_type?: string | null;
+  media_url?: string | null;
+  media_poster?: string | null;
+  media_loop?: boolean | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
+};
+
+/** Converte uma data ISO para o formato aceito pelo input datetime-local. */
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 type RestaurantOption = { id: string; name: string; slug: string };
@@ -199,6 +229,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [slides, setSlides] = useState<AnnouncementSlide[]>(() => loadSlidesDraft());
   const [historyFilter, setHistoryFilter] = useState<"all" | StatusKey>("all");
   const [historySearch, setHistorySearch] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   // Pop-up existe apenas para atualizações.
   const modalEnabled = updatesOnly && showModal;
 
@@ -265,6 +296,80 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
     return { total: scopeItems.length, ...counts, seen };
   }, [scopeItems, views]);
 
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
+    setScope("all"); setSelected([]); setSearch("");
+    setShowModal(true); setMediaType("none"); setMediaUrl(""); setMediaPoster(""); setMediaLoop(true);
+    setCtaLabel(""); setCtaUrl(""); setSlides([]);
+    clearSlidesDraft();
+  };
+
+  /** Carrega um aviso já publicado no formulário para editar e reenviar. */
+  const startEdit = (item: Announcement) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setBody(item.body);
+    setVariant(item.variant);
+    setStartsAt(toLocalInput(item.starts_at));
+    setEndsAt(toLocalInput(item.ends_at));
+    setScope(item.target_scope === "restaurants" ? "restaurants" : "all");
+    setSelected(item.target_restaurant_ids ?? []);
+    setShowModal(item.show_modal ?? true);
+    const mt = item.media_type === "image" || item.media_type === "video" ? item.media_type : "none";
+    setMediaType(mt);
+    setMediaUrl(item.media_url ?? "");
+    setMediaPoster(item.media_poster ?? "");
+    setMediaLoop(item.media_loop ?? true);
+    setCtaLabel(item.cta_label ?? "");
+    setCtaUrl(item.cta_url ?? "");
+    setSlides(
+      (item.slides ?? []).map((sl) => ({
+        ...emptySlide(),
+        title: sl.title ?? "",
+        body: sl.body ?? "",
+        media_type: sl.media_type === "image" || sl.media_type === "video" ? sl.media_type : "none",
+        media_url: sl.media_url ?? "",
+        media_poster: sl.media_poster ?? "",
+        media_loop: sl.media_loop ?? true,
+        cta_label: sl.cta_label ?? "",
+        cta_url: sl.cta_url ?? "",
+      }))
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const buildPayload = () => ({
+    title: title.trim(),
+    body: body.trim(),
+    variant: effectiveVariant,
+    starts_at: startsAt ? new Date(startsAt).toISOString() : new Date().toISOString(),
+    ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+    target_scope: scope,
+    target_restaurant_ids: scope === "restaurants" ? selected : [],
+    show_modal: modalEnabled,
+    media_type: modalEnabled ? mediaType : "none",
+    media_url: modalEnabled ? mediaUrl.trim() || null : null,
+    media_poster: modalEnabled && mediaType === "video" ? mediaPoster.trim() || null : null,
+    media_loop: mediaLoop,
+    cta_label: modalEnabled ? ctaLabel.trim() || null : null,
+    cta_url: modalEnabled ? ctaUrl.trim() || null : null,
+    slides: modalEnabled
+      ? slides
+          .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
+          .map((sl) => ({
+            title: sl.title.trim(),
+            body: sl.body.trim(),
+            media_type: sl.media_url.trim() ? sl.media_type : "none",
+            media_url: sl.media_url.trim() || null,
+            media_poster: sl.media_type === "video" ? sl.media_poster.trim() || null : null,
+            media_loop: sl.media_loop,
+            cta_label: sl.cta_label.trim() || null,
+            cta_url: sl.cta_url.trim() || null,
+          }))
+      : [],
+  });
+
   const create = async () => {
     if (!title.trim() || !body.trim()) {
       toast.error("Preencha título e mensagem.");
@@ -279,38 +384,27 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
       return;
     }
     setSaving(true);
+    const payload = buildPayload();
+
+    if (editingId) {
+      const { data, error } = await supabase
+        .from("platform_announcements")
+        .update(payload)
+        .eq("id", editingId)
+        .select()
+        .single();
+      setSaving(false);
+      if (error) { toast.error("Erro ao salvar as alterações."); return; }
+      await logPlatformAction({ action: "announcement.update", entityType: "platform_announcement", entityId: editingId, newValue: data });
+      toast.success("Aviso atualizado. As alterações já valem para os restaurantes.");
+      resetForm();
+      load();
+      return;
+    }
+
     const { data, error } = await supabase
       .from("platform_announcements")
-      .insert({
-        title: title.trim(),
-        body: body.trim(),
-        variant: effectiveVariant,
-        starts_at: startsAt ? new Date(startsAt).toISOString() : new Date().toISOString(),
-        ends_at: endsAt ? new Date(endsAt).toISOString() : null,
-        target_scope: scope,
-        target_restaurant_ids: scope === "restaurants" ? selected : [],
-        show_modal: modalEnabled,
-        media_type: modalEnabled ? mediaType : "none",
-        media_url: modalEnabled ? mediaUrl.trim() || null : null,
-        media_poster: modalEnabled && mediaType === "video" ? mediaPoster.trim() || null : null,
-        media_loop: mediaLoop,
-        cta_label: modalEnabled ? ctaLabel.trim() || null : null,
-        cta_url: modalEnabled ? ctaUrl.trim() || null : null,
-        slides: modalEnabled
-          ? slides
-              .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
-              .map((sl) => ({
-                title: sl.title.trim(),
-                body: sl.body.trim(),
-                media_type: sl.media_url.trim() ? sl.media_type : "none",
-                media_url: sl.media_url.trim() || null,
-                media_poster: sl.media_type === "video" ? sl.media_poster.trim() || null : null,
-                media_loop: sl.media_loop,
-                cta_label: sl.cta_label.trim() || null,
-                cta_url: sl.cta_url.trim() || null,
-              }))
-          : [],
-      })
+      .insert(payload)
       .select()
       .single();
     setSaving(false);
@@ -321,10 +415,22 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         ? "Aviso agendado. Ele aparecerá automaticamente na data escolhida."
         : "Aviso publicado. Ele aparece na hora no painel dos restaurantes."
     );
-    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
-    setScope("all"); setSelected([]); setSearch("");
-    setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl(""); setSlides([]);
-    clearSlidesDraft();
+    resetForm();
+    load();
+  };
+
+  /** Reenvia: o pop-up volta a aparecer para quem já tinha visto. */
+  const resend = async (item: Announcement) => {
+    if (!confirm("Reenviar este aviso? Ele voltará a aparecer para todos os restaurantes do público-alvo.")) return;
+    const startsNow = new Date().toISOString();
+    const { error } = await supabase
+      .from("platform_announcements")
+      .update({ active: true, starts_at: startsNow, ends_at: null })
+      .eq("id", item.id);
+    if (error) { toast.error("Não foi possível reenviar."); return; }
+    await supabase.from("platform_announcement_views").delete().eq("announcement_id", item.id);
+    await logPlatformAction({ action: "announcement.resend", entityType: "platform_announcement", entityId: item.id, newValue: { starts_at: startsNow } });
+    toast.success("Aviso reenviado. Ele reaparece no painel dos restaurantes.");
     load();
   };
 
@@ -369,8 +475,12 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         {isAdmin && (
           <SectionCard
             className="xl:sticky xl:top-4"
-            title={updatesOnly ? "Nova atualização" : "Novo aviso"}
-            description="Preencha as etapas abaixo e publique."
+            title={editingId ? "Editando aviso" : updatesOnly ? "Nova atualização" : "Novo aviso"}
+            description={
+              editingId
+                ? "As alterações substituem o aviso já publicado."
+                : "Preencha as etapas abaixo e publique."
+            }
             bodyClassName="space-y-3"
           >
             <StepBlock
@@ -543,8 +653,20 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                 <AnnouncementCard title={title || "Título do aviso"} body={body || "Mensagem exibida ao restaurante."} variant={effectiveVariant} />
               )}
               <Button className="w-full" onClick={create} disabled={saving || !canPublish}>
-                {saving ? "Publicando..." : updatesOnly ? "Publicar atualização" : "Publicar aviso"}
+                {saving
+                  ? "Salvando..."
+                  : editingId
+                    ? "Salvar alterações"
+                    : updatesOnly
+                      ? "Publicar atualização"
+                      : "Publicar aviso"}
               </Button>
+              {editingId && (
+                <Button variant="ghost" className="w-full" onClick={resetForm} disabled={saving}>
+                  <X className="mr-1 h-3.5 w-3.5" />
+                  Cancelar edição
+                </Button>
+              )}
               {!canPublish && (
                 <p className="text-center text-[11px] text-muted-foreground">Preencha título e mensagem para publicar.</p>
               )}
@@ -654,7 +776,25 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                         </dl>
                       </div>
                       {isAdmin && (
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2.5 text-[11px]"
+                            onClick={() => startEdit(item)}
+                          >
+                            <PencilLine className="mr-1 h-3.5 w-3.5" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2.5 text-[11px]"
+                            onClick={() => resend(item)}
+                          >
+                            <Send className="mr-1 h-3.5 w-3.5" />
+                            Reenviar
+                          </Button>
                           <Switch checked={item.active} onCheckedChange={(v) => toggle(item, v)} aria-label="Ativar aviso" />
                           <Button variant="ghost" size="icon" onClick={() => remove(item)} aria-label="Excluir aviso">
                             <Trash2 className="h-4 w-4 text-destructive" />
