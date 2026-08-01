@@ -361,6 +361,7 @@ export default function Onboarding() {
       await supabase.from("profiles").update({
         onboarding_complete: true,
       } as any).eq("user_id", user.id);
+      clearOnboardingDraft(user.id);
       toast.success("Tudo pronto! Bem-vindo à Mizu 🎉");
       window.location.reload();
     } catch (err: any) {
@@ -378,6 +379,7 @@ export default function Onboarding() {
       await supabase.from("profiles").update({
         onboarding_complete: true,
       } as any).eq("user_id", user.id);
+      clearOnboardingDraft(user.id);
       toast.success("Você pode continuar a configuração em Configurações.");
       window.location.reload();
     } catch (err: any) {
