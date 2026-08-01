@@ -51,22 +51,79 @@ export default function ExpedienteHistorico() {
     load();
   }
 
-  function exportCSV(s: ShiftRow) {
-    const rows = [
-      ["Restaurante", rid],
-      ["Abertura", s.opened_at],
-      ["Encerramento atendimento", s.service_closed_at ?? ""],
-      ["Fechamento financeiro", s.financial_closed_at ?? ""],
-      ["Responsável", s.responsible_name ?? ""],
-      ["Esperado em caixa", s.expected_cash],
-      ["Informado", s.informed_cash],
-      ["Diferença", s.cash_diff],
-      ["Status", s.status],
+  // Excel pt-BR: separador ";", decimal com vírgula e BOM UTF-8 para acentuação.
+  const csvNum = (v: unknown) => Number(v ?? 0).toFixed(2).replace(".", ",");
+  const csvDate = (v?: string | null) => (v ? format(new Date(v), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—");
+  const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
+
+  async function exportCSV(s: ShiftRow) {
+    const [c, m, r] = await Promise.all([
+      supabase.from("shift_cash_counts").select("*").eq("shift_id", s.id),
+      supabase.from("shift_cash_movements").select("*").eq("shift_id", s.id).order("created_at"),
+      supabase.from("restaurants").select("name").eq("id", rid).single(),
+    ]);
+    const t = (s.totals as any) || {};
+    const statusLabel = s.status === "open" ? "Aberto" : s.status === "service_closed" ? "Atendimento encerrado"
+      : s.status === "financial_closed" ? "Fechado" : "Reaberto";
+
+    const rows: (string | number)[][] = [
+      ["Relatório de encerramento de expediente"],
+      ["Restaurante", r.data?.name ?? ""],
+      ["Abertura", csvDate(s.opened_at)],
+      ["Encerramento atendimento", csvDate(s.service_closed_at)],
+      ["Fechamento financeiro", csvDate(s.financial_closed_at)],
+      ["Responsável", s.responsible_name ?? "—"],
+      ["Status", statusLabel],
+      [],
+      ["Resumo de pedidos"],
+      ["Total", Number(t.total ?? 0)],
+      ["Concluídos", Number(t.completed ?? 0)],
+      ["Cancelados", Number(t.canceled ?? 0)],
+      ["Recusados", Number(t.refused ?? 0)],
+      ["No local", Number(t.byType?.dine_in ?? 0)],
+      ["Retirada", Number(t.byType?.pickup ?? 0)],
+      ["Delivery", Number(t.byType?.delivery ?? 0)],
+      ["Clientes atendidos", Number(t.customers ?? 0)],
+      [],
+      ["Financeiro (R$)"],
+      ["Bruto", csvNum(t.gross)],
+      ["Taxas de entrega", csvNum(t.deliveryFees)],
+      ["Cancelamentos", csvNum(t.canceledSum)],
+      ["Líquido", csvNum(t.net)],
+      ["Ticket médio", csvNum(t.ticket)],
+      [],
+      ["Formas de pagamento", "Esperado (R$)", "Informado (R$)", "Diferença (R$)", "Pedidos"],
+      ...(c.data ?? []).map((p: any) => [
+        PAYMENT_LABEL[p.payment_method] ?? p.payment_method,
+        csvNum(p.expected), csvNum(p.informed), csvNum(p.diff), Number(p.orders_count ?? 0),
+      ]),
     ];
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+
+    if ((m.data ?? []).length > 0) {
+      rows.push([], ["Movimentações", "Tipo", "Valor (R$)", "Descrição"]);
+      (m.data ?? []).forEach((mv: any) =>
+        rows.push([csvDate(mv.created_at), mv.movement_type, csvNum(mv.amount), mv.description ?? ""]),
+      );
+    }
+
+    rows.push(
+      [],
+      ["Caixa (R$)"],
+      ["Esperado", csvNum(s.expected_cash)],
+      ["Informado", csvNum(s.informed_cash)],
+      ["Diferença", csvNum(s.cash_diff)],
+    );
+    if (s.divergence_justification) rows.push([], ["Justificativa da divergência", s.divergence_justification]);
+    if (s.pending_orders_justification) rows.push([], ["Pedidos em andamento", s.pending_orders_justification]);
+    if (s.notes) rows.push([], ["Observações", s.notes]);
+
+    const csv = "\uFEFF" + rows.map((row) => row.map(csvCell).join(";")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `expediente-${s.id.slice(0, 8)}.csv`; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `expediente-${format(new Date(s.opened_at), "yyyy-MM-dd")}-${s.id.slice(0, 8)}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   }
 
