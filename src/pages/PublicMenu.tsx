@@ -755,6 +755,7 @@ const PublicMenu = () => {
       )}
 
       <ClosedNotice
+        className="mt-4 px-4 sm:px-6 lg:px-8 max-w-3xl lg:max-w-none mx-auto lg:mx-0"
         operatingHours={operatingHours as any}
         acceptingOff={(restaurant as any)?.accepting_orders === false}
         closedMessage={(restaurant as any)?.closed_message}
