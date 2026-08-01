@@ -10,11 +10,10 @@ import { Label } from "@/components/ui/label";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Crown, User, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
+import { Save, User, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
-import DangerZone from "@/components/settings/DangerZone";
 import { menuUrl, isReservedSlug } from "@/lib/publicMenuUrl";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -39,9 +38,6 @@ const Settings = () => {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerPhone, setOwnerPhone] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
 
   const [whatsappProvider, setWhatsappProvider] = useState("");
@@ -81,21 +77,9 @@ const Settings = () => {
     },
   });
 
-  const { data: subscription } = useQuery({
-    queryKey: ["subscription", rid],
-    enabled: !!rid,
-    queryFn: async () => {
-      const { data } = await supabase.from("subscriptions").select("*").eq("restaurant_id", rid!).maybeSingle();
-      return data;
-    },
-  });
-
   useEffect(() => {
     if (restaurant) {
       setName(restaurant.name);
-      setOwnerName((restaurant as any).owner_name ?? "");
-      setOwnerPhone((restaurant as any).owner_phone ?? "");
-      setOwnerEmail((restaurant as any).owner_email ?? "");
 
       const pm = (restaurant as any).payment_methods;
       if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
@@ -164,7 +148,7 @@ const Settings = () => {
       }
 
       const payload: any = {
-        name, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
+        name,
         payment_methods: paymentMethods,
 
         dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
@@ -226,62 +210,27 @@ const Settings = () => {
     );
   };
 
-  const planLabels: Record<string, string> = { free: "Gratuito", starter: "Starter", pro: "Profissional", enterprise: "Enterprise" };
-  const statusLabels: Record<string, string> = { active: "Ativo", inactive: "Inativo", trial: "Trial", expired: "Expirado" };
 
   return (
     <AdminLayout>
       <PageShell className="max-w-2xl">
-        <PageHeader emoji="⚙️" title="Configurações" subtitle="Dados do restaurante, horários, pagamentos e integrações." />
+        <PageHeader emoji="⚙️" title="Configurações do estabelecimento" subtitle="Endereço do cardápio, horários, atendimento, pagamentos e integrações." />
 
         <div className="space-y-8">
-          {/* Plan Status */}
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Crown className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Plano</h2>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <p className="text-lg font-bold">{planLabels[subscription?.plan ?? "free"] ?? subscription?.plan ?? "Gratuito"}</p>
-                <p className="text-sm text-muted-foreground">
-                  Status: <span className={`font-medium ${subscription?.status === "active" ? "text-green-500" : "text-destructive"}`}>
-                    {statusLabels[subscription?.status ?? "active"] ?? subscription?.status ?? "Ativo"}
-                  </span>
-                </p>
-                {subscription?.expires_at && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Expira em: {new Date(subscription.expires_at).toLocaleDateString("pt-BR")}
-                  </p>
-                )}
-                {subscription?.started_at && (
-                  <p className="text-xs text-muted-foreground">
-                    Início: {new Date(subscription.started_at).toLocaleDateString("pt-BR")}
-                  </p>
-                )}
-              </div>
+          {/* Atalho para o perfil */}
+          <div className="glass-card p-6 flex items-start gap-3">
+            <User className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Dados pessoais e plano</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Nome de exibição, contato do responsável, plano e exclusão de conta agora ficam no seu perfil.
+              </p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/perfil")}>
+                Abrir meu perfil
+              </Button>
             </div>
           </div>
 
-          {/* Owner info */}
-          <div className="glass-card p-6 space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <User className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Responsável</h2>
-            </div>
-            <div>
-              <Label>Nome do Responsável</Label>
-              <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="mt-1" placeholder="Nome completo" />
-            </div>
-            <div>
-              <Label>Telefone</Label>
-              <Input value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} className="mt-1" placeholder="(11) 99999-9999" />
-            </div>
-            <div>
-              <Label>E-mail</Label>
-              <Input value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} className="mt-1" placeholder="responsavel@email.com" />
-            </div>
-          </div>
 
           {/* Restaurant info */}
           <div className="glass-card p-6 space-y-4">
@@ -590,8 +539,6 @@ const Settings = () => {
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
-
-          <DangerZone />
         </div>
       </PageShell>
     </AdminLayout>

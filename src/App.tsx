@@ -20,6 +20,7 @@ import Automations from "./pages/Automations";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import NotificationSettings from "./pages/NotificationSettings";
 import OrderTracking from "./pages/OrderTracking";
 import ResetPassword from "./pages/ResetPassword";
@@ -99,6 +100,7 @@ const App = () => (
             <Route path="/automations" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Automations /></ProtectedRoute>} />
             <Route path="/agenda" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Agenda /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Settings /></ProtectedRoute>} />
+            <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
             <Route path="/expediente" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Expediente /></ProtectedRoute>} />
             <Route path="/expediente/historico" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><ExpedienteHistorico /></ProtectedRoute>} />
