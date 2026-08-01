@@ -475,8 +475,12 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         {isAdmin && (
           <SectionCard
             className="xl:sticky xl:top-4"
-            title={updatesOnly ? "Nova atualização" : "Novo aviso"}
-            description="Preencha as etapas abaixo e publique."
+            title={editingId ? "Editando aviso" : updatesOnly ? "Nova atualização" : "Novo aviso"}
+            description={
+              editingId
+                ? "As alterações substituem o aviso já publicado."
+                : "Preencha as etapas abaixo e publique."
+            }
             bodyClassName="space-y-3"
           >
             <StepBlock
