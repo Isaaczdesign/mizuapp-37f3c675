@@ -1098,6 +1098,8 @@ export type Database = {
           cta_url: string | null
           ends_at: string | null
           id: string
+          media_loop: boolean
+          media_poster: string | null
           media_type: string
           media_url: string | null
           show_modal: boolean
@@ -1117,6 +1119,8 @@ export type Database = {
           cta_url?: string | null
           ends_at?: string | null
           id?: string
+          media_loop?: boolean
+          media_poster?: string | null
           media_type?: string
           media_url?: string | null
           show_modal?: boolean
@@ -1136,6 +1140,8 @@ export type Database = {
           cta_url?: string | null
           ends_at?: string | null
           id?: string
+          media_loop?: boolean
+          media_poster?: string | null
           media_type?: string
           media_url?: string | null
           show_modal?: boolean
