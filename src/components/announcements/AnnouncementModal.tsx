@@ -224,16 +224,16 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             )}
           </div>
 
-          {/* Mídia — base no mobile, direita no desktop */}
+          {/* Mídia — topo no mobile (widescreen) / base, direita no desktop */}
           {hasMedia && (
             <div
               key={`${current.id ?? safeIndex}-media`}
-              className={`relative order-2 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
+              className={`relative flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
                 isPortrait
-                  ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
+                  ? "order-2 min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
                   : isWideLandscape
-                    ? "min-h-[50vh] max-h-[60vh] md:max-h-[78vh]"
-                    : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
+                    ? "order-1 max-h-[45vh] md:order-2 md:min-h-[50vh] md:max-h-[78vh]"
+                    : "order-2 min-h-48 max-h-[55vh] md:max-h-[62vh]"
               }`}
             >
               {type === "image" ? (
@@ -245,7 +245,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                     isPortrait
                       ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
                       : isWideLandscape
-                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        ? "max-h-[45vh] md:min-h-[50vh] md:max-h-[78vh]"
                         : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
                   }`}
                   decoding="async"
@@ -267,7 +267,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                     isPortrait
                       ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]"
                       : isWideLandscape
-                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        ? "max-h-[45vh] md:min-h-[50vh] md:max-h-[78vh]"
                         : "max-h-[55vh] md:max-h-[62vh]"
                   }
                   onAspectRatio={handleAspectRatio}
