@@ -26,19 +26,29 @@ const defaultHours: OperatingHours = Object.fromEntries(
 );
 
 const STEPS = [
-  { icon: Store, label: "Identidade" },
-  { icon: Clock, label: "Horários" },
-  { icon: UtensilsCrossed, label: "Cardápio" },
-  { icon: CreditCard, label: "Pagamento" },
-  { icon: QrCode, label: "Link & QR" },
-  { icon: ShoppingCart, label: "Teste" },
+  { icon: Store, label: "Identidade", title: "Identidade do restaurante", subtitle: "Nome, logo e cor que aparecem no cardápio digital." },
+  { icon: Clock, label: "Horários", title: "Horários e modalidades", subtitle: "Quando você abre e como o cliente recebe o pedido." },
+  { icon: UtensilsCrossed, label: "Cardápio", title: "Monte seu cardápio", subtitle: "Importe com IA ou crie manualmente no painel." },
+  { icon: CreditCard, label: "Pagamento", title: "Formas de pagamento", subtitle: "Pagamentos no local ou online via Mercado Pago." },
+  { icon: QrCode, label: "Link & QR", title: "Sua página pública", subtitle: "Link exclusivo e QR Code para as mesas." },
+  { icon: ShoppingCart, label: "Teste", title: "Pedido de teste", subtitle: "Veja o pedido chegando no painel e na cozinha." },
 ];
 
 const PAYMENT_OPTIONS = [
-  { id: "cash", label: "Dinheiro no local", icon: "💵" },
-  { id: "pix", label: "Pix online", icon: "📱" },
-  { id: "credit_card", label: "Cartão de crédito", icon: "💳" },
+  { id: "cash", label: "Dinheiro no local", hint: "Confirmação manual no painel", icon: "💵" },
+  { id: "pix", label: "Pix online", hint: "QR Code automático via Mercado Pago", icon: "📱" },
+  { id: "credit_card", label: "Cartão de crédito", hint: "Online com parcelamento", icon: "💳" },
 ];
+
+const READY_FEATURES = [
+  "Painel de pedidos em tempo real com notificações",
+  "Tela de cozinha (KDS) com alertas sonoros",
+  "Acompanhamento do pedido para o cliente",
+  "Delivery com rota, ETA e WhatsApp automático",
+  "CRM, cupons e relatórios de vendas",
+  "Templates de layout para o cardápio público",
+];
+
 
 export default function Onboarding() {
   const { user, profile } = useAuth();
