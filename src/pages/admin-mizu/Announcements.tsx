@@ -227,6 +227,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [slides, setSlides] = useState<AnnouncementSlide[]>(() => loadSlidesDraft());
   const [historyFilter, setHistoryFilter] = useState<"all" | StatusKey>("all");
   const [historySearch, setHistorySearch] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   // Pop-up existe apenas para atualizações.
   const modalEnabled = updatesOnly && showModal;
 
