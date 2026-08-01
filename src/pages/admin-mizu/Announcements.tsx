@@ -653,8 +653,20 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                 <AnnouncementCard title={title || "Título do aviso"} body={body || "Mensagem exibida ao restaurante."} variant={effectiveVariant} />
               )}
               <Button className="w-full" onClick={create} disabled={saving || !canPublish}>
-                {saving ? "Publicando..." : updatesOnly ? "Publicar atualização" : "Publicar aviso"}
+                {saving
+                  ? "Salvando..."
+                  : editingId
+                    ? "Salvar alterações"
+                    : updatesOnly
+                      ? "Publicar atualização"
+                      : "Publicar aviso"}
               </Button>
+              {editingId && (
+                <Button variant="ghost" className="w-full" onClick={resetForm} disabled={saving}>
+                  <X className="mr-1 h-3.5 w-3.5" />
+                  Cancelar edição
+                </Button>
+              )}
               {!canPublish && (
                 <p className="text-center text-[11px] text-muted-foreground">Preencha título e mensagem para publicar.</p>
               )}
