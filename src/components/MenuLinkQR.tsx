@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Copy, Download, QrCode, Sparkles, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { menuUrl } from "@/lib/publicMenuUrl";
 
 type Props = {
   slug: string;

@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { usePlatformRole, logPlatformAction } from "@/hooks/usePlatformRole";
+import { menuPath } from "@/lib/publicMenuUrl";
 
 type Restaurant = {
   id: string; name: string; slug: string; owner_name: string | null; owner_email: string | null;

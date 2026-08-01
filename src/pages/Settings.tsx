@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import DangerZone from "@/components/settings/DangerZone";
+import { menuUrl, menuPath, isReservedSlug } from "@/lib/publicMenuUrl";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
