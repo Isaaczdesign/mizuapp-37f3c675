@@ -28,6 +28,6 @@ export function menuUrl(slug: string, origin?: string): string {
 
 /** Absolute URL of the public menu pre-filled for a table QR code. */
 export function tableMenuUrl(slug: string, tableToken: string, origin?: string): string {
-  return `${menuUrl(slug, origin)}?table=${encodeURIComponent(tableToken)}`;
+  return `${menuUrl(slug, origin)}?t=${encodeURIComponent(tableToken)}`;
 }
 
