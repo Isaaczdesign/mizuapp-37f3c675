@@ -104,7 +104,11 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
     const video = videoRef.current;
     setStarted(false);
     setPlaying(false);
+    setReady(false);
+    setBuffering(false);
     if (!video) return;
+    // Pré-carrega o vídeo assim que a fonte muda para evitar espera ao dar play.
+    if (video.readyState < 2) video.load();
     if (shouldAutoplay.current) void safePlay(false);
     return () => {
       video.pause();
