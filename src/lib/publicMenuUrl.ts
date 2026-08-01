@@ -5,7 +5,7 @@
 /** Top-level app paths that can never be used as a restaurant slug. */
 export const RESERVED_SLUGS = new Set([
   "auth", "dashboard", "orders", "kds", "menu-admin", "customers", "tables",
-  "automations", "agenda", "settings", "expediente", "admin-mizu", "demonstracao",
+  "automations", "agenda", "settings", "perfil", "expediente", "admin-mizu", "demonstracao",
   "reset-password", "pedido", "q", "r", "m", "dev", "api", "assets", "public",
   "login", "signup", "cadastro", "app", "www", "suporte", "sobre", "precos",
   "termos", "privacidade", "blog", "docs", "static",
