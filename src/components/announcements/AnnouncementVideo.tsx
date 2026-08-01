@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize } from "lucide-react";
 
 type Props = {
   src: string;
@@ -23,9 +23,12 @@ const saveData = () => {
 /** Vídeo do pop-up: thumbnail, autoplay controlado, loop opcional e reprodução estável no iOS. */
 export default function AnnouncementVideo({ src, poster, loop = true, title }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const wasPlayingRef = useRef(false);
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
 
   // Autoplay só quando faz sentido: desktop, sem economia de dados e sem "reduzir animações".
   const shouldAutoplay = useRef(false);
