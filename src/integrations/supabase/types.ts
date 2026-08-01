@@ -907,6 +907,9 @@ export type Database = {
           author_id: string | null
           body: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string | null
           id: string
           restaurant_id: string | null
           status: string
@@ -916,6 +919,9 @@ export type Database = {
           author_id?: string | null
           body: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           id?: string
           restaurant_id?: string | null
           status?: string
@@ -925,6 +931,9 @@ export type Database = {
           author_id?: string | null
           body?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           id?: string
           restaurant_id?: string | null
           status?: string
@@ -1725,6 +1734,18 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_platform_note: {
+        Args: { _note_id: string; _reason: string }
+        Returns: undefined
+      }
+      admin_purge_platform_note: {
+        Args: { _confirmation: string; _note_id: string; _reason: string }
+        Returns: undefined
+      }
+      admin_restore_platform_note: {
+        Args: { _note_id: string; _reason?: string }
+        Returns: undefined
+      }
       cancel_expired_pending_payments: { Args: never; Returns: number }
       cancel_public_order: {
         Args: { _reason?: string; _token: string }
