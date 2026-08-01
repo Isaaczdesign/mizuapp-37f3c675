@@ -126,7 +126,7 @@ export default function GuidedTour() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIndex((i) => Math.max(0, i - 1))}
+                onClick={() => goTo(index - 1)}
                 disabled={index === 0}
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
@@ -136,7 +136,7 @@ export default function GuidedTour() {
                   Concluir <Check className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button size="sm" onClick={() => setIndex((i) => i + 1)}>
+                <Button size="sm" onClick={() => goTo(index + 1)}>
                   Próximo <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
