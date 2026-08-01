@@ -137,9 +137,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
         poster={poster ?? undefined}
         className="h-full w-full object-cover object-center"
         playsInline
-        // @ts-expect-error atributo legado necessário no iOS antigo
-        webkit-playsinline="true"
-        x5-playsinline="true"
+        {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         disablePictureInPicture
         controls={false}
         muted={muted}
