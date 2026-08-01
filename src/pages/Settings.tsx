@@ -553,6 +553,8 @@ const Settings = () => {
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
+
+          <DangerZone />
         </div>
       </PageShell>
     </AdminLayout>
