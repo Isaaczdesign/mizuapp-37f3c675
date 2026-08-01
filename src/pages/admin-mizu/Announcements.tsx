@@ -90,7 +90,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [variant, setVariant] = useState("update");
+  const [variant, setVariant] = useState("info");
   const effectiveVariant = updatesOnly ? "update" : variant;
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
