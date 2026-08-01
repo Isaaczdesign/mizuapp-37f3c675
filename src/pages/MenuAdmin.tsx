@@ -1114,7 +1114,7 @@ const MenuAdmin = () => {
                 <Label>Descrição</Label>
                 <Textarea placeholder="Descrição do item" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} className="mt-1" rows={2} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Preço (R$) *</Label>
                   <Input type="number" step="0.01" placeholder="0.00" value={itemForm.price} onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })} className="mt-1" />
@@ -1124,12 +1124,12 @@ const MenuAdmin = () => {
                   <Input type="number" step="0.01" placeholder="0.00" value={itemForm.cost_estimate} onChange={(e) => setItemForm({ ...itemForm, cost_estimate: e.target.value })} className="mt-1" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Margem % (0-1)</Label>
                   <Input type="number" step="0.01" min="0" max="1" placeholder="0.60" value={itemForm.margin_percent} onChange={(e) => setItemForm({ ...itemForm, margin_percent: e.target.value })} className="mt-1" />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end max-sm:pb-1">
                   {formProfit !== null && (
                     <p className="text-sm text-green-400 pb-2">💰 Lucro est.: {fmt(formProfit)}</p>
                   )}
@@ -1176,6 +1176,11 @@ const MenuAdmin = () => {
                 </>
               )}
 
+            </div>
+            <div
+              className="shrink-0 border-t border-border px-5 py-3 bg-card"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+            >
               <Button className="w-full" onClick={() => saveItem.mutate(itemDialog?.mode)} disabled={!itemForm.name || !itemForm.price || saveItem.isPending}>
                 {saveItem.isPending ? "Salvando..." : "Salvar"}
               </Button>

@@ -109,7 +109,8 @@ export default function NotificationSettings() {
         try {
           const notif = new Notification("🔔 Novo Pedido!", {
             body: "Teste · Mesa 5 · Total: R$89,90",
-            icon: "/favicon.ico",
+            icon: "/mizu-icon.png",
+            badge: "/mizu-icon.png",
             tag: "test-order",
           });
           notif.onclick = () => {

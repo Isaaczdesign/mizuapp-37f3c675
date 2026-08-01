@@ -97,7 +97,8 @@ export default function OrderNotificationProvider() {
 
       const notif = new Notification(isCanceled ? "❌ Pedido cancelado" : "🔔 Novo Pedido!", {
         body,
-        icon: "/favicon.ico",
+        icon: "/mizu-icon.png",
+            badge: "/mizu-icon.png",
         tag: `order-${order.id}-${order.kind ?? "new"}`,
         requireInteraction: true,
       });
