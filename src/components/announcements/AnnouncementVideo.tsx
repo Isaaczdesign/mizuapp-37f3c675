@@ -61,7 +61,15 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
     if (!video) return false;
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
-    if (!fromUserGesture) video.muted = true;
+    video.volume = 1;
+    if (fromUserGesture) {
+      // Play a partir de um gesto do usuário pode sair com som.
+      video.muted = false;
+      setMuted(false);
+    } else {
+      video.muted = true;
+      setMuted(true);
+    }
 
     const attempt = async () => {
       try {
