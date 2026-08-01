@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Store, Upload, Clock, UtensilsCrossed, CreditCard, QrCode,
   ShoppingCart, ArrowRight, ArrowLeft, Check, Copy, Download,
-  Palette, FileText, Plus, CheckCircle2,
+  Palette, FileText, Plus, CheckCircle2, Sparkles,
 } from "lucide-react";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -26,19 +26,29 @@ const defaultHours: OperatingHours = Object.fromEntries(
 );
 
 const STEPS = [
-  { icon: Store, label: "Identidade" },
-  { icon: Clock, label: "Horários" },
-  { icon: UtensilsCrossed, label: "Cardápio" },
-  { icon: CreditCard, label: "Pagamento" },
-  { icon: QrCode, label: "Link & QR" },
-  { icon: ShoppingCart, label: "Teste" },
+  { icon: Store, label: "Identidade", title: "Identidade do restaurante", subtitle: "Nome, logo e cor que aparecem no cardápio digital." },
+  { icon: Clock, label: "Horários", title: "Horários e modalidades", subtitle: "Quando você abre e como o cliente recebe o pedido." },
+  { icon: UtensilsCrossed, label: "Cardápio", title: "Monte seu cardápio", subtitle: "Importe com IA ou crie manualmente no painel." },
+  { icon: CreditCard, label: "Pagamento", title: "Formas de pagamento", subtitle: "Pagamentos no local ou online via Mercado Pago." },
+  { icon: QrCode, label: "Link & QR", title: "Sua página pública", subtitle: "Link exclusivo e QR Code para as mesas." },
+  { icon: ShoppingCart, label: "Teste", title: "Pedido de teste", subtitle: "Veja o pedido chegando no painel e na cozinha." },
 ];
 
 const PAYMENT_OPTIONS = [
-  { id: "cash", label: "Dinheiro no local", icon: "💵" },
-  { id: "pix", label: "Pix online", icon: "📱" },
-  { id: "credit_card", label: "Cartão de crédito", icon: "💳" },
+  { id: "cash", label: "Dinheiro no local", hint: "Confirmação manual no painel", icon: "💵" },
+  { id: "pix", label: "Pix online", hint: "QR Code automático via Mercado Pago", icon: "📱" },
+  { id: "credit_card", label: "Cartão de crédito", hint: "Online com parcelamento", icon: "💳" },
 ];
+
+const READY_FEATURES = [
+  "Painel de pedidos em tempo real com notificações",
+  "Tela de cozinha (KDS) com alertas sonoros",
+  "Acompanhamento do pedido para o cliente",
+  "Delivery com rota, ETA e WhatsApp automático",
+  "CRM, cupons e relatórios de vendas",
+  "Templates de layout para o cardápio público",
+];
+
 
 export default function Onboarding() {
   const { user, profile } = useAuth();
@@ -474,9 +484,9 @@ export default function Onboarding() {
   };
 
   const slideVariants = {
-    enter: { opacity: 0, x: 40 },
-    center: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -40 },
+    enter: { opacity: 0, y: 24, filter: "blur(6px)" },
+    center: { opacity: 1, y: 0, filter: "blur(0px)" },
+    exit: { opacity: 0, y: -18, filter: "blur(6px)" },
   };
 
   if (initialLoading) {
@@ -487,24 +497,66 @@ export default function Onboarding() {
     );
   }
 
+  const current = STEPS[step];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="relative min-h-screen bg-background flex flex-col overflow-hidden">
+      {/* Ambient premium background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <motion.div
+          aria-hidden
+          className="absolute -top-40 -left-32 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]"
+          animate={{ opacity: [0.35, 0.7, 0.35], scale: [1, 1.12, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute -bottom-40 -right-24 h-[460px] w-[460px] rounded-full bg-accent/10 blur-[130px]"
+          animate={{ opacity: [0.25, 0.6, 0.25], scale: [1.08, 1, 1.08] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+
       {/* Header */}
-      <div className="border-b border-border px-4 py-4">
+      <div className="border-b border-border/60 backdrop-blur-xl bg-background/70 px-4 py-5">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-display text-lg font-bold">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+              <Sparkles className="w-3 h-3" /> Setup guiado
+            </span>
+          </motion.div>
+          <h1 className="font-display text-xl sm:text-2xl font-bold mt-3 tracking-tight">
             Bem-vindo à <span className="gradient-text">Mizu</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Você está {progress}% pronto para vender
-          </p>
-          <Progress value={progress} className="mt-3 h-2" />
+          <div className="mt-1 flex items-baseline gap-2">
+            <motion.span
+              key={progress}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-display text-lg font-bold text-primary tabular-nums"
+            >
+              {progress}%
+            </motion.span>
+            <p className="text-sm text-muted-foreground">pronto para vender</p>
+          </div>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary/70">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-primary via-primary to-accent"
+              initial={false}
+              animate={{ width: `${progress}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            />
+          </div>
         </div>
       </div>
 
       {/* Step indicators */}
-      <div className="border-b border-border px-4 py-3 overflow-x-auto">
-        <div className="max-w-2xl mx-auto flex gap-1">
+      <div className="border-b border-border/60 px-4 py-3 overflow-x-auto no-scrollbar">
+        <div className="max-w-2xl mx-auto flex gap-1.5">
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             const isDone = i < step;
@@ -512,13 +564,21 @@ export default function Onboarding() {
             return (
               <div
                 key={i}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                  isCurrent ? "bg-primary/10 text-primary" :
-                  isDone ? "text-primary/60" : "text-muted-foreground"
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  isCurrent ? "text-primary" : isDone ? "text-primary/60" : "text-muted-foreground"
                 }`}
               >
-                {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{s.label}</span>
+                {isCurrent && (
+                  <motion.span
+                    layoutId="onb-step-pill"
+                    className="absolute inset-0 rounded-full bg-primary/10 border border-primary/25"
+                    transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                  />
+                )}
+                <span className="relative flex items-center gap-1.5">
+                  {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{s.label}</span>
+                </span>
               </div>
             );
           })}
@@ -535,15 +595,27 @@ export default function Onboarding() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
+              <div className="mb-6 flex items-start gap-3">
+                <motion.div
+                  initial={{ scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                  className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary"
+                >
+                  <current.icon className="w-5 h-5" />
+                </motion.div>
+                <div>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">{current.title}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{current.subtitle}</p>
+                </div>
+              </div>
+
               {/* STEP 0: Identity */}
               {step === 0 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Identidade do Restaurante</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Configure o nome, logo e cor do seu restaurante.</p>
-                  </div>
+
 
                   <div className="glass-card p-6 space-y-5">
                     <div>
@@ -605,11 +677,6 @@ export default function Onboarding() {
               {/* STEP 1: Hours */}
               {step === 1 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Horários de Funcionamento</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Defina quando seu restaurante está aberto.</p>
-                  </div>
-
                   <div className="glass-card p-6 space-y-4">
                     <div className="space-y-3">
                       {DAY_KEYS.map((key, i) => (
@@ -680,11 +747,6 @@ export default function Onboarding() {
               {/* STEP 2: Menu */}
               {step === 2 && (
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Monte seu Cardápio</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Escolha como quer adicionar seus itens.</p>
-                  </div>
-
                   {!menuImported && !menuChoice && (
                     <div className="grid gap-4 sm:grid-cols-2">
                       <button
@@ -839,42 +901,49 @@ export default function Onboarding() {
 
               {/* STEP 3: Payment */}
               {step === 3 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Formas de Pagamento</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Selecione como seus clientes podem pagar.</p>
+                <div className="space-y-4">
+                  <div className="glass-card p-4 sm:p-6 space-y-3">
+                    {PAYMENT_OPTIONS.map((opt, i) => {
+                      const active = paymentMethods.includes(opt.id);
+                      return (
+                        <motion.button
+                          key={opt.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.07 }}
+                          whileTap={{ scale: 0.985 }}
+                          onClick={() => togglePayment(opt.id)}
+                          className={`relative w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all ${
+                            active
+                              ? "border-primary/60 bg-primary/[0.07] shadow-[0_0_0_1px_hsl(var(--primary)/0.25)]"
+                              : "border-border hover:border-primary/30 hover:bg-secondary/40"
+                          }`}
+                        >
+                          <span className="text-2xl">{opt.icon}</span>
+                          <span className="flex-1">
+                            <span className="block font-medium text-sm">{opt.label}</span>
+                            <span className="block text-xs text-muted-foreground mt-0.5">{opt.hint}</span>
+                          </span>
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
+                              active ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                            }`}
+                          >
+                            {active && <Check className="w-3.5 h-3.5" />}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
                   </div>
-
-                  <div className="glass-card p-6 space-y-3">
-                    {PAYMENT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.id}
-                        onClick={() => togglePayment(opt.id)}
-                        className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
-                          paymentMethods.includes(opt.id)
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-border/80"
-                        }`}
-                      >
-                        <span className="text-2xl">{opt.icon}</span>
-                        <span className="font-medium text-sm flex-1 text-left">{opt.label}</span>
-                        {paymentMethods.includes(opt.id) && (
-                          <Check className="w-5 h-5 text-primary" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  <p className="text-xs text-muted-foreground px-1">
+                    Pagamentos online expiram em 15 min sem confirmação e podem ser reembolsados pelo painel.
+                  </p>
                 </div>
               )}
 
               {/* STEP 4: Public Page & QR */}
               {step === 4 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Sua Página Pública</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Compartilhe com seus clientes.</p>
-                  </div>
-
+                <div className="space-y-4">
                   <div className="glass-card p-6 space-y-5">
                     <div>
                       <Label className="text-xs text-muted-foreground">Link público</Label>
@@ -886,12 +955,22 @@ export default function Onboarding() {
                           {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         </Button>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Você pode personalizar esse endereço depois em Configurações.
+                      </p>
                     </div>
 
                     <div className="flex flex-col items-center gap-4">
-                      <div className="bg-white p-4 rounded-2xl">
-                        <QRCodeSVG id="onboarding-qr" value={publicUrl} size={180} />
-                      </div>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.92, rotate: -2 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 18 }}
+                        className="relative rounded-3xl p-[2px] bg-gradient-to-br from-primary/60 via-primary/10 to-accent/50"
+                      >
+                        <div className="bg-white p-4 rounded-[22px]">
+                          <QRCodeSVG id="onboarding-qr" value={publicUrl} size={180} />
+                        </div>
+                      </motion.div>
                       <Button variant="outline" size="sm" onClick={downloadQR}>
                         <Download className="w-4 h-4 mr-2" /> Baixar QR Code
                       </Button>
@@ -902,18 +981,19 @@ export default function Onboarding() {
 
               {/* STEP 5: Test Order */}
               {step === 5 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Faça um Pedido Teste</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Simule como seus clientes vão pedir.</p>
-                  </div>
-
+                <div className="space-y-4">
                   <div className="glass-card p-6 text-center space-y-4">
                     {!testStarted && (
                       <>
-                        <ShoppingCart className="w-12 h-12 text-primary mx-auto" />
+                        <motion.div
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                          className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10"
+                        >
+                          <ShoppingCart className="w-7 h-7 text-primary" />
+                        </motion.div>
                         <p className="text-sm text-muted-foreground">
-                          Clique abaixo para simular um pedido e ver como ele aparece no painel da cozinha.
+                          Simule um pedido e veja ele chegar no painel de pedidos, na cozinha (KDS) e nas notificações.
                         </p>
                         <Button onClick={handleTestOrder}>
                           <ShoppingCart className="w-4 h-4 mr-2" /> Simular Pedido
@@ -922,33 +1002,68 @@ export default function Onboarding() {
                     )}
 
                     {testStarted && !testComplete && (
-                      <div className="space-y-3">
-                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                      <div className="space-y-3 py-2">
+                        <div className="relative mx-auto h-14 w-14">
+                          <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+                          <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                          <motion.div
+                            className="absolute inset-0 rounded-full bg-primary/20 blur-xl"
+                            animate={{ opacity: [0.3, 0.8, 0.3] }}
+                            transition={{ duration: 1.6, repeat: Infinity }}
+                          />
+                        </div>
                         <p className="text-sm text-muted-foreground">Enviando pedido teste...</p>
                       </div>
                     )}
 
                     {testComplete && (
                       <div className="space-y-3">
-                        <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-                        <h3 className="font-display font-bold">Pedido recebido!</h3>
+                        <motion.div
+                          initial={{ scale: 0.6, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 14 }}
+                        >
+                          <CheckCircle2 className="w-14 h-14 text-primary mx-auto" />
+                        </motion.div>
+                        <h3 className="font-display text-lg font-bold">Pedido recebido!</h3>
                         <p className="text-sm text-muted-foreground">
-                          Na tela da cozinha (KDS), os pedidos aparecerão em tempo real. 
-                          Você está pronto para começar a vender!
+                          Tudo funcionando. Você está pronto para começar a vender.
                         </p>
                       </div>
                     )}
                   </div>
+
+                  <div className="glass-card p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary mb-3">
+                      Já liberado na sua conta
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {READY_FEATURES.map((f, i) => (
+                        <motion.div
+                          key={f}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 * i }}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          <span>{f}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
+
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
       {/* Footer Navigation */}
-      <div className="border-t border-border px-4 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+      <div className="sticky bottom-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+
           <Button
             variant="ghost"
             onClick={() => setStep(Math.max(0, step - 1))}
