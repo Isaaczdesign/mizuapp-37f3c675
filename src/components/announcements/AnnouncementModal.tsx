@@ -228,16 +228,16 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             </div>
           </div>
 
-          {/* Mídia — topo no mobile (widescreen) / base, direita no desktop */}
+          {/* Mídia — sempre no topo no mobile, à direita no desktop */}
           {hasMedia && (
             <div
               key={`${current.id ?? safeIndex}-media`}
-              className={`relative flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
+              className={`relative order-1 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
                 isPortrait
-                  ? "order-2 min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
+                  ? "max-h-[42vh] md:min-h-[55vh] md:max-h-[85vh]"
                   : isWideLandscape
-                    ? "order-1 max-h-[45vh] md:order-2 md:min-h-[50vh] md:max-h-[78vh]"
-                    : "order-2 min-h-48 max-h-[55vh] md:max-h-[62vh]"
+                    ? "max-h-[32vh] md:min-h-[50vh] md:max-h-[78vh]"
+                    : "max-h-[36vh] md:min-h-48 md:max-h-[62vh]"
               }`}
             >
               {type === "image" ? (
@@ -247,10 +247,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   alt={current.title}
                   className={`block w-full object-contain object-center ${
                     isPortrait
-                      ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
+                      ? "max-h-[42vh] md:min-h-[55vh] md:max-h-[80vh]"
                       : isWideLandscape
-                        ? "max-h-[45vh] md:min-h-[50vh] md:max-h-[78vh]"
-                        : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
+                        ? "max-h-[32vh] md:min-h-[50vh] md:max-h-[78vh]"
+                        : "max-h-[36vh] md:max-h-[62vh]"
                   }`}
                   decoding="async"
                   onLoad={(e) => {
@@ -269,10 +269,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   title={current.title}
                   className={
                     isPortrait
-                      ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]"
+                      ? "max-h-[42vh] md:min-h-[55vh] md:max-h-[85vh]"
                       : isWideLandscape
-                        ? "max-h-[45vh] md:min-h-[50vh] md:max-h-[78vh]"
-                        : "max-h-[55vh] md:max-h-[62vh]"
+                        ? "max-h-[32vh] md:min-h-[50vh] md:max-h-[78vh]"
+                        : "max-h-[36vh] md:max-h-[62vh]"
                   }
                   onAspectRatio={handleAspectRatio}
                 />
