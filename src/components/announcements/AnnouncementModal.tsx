@@ -5,6 +5,7 @@ import { ANNOUNCEMENT_ICONS } from "@/components/announcements/AnnouncementCard"
 import { Megaphone, ArrowUpRight, ArrowRight } from "lucide-react";
 import logoMark from "@/assets/mizu-logo-mark.png";
 import AnnouncementVideo from "@/components/announcements/AnnouncementVideo";
+import { usePlatformMediaUrl } from "@/lib/platformMedia";
 
 export type AnnouncementModalData = {
   id?: string;
@@ -56,6 +57,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const total = list.length;
   const safeIndex = Math.min(index, Math.max(total - 1, 0));
   const current = list[safeIndex];
+
+  const rawMedia = current?.media_url?.trim() || null;
+  const media = usePlatformMediaUrl(rawMedia);
+  const poster = usePlatformMediaUrl(current?.media_poster ?? null);
+
   if (!current) return null;
 
   const goTo = (i: number) => {
@@ -65,9 +71,8 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const enterAnim = dir === "next" ? "animate-slide-next" : "animate-slide-prev";
 
   const Icon = ANNOUNCEMENT_ICONS[current.variant] ?? Megaphone;
-  const media = current.media_url?.trim();
   const rawType = current.media_type ?? "none";
-  const type = rawType === "image" || rawType === "video" ? rawType : media ? "image" : "none";
+  const type = rawType === "image" || rawType === "video" ? rawType : rawMedia ? "image" : "none";
   const hasMedia = !!media && type !== "none";
   const publishedAt = formatDate(current.starts_at ?? current.created_at);
   const isLast = safeIndex >= total - 1;
@@ -211,7 +216,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                 <AnnouncementVideo
                   key={media}
                   src={media!}
-                  poster={current.media_poster}
+                  poster={poster}
                   loop={current.media_loop ?? true}
                   title={current.title}
                 />
