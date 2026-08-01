@@ -23,7 +23,7 @@ const saveData = () => {
 };
 
 /** Vídeo do pop-up: thumbnail, autoplay controlado, loop opcional e reprodução estável no iOS. */
-export default function AnnouncementVideo({ src, poster, loop = true, title }: Props) {
+export default function AnnouncementVideo({ src, poster, loop = true, title, className, onAspectRatio }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wasPlayingRef = useRef(false);
