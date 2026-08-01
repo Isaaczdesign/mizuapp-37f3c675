@@ -1033,6 +1033,61 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_announcement_views: {
+        Row: {
+          announcement_id: string
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          restaurant_id: string | null
+          updated_at: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          restaurant_id?: string | null
+          updated_at?: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          restaurant_id?: string | null
+          updated_at?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_announcement_views_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "platform_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_announcement_views_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_announcement_views_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_announcements: {
         Row: {
           active: boolean
