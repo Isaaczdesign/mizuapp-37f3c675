@@ -576,6 +576,11 @@ export default function OrderTracking() {
         </div>
       </div>
 
+      {/* Avaliação — só após concluído/entregue */}
+      {isTerminal && token && <OrderReview token={token} />}
+
+
+
       {/* Cancelamento — disponível até o restaurante iniciar o preparo */}
       {order.status === "new" && (
         <div className="mt-6">
