@@ -9,6 +9,7 @@ import {
   TEXT_SECONDARY, accentFaint, accentGlow, brl as fmt, D_MICRO, EASE,
 } from "./menuTokens";
 import { useVisualViewport } from "@/hooks/useSheetViewport";
+import ThemeToggle from "@/components/ThemeToggle";
 
 
 /* ════════════════════════════════════════════════════════
@@ -62,6 +63,7 @@ export function RestaurantHero({
         <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg))] via-[hsl(var(--menu-bg)/0.6)] to-[hsl(var(--menu-bg)/0.1)]" />
 
         <div className="absolute top-4 right-4 flex items-center gap-2">
+          <ThemeToggle variant="menu" />
           <GlassIconButton label="Compartilhar" onClick={share}>
             <Share2 className="w-[18px] h-[18px]" />
           </GlassIconButton>
