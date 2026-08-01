@@ -240,7 +240,9 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   className={`block w-full object-contain object-center ${
                     isPortrait
                       ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
-                      : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
+                      : isWideLandscape
+                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
                   }`}
                   decoding="async"
                   onLoad={(e) => {
