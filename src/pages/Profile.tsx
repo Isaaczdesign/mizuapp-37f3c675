@@ -103,11 +103,10 @@ export default function Profile() {
               <Input value={user?.email ?? ""} readOnly disabled className="mt-1" />
               <p className="text-[11px] text-muted-foreground mt-1">O e-mail de login não pode ser alterado por aqui.</p>
             </div>
-            <div>
-              <Label>Permissões</Label>
-              <p className="text-sm text-muted-foreground mt-1">{(roles.length > 0 ? roles : ["owner"]).join(" · ")}</p>
-            </div>
           </div>
+
+          <ChangePassword email={user?.email} />
+
 
           {/* Responsável pelo estabelecimento */}
           {isOwner && (
