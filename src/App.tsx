@@ -7,6 +7,7 @@ import { MotionConfig } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Onboarding from "@/components/Onboarding";
 import Index from "./pages/Index";
+import Demonstracao from "./pages/Demonstracao";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
