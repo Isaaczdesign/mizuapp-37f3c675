@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { PAYMENT_LABEL } from "@/lib/paymentMethods";
+import { paymentMethodLabel } from "@/lib/paymentMethods";
 
 export interface ReceiptOrder {
   id: string;
@@ -219,7 +219,7 @@ function render(doc: jsPDF, order: ReceiptOrder, restaurant: ReceiptRestaurant, 
   row("TOTAL", `R$ ${total.toFixed(2)}`, 11, "bold", 6);
 
   if (order.payment_method) {
-    row("Pagamento", PAYMENT_LABEL[order.payment_method] ?? order.payment_method, 8);
+    row("Pagamento", paymentMethodLabel(order.payment_method, order.order_type), 8);
   }
   if (order.payment_status) {
     row("Status", order.payment_status === "paid" ? "Pago" : order.payment_status === "pending" ? "Pendente" : order.payment_status, 8);
