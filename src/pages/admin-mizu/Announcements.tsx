@@ -143,6 +143,11 @@ export function AdminNotifications() {
         ends_at: endsAt ? new Date(endsAt).toISOString() : null,
         target_scope: scope,
         target_restaurant_ids: scope === "restaurants" ? selected : [],
+        show_modal: showModal,
+        media_type: mediaType,
+        media_url: mediaUrl.trim() || null,
+        cta_label: ctaLabel.trim() || null,
+        cta_url: ctaUrl.trim() || null,
       })
       .select()
       .single();
