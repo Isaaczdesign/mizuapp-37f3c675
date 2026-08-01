@@ -7,13 +7,27 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Megaphone, Trash2, Users, Eye, CalendarClock, ChevronDown, MonitorPlay } from "lucide-react";
+import {
+  Megaphone,
+  Trash2,
+  Users,
+  Eye,
+  CalendarClock,
+  ChevronDown,
+  MonitorPlay,
+  Radio,
+  Clock3,
+  Sparkles,
+  Search,
+  PencilLine,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
-import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
+import AnnouncementSlidesEditor, { AnnouncementSlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
 import { Link } from "react-router-dom";
+import { SectionCard, StatCard, StatusPill, EmptyState, SegmentedControl } from "@/components/admin-mizu/ui";
 
 type Announcement = {
   id: string;
@@ -49,35 +63,108 @@ const PICKER_VARIANTS = VARIANTS.filter((v) => v.id !== "update");
 
 const fmt = (v: string | null) => (v ? new Date(v).toLocaleString("pt-BR") : "—");
 
-function statusOf(item: Announcement) {
+type StatusKey = "live" | "scheduled" | "expired" | "inactive";
+
+function statusOf(item: Announcement): { key: StatusKey; label: string; tone: "success" | "info" | "neutral" } {
   const now = Date.now();
-  if (!item.active) return { label: "Inativo", tone: "text-muted-foreground border-border" };
-  if (new Date(item.starts_at).getTime() > now)
-    return { label: "Agendado", tone: "text-accent border-accent/40" };
+  if (!item.active) return { key: "inactive", label: "Inativo", tone: "neutral" };
+  if (new Date(item.starts_at).getTime() > now) return { key: "scheduled", label: "Agendado", tone: "info" };
   if (item.ends_at && new Date(item.ends_at).getTime() <= now)
-    return { label: "Expirado", tone: "text-muted-foreground border-border" };
-  return { label: "No ar", tone: "text-primary border-primary/40" };
+    return { key: "expired", label: "Expirado", tone: "neutral" };
+  return { key: "live", label: "No ar", tone: "success" };
 }
 
 type Mode = "all" | "updates";
 
 function AnnouncementTabs({ mode }: { mode: Mode }) {
   const tabs: { to: string; label: string; id: Mode }[] = [
-    { to: "/admin-mizu/notificacoes", label: "Todos os avisos", id: "all" },
+    { to: "/admin-mizu/notificacoes", label: "Notificações", id: "all" },
     { to: "/admin-mizu/notificacoes/atualizacoes", label: "Atualizações", id: "updates" },
   ];
   return (
-    <div className="mb-5 inline-flex gap-1 rounded-xl border border-border p-1">
+    <div className="mb-5 inline-flex items-center gap-0.5 rounded-xl border border-border bg-background/60 p-0.5">
       {tabs.map((t) => (
         <Link
           key={t.id}
           to={t.to}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-            mode === t.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60"
+          className={`rounded-[10px] px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            mode === t.id
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
           }`}
         >
           {t.label}
         </Link>
+      ))}
+    </div>
+  );
+}
+
+function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="mb-1.5">
+      <p className="text-xs font-medium">{children}</p>
+      {hint && <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function StepBlock({
+  step,
+  title,
+  description,
+  icon: Icon,
+  children,
+}: {
+  step: number;
+  title: string;
+  description?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-background/40 p-4">
+      <div className="mb-3 flex items-start gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-[11px] font-semibold text-primary">
+          {step}
+        </span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-primary" />
+            <p className="text-xs font-semibold">{title}</p>
+          </div>
+          {description && <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{description}</p>}
+        </div>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function ChipGroup<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { id: T; label: string }[];
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          onClick={() => onChange(o.id)}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+            value === o.id
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+          }`}
+        >
+          {o.label}
+        </button>
       ))}
     </div>
   );
@@ -110,6 +197,8 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
   const [slides, setSlides] = useState<AnnouncementSlide[]>(() => loadSlidesDraft());
+  const [historyFilter, setHistoryFilter] = useState<"all" | StatusKey>("all");
+  const [historySearch, setHistorySearch] = useState("");
   // Pop-up existe apenas para atualizações.
   const modalEnabled = updatesOnly && showModal;
 
@@ -155,11 +244,26 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         )
       : restaurants;
 
-  const visibleItems = updatesOnly
+  const scopeItems = updatesOnly
     ? items.filter((i) => i.variant === "update")
     : items.filter((i) => i.variant !== "update");
 
+  const visibleItems = scopeItems.filter((i) => {
+    const matchStatus = historyFilter === "all" || statusOf(i).key === historyFilter;
+    const q = historySearch.trim().toLowerCase();
+    const matchSearch = !q || `${i.title} ${i.body}`.toLowerCase().includes(q);
+    return matchStatus && matchSearch;
+  });
+
   const viewsFor = (id: string) => views.filter((v) => v.announcement_id === id);
+
+  const stats = useMemo(() => {
+    const counts = { live: 0, scheduled: 0, inactive: 0, expired: 0 };
+    scopeItems.forEach((i) => { counts[statusOf(i).key] += 1; });
+    const ids = new Set(scopeItems.map((i) => i.id));
+    const seen = views.filter((v) => ids.has(v.announcement_id)).length;
+    return { total: scopeItems.length, ...counts, seen };
+  }, [scopeItems, views]);
 
   const create = async () => {
     if (!title.trim() || !body.trim()) {
@@ -239,6 +343,8 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
     setItems((prev) => prev.filter((i) => i.id !== item.id));
   };
 
+  const canPublish = title.trim().length > 0 && body.trim().length > 0;
+
   return (
     <AdminMizuLayout
       title={updatesOnly ? "Atualizações do Mizu" : "Avisos e notificações"}
@@ -249,314 +355,358 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
       }
     >
       <AnnouncementTabs mode={mode} />
-      {isAdmin && (
-        <div className="mb-6 space-y-3 rounded-xl border border-border p-4">
-          <div className="flex items-center gap-2">
-            <Megaphone className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">Novo aviso</h2>
-          </div>
-          <Input placeholder="Título (ex.: Nova atualização do Mizu)" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
-          <Textarea placeholder="Mensagem exibida ao dono do restaurante" value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={600} />
-          <div className={`flex-wrap items-center gap-2 ${updatesOnly ? "hidden" : "flex"}`}>
-            {PICKER_VARIANTS.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setVariant(v.id)}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
-                  variant === v.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/60"
-                }`}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
 
-          <div className={`space-y-3 rounded-lg border border-border p-3 ${updatesOnly ? "" : "hidden"}`}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <MonitorPlay className="h-4 w-4 text-primary" />
-                <p className="text-xs font-semibold">Exibir também como pop-up na tela</p>
+      {/* Resumo */}
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Publicados" value={String(stats.total)} icon={Megaphone} hint={updatesOnly ? "Atualizações criadas" : "Avisos criados"} />
+        <StatCard label="No ar agora" value={String(stats.live)} icon={Radio} accent hint="Visíveis nos painéis" />
+        <StatCard label="Agendados" value={String(stats.scheduled)} icon={Clock3} hint="Aguardando data" />
+        <StatCard label="Visualizações" value={String(stats.seen)} icon={Eye} hint="Registros de leitura" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,440px)_minmax(0,1fr)] xl:items-start">
+        {/* Composer */}
+        {isAdmin && (
+          <SectionCard
+            className="xl:sticky xl:top-4"
+            title={updatesOnly ? "Nova atualização" : "Novo aviso"}
+            description="Preencha as etapas abaixo e publique."
+            bodyClassName="space-y-3"
+          >
+            <StepBlock
+              step={1}
+              title="Conteúdo"
+              icon={PencilLine}
+              description="O que o dono do restaurante vai ler."
+            >
+              <div>
+                <FieldLabel>Título</FieldLabel>
+                <Input placeholder="Ex.: Nova atualização do Mizu" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
               </div>
-              <Switch checked={showModal} onCheckedChange={setShowModal} aria-label="Exibir pop-up" />
-            </div>
-            {showModal && (
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-2">
-                  {([
-                    { id: "none", label: "Sem mídia" },
-                    { id: "image", label: "Imagem" },
-                    { id: "video", label: "Vídeo" },
-                  ] as const).map((o) => (
-                    <button
-                      key={o.id}
-                      onClick={() => setMediaType(o.id)}
-                      className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
-                        mediaType === o.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/60"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
+              <div>
+                <FieldLabel hint={`${body.length}/600 caracteres`}>Mensagem</FieldLabel>
+                <Textarea placeholder="Descreva a novidade em poucas linhas" value={body} onChange={(e) => setBody(e.target.value)} rows={4} maxLength={600} />
+              </div>
+              {!updatesOnly && (
+                <div>
+                  <FieldLabel hint="Define a cor e o ícone do aviso no painel.">Tipo do aviso</FieldLabel>
+                  <ChipGroup value={variant} onChange={setVariant} options={PICKER_VARIANTS} />
                 </div>
-                {mediaType !== "none" && (
-                  <div className="space-y-2">
-                    <MediaUploader
-                      kind={mediaType}
-                      value={mediaUrl}
-                      onChange={setMediaUrl}
-                      label={mediaType === "video" ? "Vídeo do pop-up" : "Imagem do pop-up"}
-                    />
-                    <Input
-                      placeholder={
-                        mediaType === "video" ? "Ou cole a URL do vídeo (.mp4)" : "Ou cole a URL da imagem"
-                      }
-                      value={mediaUrl}
-                      onChange={(e) => setMediaUrl(e.target.value)}
-                    />
-                    {mediaType === "video" && (
-                      <>
+              )}
+            </StepBlock>
+
+            {updatesOnly && (
+              <StepBlock
+                step={2}
+                title="Pop-up e mídia"
+                icon={MonitorPlay}
+                description="A atualização abre em tela cheia para o restaurante."
+              >
+                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                  <p className="text-xs">Exibir como pop-up</p>
+                  <Switch checked={showModal} onCheckedChange={setShowModal} aria-label="Exibir pop-up" />
+                </div>
+                {showModal && (
+                  <>
+                    <div>
+                      <FieldLabel>Mídia principal</FieldLabel>
+                      <ChipGroup
+                        value={mediaType}
+                        onChange={setMediaType}
+                        options={[
+                          { id: "none", label: "Sem mídia" },
+                          { id: "image", label: "Imagem" },
+                          { id: "video", label: "Vídeo" },
+                        ]}
+                      />
+                    </div>
+                    {mediaType !== "none" && (
+                      <div className="space-y-2">
                         <MediaUploader
-                          kind="image"
-                          value={mediaPoster}
-                          onChange={setMediaPoster}
-                          label="Miniatura do vídeo (opcional)"
-                          hint="Aparece antes do play — JPG/PNG quadrado"
+                          kind={mediaType}
+                          value={mediaUrl}
+                          onChange={setMediaUrl}
+                          label={mediaType === "video" ? "Vídeo do pop-up" : "Imagem do pop-up"}
                         />
-                        <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                          <p className="text-xs text-muted-foreground">Repetir vídeo automaticamente (loop)</p>
-                          <Switch checked={mediaLoop} onCheckedChange={setMediaLoop} aria-label="Loop do vídeo" />
-                        </div>
-                      </>
+                        <Input
+                          placeholder={mediaType === "video" ? "Ou cole a URL do vídeo (.mp4)" : "Ou cole a URL da imagem"}
+                          value={mediaUrl}
+                          onChange={(e) => setMediaUrl(e.target.value)}
+                        />
+                        {mediaType === "video" && (
+                          <>
+                            <MediaUploader
+                              kind="image"
+                              value={mediaPoster}
+                              onChange={setMediaPoster}
+                              label="Miniatura do vídeo (opcional)"
+                              hint="Aparece antes do play — JPG/PNG"
+                            />
+                            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                              <p className="text-xs text-muted-foreground">Repetir vídeo (loop)</p>
+                              <Switch checked={mediaLoop} onCheckedChange={setMediaLoop} aria-label="Loop do vídeo" />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <div>
+                      <FieldLabel hint="Opcional — leva o restaurante para uma página.">Botão de ação</FieldLabel>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Input placeholder="Texto do botão" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
+                        <Input placeholder="Link do botão" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
+                      </div>
+                    </div>
+                    <AnnouncementSlidesEditor slides={slides} onChange={setSlides} />
+                  </>
+                )}
+              </StepBlock>
+            )}
+
+            <StepBlock
+              step={updatesOnly ? 3 : 2}
+              title="Público-alvo"
+              icon={Users}
+              description="Escolha quais restaurantes recebem."
+            >
+              <ChipGroup
+                value={scope}
+                onChange={setScope}
+                options={[
+                  { id: "all", label: "Todos os restaurantes" },
+                  { id: "restaurants", label: "Selecionar restaurantes" },
+                ]}
+              />
+              {scope === "restaurants" && (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className="pl-8"
+                      placeholder="Buscar por nome ou link"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+                    {filteredRestaurants.length === 0 ? (
+                      <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante encontrado.</p>
+                    ) : (
+                      filteredRestaurants.map((r) => (
+                        <label
+                          key={r.id}
+                          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-muted/60"
+                        >
+                          <Checkbox checked={selected.includes(r.id)} onCheckedChange={() => toggleRestaurant(r.id)} />
+                          <span className="min-w-0 flex-1 truncate">{r.name}</span>
+                          <span className="shrink-0 text-[10px] text-muted-foreground">/{r.slug}</span>
+                        </label>
+                      ))
                     )}
                   </div>
-                )}
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Input placeholder="Texto do botão (opcional)" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
-                  <Input placeholder="Link do botão (opcional)" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
+                  <p className="text-[11px] text-muted-foreground">{selected.length} restaurante(s) selecionado(s).</p>
                 </div>
-                <AnnouncementSlidesEditor slides={slides} onChange={setSlides} />
-              </div>
-            )}
-          </div>
+              )}
+            </StepBlock>
 
-          {updatesOnly ? (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-3">
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-primary" />
-                <p className="text-xs font-semibold">Prévia do pop-up de atualização</p>
+            <StepBlock
+              step={updatesOnly ? 4 : 3}
+              title="Agendamento"
+              icon={CalendarClock}
+              description="O aviso aparece e some sozinho conforme as datas."
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Publicar em</FieldLabel>
+                  <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Vazio = agora</p>
+                </div>
+                <div>
+                  <FieldLabel>Expira em</FieldLabel>
+                  <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Opcional</p>
+                </div>
               </div>
-              {showModal && (
-                <Button variant="outline" size="sm" onClick={() => setPreviewModal(true)}>
+            </StepBlock>
+
+            {/* Prévia + publicar */}
+            <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+              <div className="flex items-center gap-1.5">
+                <Eye className="h-3.5 w-3.5 text-primary" />
+                <p className="text-xs font-semibold">{updatesOnly ? "Prévia do pop-up" : "Prévia no painel"}</p>
+              </div>
+              {updatesOnly ? (
+                <Button variant="outline" size="sm" disabled={!showModal || !canPublish} onClick={() => setPreviewModal(true)}>
                   Ver prévia do pop-up
                 </Button>
+              ) : (
+                <AnnouncementCard title={title || "Título do aviso"} body={body || "Mensagem exibida ao restaurante."} variant={effectiveVariant} />
+              )}
+              <Button className="w-full" onClick={create} disabled={saving || !canPublish}>
+                {saving ? "Publicando..." : updatesOnly ? "Publicar atualização" : "Publicar aviso"}
+              </Button>
+              {!canPublish && (
+                <p className="text-center text-[11px] text-muted-foreground">Preencha título e mensagem para publicar.</p>
               )}
             </div>
-          ) : (
-            <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-primary" />
-                <p className="text-xs font-semibold">Prévia no topo do painel</p>
-              </div>
-              <AnnouncementCard title={title} body={body} variant={effectiveVariant} />
+
+            <AnnouncementModal
+              open={previewModal}
+              onOpenChange={setPreviewModal}
+              items={[
+                {
+                  title,
+                  body,
+                  variant: effectiveVariant,
+                  media_url: mediaUrl,
+                  media_type: mediaType,
+                  media_poster: mediaPoster,
+                  media_loop: mediaLoop,
+                  cta_label: ctaLabel,
+                  cta_url: ctaUrl,
+                },
+                ...slides
+                  .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
+                  .map((sl) => ({ ...sl, variant: effectiveVariant })),
+              ]}
+            />
+          </SectionCard>
+        )}
+
+        {/* Histórico */}
+        <SectionCard
+          title={updatesOnly ? "Histórico de atualizações" : "Histórico de avisos"}
+          description={`${visibleItems.length} de ${scopeItems.length} exibidos`}
+          bodyClassName="space-y-3"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl
+              value={historyFilter}
+              onChange={setHistoryFilter}
+              options={[
+                { id: "all", label: "Todos" },
+                { id: "live", label: "No ar" },
+                { id: "scheduled", label: "Agendados" },
+                { id: "expired", label: "Expirados" },
+                { id: "inactive", label: "Inativos" },
+              ]}
+            />
+            <div className="relative min-w-[180px] flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder="Buscar no histórico"
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+              />
             </div>
-          )}
+          </div>
 
-          <AnnouncementModal
-            open={previewModal}
-            onOpenChange={setPreviewModal}
-            items={[
-              {
-                title,
-                body,
-                variant: effectiveVariant,
-                media_url: mediaUrl,
-                media_type: mediaType,
-                media_poster: mediaPoster,
-                media_loop: mediaLoop,
-                cta_label: ctaLabel,
-                cta_url: ctaUrl,
-              },
-              ...slides
-                .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
-                .map((sl) => ({ ...sl, variant: effectiveVariant })),
-            ]}
-          />
-
-
-
-          <div className="space-y-2 rounded-lg border border-border p-3">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              <p className="text-xs font-semibold">Quem recebe este aviso</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {([
-                { id: "all", label: "Todos os restaurantes" },
-                { id: "restaurants", label: "Restaurantes selecionados" },
-              ] as const).map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => setScope(o.id)}
-                  className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
-                    scope === o.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  {o.label}
-                </button>
+          {loading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-24 animate-pulse rounded-xl border border-border bg-muted/20" />
               ))}
             </div>
+          ) : visibleItems.length === 0 ? (
+            <EmptyState
+              icon={updatesOnly ? Sparkles : Megaphone}
+              title={scopeItems.length === 0 ? "Nada publicado ainda" : "Nenhum resultado"}
+              description={
+                scopeItems.length === 0
+                  ? "Crie o primeiro comunicado no formulário ao lado."
+                  : "Ajuste a busca ou o filtro de status."
+              }
+            />
+          ) : (
+            <div className="space-y-2.5">
+              {visibleItems.map((item) => {
+                const st = statusOf(item);
+                const audience = audienceFor(item);
+                const itemViews = viewsFor(item.id);
+                const seenIds = new Set(itemViews.map((v) => v.restaurant_id));
+                const seenCount = audience.filter((r) => seenIds.has(r.id)).length;
+                const pct = audience.length ? Math.round((seenCount / audience.length) * 100) : 0;
+                const isOpen = expanded === item.id;
+                return (
+                  <div key={item.id} className="rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold">{item.title}</p>
+                          <StatusPill tone={st.tone}>{st.label}</StatusPill>
+                          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {VARIANTS.find((v) => v.id === item.variant)?.label ?? item.variant}
+                          </span>
+                          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                            {item.target_scope === "restaurants"
+                              ? `${item.target_restaurant_ids?.length ?? 0} restaurante(s)`
+                              : "Todos"}
+                          </span>
+                        </div>
+                        <p className="mt-1.5 line-clamp-3 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+                          {item.body}
+                        </p>
+                        <dl className="mt-3 grid gap-x-4 gap-y-1 text-[11px] text-muted-foreground sm:grid-cols-3">
+                          <div><dt className="inline font-medium text-foreground/70">Publicação: </dt><dd className="inline">{fmt(item.starts_at)}</dd></div>
+                          <div><dt className="inline font-medium text-foreground/70">Expira: </dt><dd className="inline">{fmt(item.ends_at)}</dd></div>
+                          <div><dt className="inline font-medium text-foreground/70">Criado: </dt><dd className="inline">{fmt(item.created_at)}</dd></div>
+                        </dl>
+                      </div>
+                      {isAdmin && (
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Switch checked={item.active} onCheckedChange={(v) => toggle(item, v)} aria-label="Ativar aviso" />
+                          <Button variant="ghost" size="icon" onClick={() => remove(item)} aria-label="Excluir aviso">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
 
-            {scope === "restaurants" && (
-              <div className="space-y-2">
-                <Input
-                  placeholder="Buscar restaurante por nome ou link"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
-                  {filteredRestaurants.length === 0 ? (
-                    <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante encontrado.</p>
-                  ) : (
-                    filteredRestaurants.map((r) => (
-                      <label
-                        key={r.id}
-                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-muted/60"
+                    <div className="mt-3 rounded-lg border border-border/70 bg-muted/20 p-2.5">
+                      <button
+                        onClick={() => setExpanded(isOpen ? null : item.id)}
+                        className="flex w-full items-center gap-2 text-[11px] font-medium text-primary"
                       >
-                        <Checkbox
-                          checked={selected.includes(r.id)}
-                          onCheckedChange={() => toggleRestaurant(r.id)}
-                        />
-                        <span className="min-w-0 flex-1 truncate">{r.name}</span>
-                        <span className="shrink-0 text-[10px] text-muted-foreground">/{r.slug}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  {selected.length} restaurante(s) selecionado(s).
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2 rounded-lg border border-border p-3">
-            <div className="flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-primary" />
-              <p className="text-xs font-semibold">Agendamento</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-[11px] text-muted-foreground">Publicar em (vazio = agora)</label>
-                <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] text-muted-foreground">Expira em (opcional)</label>
-                <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              O banner aparece e some sozinho de acordo com essas datas.
-            </p>
-          </div>
-
-          <div className="flex justify-end">
-            <Button onClick={create} disabled={saving}>
-              {saving ? "Publicando..." : "Publicar aviso"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <h2 className="mb-2 text-sm font-semibold">
-        {updatesOnly ? "Histórico de atualizações" : "Histórico de avisos"}
-      </h2>
-
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      ) : visibleItems.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center">
-          <Megaphone className="mx-auto h-6 w-6 text-primary" />
-          <p className="mt-3 text-sm text-muted-foreground">Nenhum aviso publicado ainda.</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {visibleItems.map((item) => {
-            const st = statusOf(item);
-            const audience = audienceFor(item);
-            const itemViews = viewsFor(item.id);
-            const seenIds = new Set(itemViews.map((v) => v.restaurant_id));
-            const seenCount = audience.filter((r) => seenIds.has(r.id)).length;
-            const isOpen = expanded === item.id;
-            return (
-              <div key={item.id} className="rounded-xl border border-border p-4">
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold">{item.title}</p>
-                      <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${st.tone}`}>
-                        {st.label}
-                      </span>
-                      <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                        {VARIANTS.find((v) => v.id === item.variant)?.label ?? item.variant}
-                      </span>
-                      <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
-                        {item.target_scope === "restaurants"
-                          ? `${item.target_restaurant_ids?.length ?? 0} restaurante(s)`
-                          : "Todos"}
-                      </span>
+                        <Eye className="h-3.5 w-3.5" />
+                        Visualizações: {seenCount}/{audience.length} ({pct}%)
+                        <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                      </button>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
+                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                      {isOpen && (
+                        <div className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-lg border border-border bg-background/60 p-2">
+                          {audience.length === 0 ? (
+                            <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante no público-alvo.</p>
+                          ) : (
+                            audience.map((r) => {
+                              const v = itemViews.find((x) => x.restaurant_id === r.id);
+                              return (
+                                <div key={r.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs">
+                                  <span className="min-w-0 flex-1 truncate">{r.name}</span>
+                                  {v ? (
+                                    <span className="shrink-0 text-[10px] text-primary">
+                                      Visualizou em {fmt(v.viewed_at)}
+                                      {v.dismissed_at ? " · dispensado" : ""}
+                                    </span>
+                                  ) : (
+                                    <span className="shrink-0 text-[10px] text-muted-foreground">Ainda não recarregou</span>
+                                  )}
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{item.body}</p>
-                    <p className="mt-2 text-[11px] text-muted-foreground">
-                      Publicação: {fmt(item.starts_at)} · Expira: {fmt(item.ends_at)} · Criado em {fmt(item.created_at)}
-                    </p>
-                    <button
-                      onClick={() => setExpanded(isOpen ? null : item.id)}
-                      className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                      Visualizações: {seenCount}/{audience.length}
-                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                    </button>
                   </div>
-                  {isAdmin && (
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Switch checked={item.active} onCheckedChange={(v) => toggle(item, v)} aria-label="Ativar aviso" />
-                      <Button variant="ghost" size="icon" onClick={() => remove(item)} aria-label="Excluir aviso">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {isOpen && (
-                  <div className="mt-3 max-h-64 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
-                    {audience.length === 0 ? (
-                      <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante no público-alvo.</p>
-                    ) : (
-                      audience.map((r) => {
-                        const v = itemViews.find((x) => x.restaurant_id === r.id);
-                        return (
-                          <div key={r.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs">
-                            <span className="min-w-0 flex-1 truncate">{r.name}</span>
-                            {v ? (
-                              <span className="shrink-0 text-[10px] text-primary">
-                                Visualizou em {fmt(v.viewed_at)}
-                                {v.dismissed_at ? " · dispensado" : ""}
-                              </span>
-                            ) : (
-                              <span className="shrink-0 text-[10px] text-muted-foreground">Ainda não recarregou</span>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                );
+              })}
+            </div>
+          )}
+        </SectionCard>
+      </div>
     </AdminMizuLayout>
   );
 }
