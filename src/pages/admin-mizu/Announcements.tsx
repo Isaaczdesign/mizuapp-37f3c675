@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
+import { Link } from "react-router-dom";
 
 type Announcement = {
   id: string;
@@ -54,7 +55,32 @@ function statusOf(item: Announcement) {
   return { label: "No ar", tone: "text-primary border-primary/40" };
 }
 
-export function AdminNotifications() {
+type Mode = "all" | "updates";
+
+function AnnouncementTabs({ mode }: { mode: Mode }) {
+  const tabs: { to: string; label: string; id: Mode }[] = [
+    { to: "/admin-mizu/notificacoes", label: "Todos os avisos", id: "all" },
+    { to: "/admin-mizu/notificacoes/atualizacoes", label: "Atualizações", id: "updates" },
+  ];
+  return (
+    <div className="mb-5 inline-flex gap-1 rounded-xl border border-border p-1">
+      {tabs.map((t) => (
+        <Link
+          key={t.id}
+          to={t.to}
+          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === t.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60"
+          }`}
+        >
+          {t.label}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
+  const updatesOnly = mode === "updates";
   const { isAdmin } = usePlatformRole();
   const [items, setItems] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +88,7 @@ export function AdminNotifications() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [variant, setVariant] = useState("update");
+  const effectiveVariant = updatesOnly ? "update" : variant;
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [scope, setScope] = useState<"all" | "restaurants">("all");
@@ -121,6 +148,8 @@ export function AdminNotifications() {
         )
       : restaurants;
 
+  const visibleItems = updatesOnly ? items.filter((i) => i.variant === "update") : items;
+
   const viewsFor = (id: string) => views.filter((v) => v.announcement_id === id);
 
   const create = async () => {
@@ -142,7 +171,7 @@ export function AdminNotifications() {
       .insert({
         title: title.trim(),
         body: body.trim(),
-        variant,
+        variant: effectiveVariant,
         starts_at: startsAt ? new Date(startsAt).toISOString() : new Date().toISOString(),
         ends_at: endsAt ? new Date(endsAt).toISOString() : null,
         target_scope: scope,
@@ -188,9 +217,14 @@ export function AdminNotifications() {
 
   return (
     <AdminMizuLayout
-      title="Avisos e notificações"
-      description="Publique, agende e acompanhe os comunicados exibidos no painel dos restaurantes."
+      title={updatesOnly ? "Atualizações do Mizu" : "Avisos e notificações"}
+      description={
+        updatesOnly
+          ? "Comunique novidades e melhorias da plataforma em pop-up para os restaurantes."
+          : "Publique, agende e acompanhe os comunicados exibidos no painel dos restaurantes."
+      }
     >
+      <AnnouncementTabs mode={mode} />
       {isAdmin && (
         <div className="mb-6 space-y-3 rounded-xl border border-border p-4">
           <div className="flex items-center gap-2">
@@ -199,7 +233,7 @@ export function AdminNotifications() {
           </div>
           <Input placeholder="Título (ex.: Nova atualização do Mizu)" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
           <Textarea placeholder="Mensagem exibida ao dono do restaurante" value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={600} />
-          <div className="flex flex-wrap items-center gap-2">
+          <div className={`flex-wrap items-center gap-2 ${updatesOnly ? "hidden" : "flex"}`}>
             {VARIANTS.map((v) => (
               <button
                 key={v.id}
@@ -292,7 +326,7 @@ export function AdminNotifications() {
                 </Button>
               )}
             </div>
-            <AnnouncementCard title={title} body={body} variant={variant} />
+            <AnnouncementCard title={title} body={body} variant={effectiveVariant} />
           </div>
 
           <AnnouncementModal
@@ -301,7 +335,7 @@ export function AdminNotifications() {
             data={{
               title,
               body,
-              variant,
+              variant: effectiveVariant,
               media_url: mediaUrl,
               media_type: mediaType,
               media_poster: mediaPoster,
@@ -395,18 +429,20 @@ export function AdminNotifications() {
         </div>
       )}
 
-      <h2 className="mb-2 text-sm font-semibold">Histórico de avisos</h2>
+      <h2 className="mb-2 text-sm font-semibold">
+        {updatesOnly ? "Histórico de atualizações" : "Histórico de avisos"}
+      </h2>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
-      ) : items.length === 0 ? (
+      ) : visibleItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center">
           <Megaphone className="mx-auto h-6 w-6 text-primary" />
           <p className="mt-3 text-sm text-muted-foreground">Nenhum aviso publicado ainda.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const st = statusOf(item);
             const audience = audienceFor(item);
             const itemViews = viewsFor(item.id);
