@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 type Props = {
@@ -20,7 +20,7 @@ const saveData = () => {
   return !!c?.saveData || /2g/.test(c?.effectiveType ?? "");
 };
 
-/** Vídeo do pop-up: thumbnail, autoplay controlado e loop opcional — leve no mobile. */
+/** Vídeo do pop-up: thumbnail, autoplay controlado, loop opcional e reprodução estável no iOS. */
 export default function AnnouncementVideo({ src, poster, loop = true, title }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [started, setStarted] = useState(false);
@@ -33,30 +33,86 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
     shouldAutoplay.current = !isCoarsePointer() && !prefersReducedMotion() && !saveData();
   }
 
+  /**
+   * iOS/Safari só inicia a reprodução se o elemento estiver mudo, inline e com
+   * metadata carregada. Também precisamos reagir à promessa de play() e a
+   * interrupções (AbortError ao trocar de aba / fechar o modal).
+   */
+  const safePlay = useCallback(async (fromUserGesture: boolean) => {
+    const video = videoRef.current;
+    if (!video) return false;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    if (!fromUserGesture) video.muted = true;
+
+    const attempt = async () => {
+      try {
+        await video.play();
+        return true;
+      } catch {
+        // Última tentativa: forçar mudo (regra de autoplay do iOS).
+        if (!video.muted) {
+          video.muted = true;
+          setMuted(true);
+          try {
+            await video.play();
+            return true;
+          } catch {
+            return false;
+          }
+        }
+        return false;
+      }
+    };
+
+    if (video.readyState < 1) {
+      video.load();
+      await new Promise<void>((resolve) => {
+        const done = () => resolve();
+        video.addEventListener("loadedmetadata", done, { once: true });
+        window.setTimeout(done, 1200);
+      });
+    }
+
+    const ok = await attempt();
+    if (ok) {
+      setStarted(true);
+      setPlaying(true);
+    }
+    return ok;
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !shouldAutoplay.current) return;
-    video.muted = true;
-    video
-      .play()
-      .then(() => {
-        setStarted(true);
-        setPlaying(true);
-      })
-      .catch(() => setPlaying(false));
+    setStarted(false);
+    setPlaying(false);
+    if (!video) return;
+    if (shouldAutoplay.current) void safePlay(false);
     return () => {
       video.pause();
     };
-  }, [src]);
+  }, [src, safePlay]);
+
+  // iOS pausa o vídeo ao sair da aba; retoma quando ela volta a ficar visível.
+  useEffect(() => {
+    const onVisible = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      if (document.hidden) {
+        video.pause();
+      } else if (started && playing) {
+        void video.play().catch(() => undefined);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [started, playing]);
 
   const toggle = () => {
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      video.play().then(() => {
-        setStarted(true);
-        setPlaying(true);
-      }).catch(() => undefined);
+      void safePlay(true);
     } else {
       video.pause();
       setPlaying(false);
@@ -66,22 +122,31 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
   const toggleSound = () => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = !video.muted;
-    setMuted(video.muted);
+    const next = !video.muted;
+    video.muted = next;
+    setMuted(next);
+    // Ativar som no iOS exige que o play parta do gesto do usuário.
+    if (!next && video.paused) void safePlay(true);
   };
 
   return (
-    <div className="group relative aspect-square w-full overflow-hidden bg-brand-ink">
+    <div className="group relative w-full overflow-hidden bg-brand-ink aspect-[4/3] max-h-[52vh] sm:aspect-square sm:max-h-none">
       <video
         ref={videoRef}
         src={src}
         poster={poster ?? undefined}
         className="h-full w-full object-cover object-center"
         playsInline
+        {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
+        disablePictureInPicture
+        controls={false}
         muted={muted}
         loop={loop}
         preload={shouldAutoplay.current ? "auto" : "metadata"}
-        onPlay={() => setPlaying(true)}
+        onPlay={() => {
+          setStarted(true);
+          setPlaying(true);
+        }}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
       />
@@ -94,9 +159,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
           aria-label={`Reproduzir vídeo${title ? `: ${title}` : ""}`}
           className="absolute inset-0 flex items-center justify-center bg-brand-ink/35 backdrop-blur-[1px] transition-colors hover:bg-brand-ink/25"
         >
-          <span
-            className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-background/80 shadow-[var(--shadow-orange)] transition-transform duration-300 hover:scale-105"
-          >
+          <span className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-background/80 shadow-[var(--shadow-orange)] transition-transform duration-300 hover:scale-105">
             <Play className="ml-0.5 h-6 w-6 fill-accent text-accent" />
           </span>
         </button>
@@ -104,7 +167,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
 
       {/* Controles mínimos */}
       {started && (
-        <div className="absolute bottom-3 left-3 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 max-md:opacity-100">
+        <div className="absolute bottom-3 left-3 flex gap-2 opacity-0 transition-opacity duration-200 focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
           <button
             type="button"
             onClick={toggle}
