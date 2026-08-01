@@ -5,8 +5,75 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
+  /* ── Tema claro (padrão do :root) ───────────────────────── */
   :root {
-    /* Mizu — #111111 #ffdc8b #2c2e2d #e84310 #efeae1 */
+    --background: 39 30% 97%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 14 87% 46%;
+    --primary-foreground: 39 30% 98%;
+
+    --secondary: 39 22% 93%;
+    --secondary-foreground: 0 0% 14%;
+
+    --muted: 39 22% 93%;
+    --muted-foreground: 30 6% 40%;
+
+    --accent: 34 78% 40%;
+    --accent-foreground: 39 30% 98%;
+
+    --destructive: 14 87% 46%;
+    --destructive-foreground: 39 30% 98%;
+
+    --border: 36 14% 86%;
+    --input: 36 14% 86%;
+    --ring: 34 78% 40%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 39 30% 97%;
+    --sidebar-foreground: 0 0% 14%;
+    --sidebar-primary: 34 78% 40%;
+    --sidebar-primary-foreground: 39 30% 98%;
+    --sidebar-accent: 39 22% 93%;
+    --sidebar-accent-foreground: 0 0% 14%;
+    --sidebar-border: 36 14% 86%;
+    --sidebar-ring: 34 78% 40%;
+
+    /* Custom tokens */
+    --brand-sand: 34 78% 40%;
+    --brand-ember: 14 87% 46%;
+    --brand-cream: 39 30% 91%;
+    --brand-graphite: 150 2% 88%;
+
+    --glass: 0 0% 10% / 0.04;
+    --glass-border: 0 0% 10% / 0.08;
+    --glass-hover: 0 0% 10% / 0.06;
+    --orange-glow: 14 87% 46% / 0.22;
+    --gradient-orange: linear-gradient(135deg, hsl(14, 87%, 46%), hsl(34, 78%, 45%));
+    --gradient-dark: linear-gradient(180deg, hsl(39, 30%, 98%), hsl(39, 25%, 94%));
+    --shadow-orange: 0 8px 32px -8px hsl(14 87% 46% / 0.28);
+    --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.08);
+
+    /* Cardápio público */
+    --menu-bg: 39 26% 96%;
+    --menu-soft: 39 22% 93%;
+    --menu-card: 0 0% 100%;
+    --menu-raised: 39 22% 97%;
+    --menu-ink: 0 0% 10%;
+    --menu-ink-2: 30 6% 38%;
+    --menu-ink-3: 30 5% 52%;
+    --menu-on-accent: 0 0% 100%;
+  }
+
+  /* ── Tema escuro (Mizu — #111111 #ffdc8b #2c2e2d #e84310 #efeae1) ── */
+  .dark {
     --background: 0 0% 7%;
     --foreground: 39 30% 91%;
 
@@ -35,8 +102,6 @@
     --input: 150 2% 22%;
     --ring: 42 100% 77%;
 
-    --radius: 0.75rem;
-
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 39 30% 91%;
     --sidebar-primary: 42 100% 77%;
@@ -46,7 +111,6 @@
     --sidebar-border: 150 2% 22%;
     --sidebar-ring: 42 100% 77%;
 
-    /* Custom tokens */
     --brand-sand: 42 100% 77%;
     --brand-ember: 14 87% 49%;
     --brand-cream: 39 30% 91%;
@@ -60,11 +124,16 @@
     --gradient-dark: linear-gradient(180deg, hsl(0, 0%, 7%), hsl(0, 0%, 4%));
     --shadow-orange: 0 8px 32px -8px hsl(14 87% 49% / 0.4);
     --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.4);
-  }
 
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 39 30% 91%;
+    /* Cardápio público */
+    --menu-bg: 180 6% 3%;
+    --menu-soft: 180 4% 5%;
+    --menu-card: 180 2% 8%;
+    --menu-raised: 180 2% 9%;
+    --menu-ink: 60 11% 96%;
+    --menu-ink-2: 60 2% 64%;
+    --menu-ink-3: 60 3% 45%;
+    --menu-on-accent: 180 6% 3%;
   }
 }
 
