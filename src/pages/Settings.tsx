@@ -123,6 +123,10 @@ const Settings = () => {
       setSlugCheck({ status: "invalid", msg: "Use 3–40 caracteres: letras minúsculas, números e hífen" });
       return;
     }
+    if (isReservedSlug(cleaned)) {
+      setSlugCheck({ status: "invalid", msg: "Este endereço é reservado pelo sistema. Escolha outro." });
+      return;
+    }
     if (cleaned === currentSlug) { setSlugCheck({ status: "same" }); return; }
     setSlugCheck({ status: "checking" });
     const t = setTimeout(async () => {
