@@ -8,6 +8,7 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type Variation = { id: string; name: string; price_delta: number; absolute_price: number | null };
 type Addon = { id: string; name: string; price: number };
+export type SelectedAddon = Addon & { quantity: number };
 
 export type DetailItem = {
   id: string;
