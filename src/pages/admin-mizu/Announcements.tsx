@@ -153,7 +153,9 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         )
       : restaurants;
 
-  const visibleItems = updatesOnly ? items.filter((i) => i.variant === "update") : items;
+  const visibleItems = updatesOnly
+    ? items.filter((i) => i.variant === "update")
+    : items.filter((i) => i.variant !== "update");
 
   const viewsFor = (id: string) => views.filter((v) => v.announcement_id === id);
 
