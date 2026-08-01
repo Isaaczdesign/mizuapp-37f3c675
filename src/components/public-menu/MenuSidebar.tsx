@@ -197,7 +197,7 @@ export default function MenuSidebar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: D_MICRO }}
-              className={`w-full flex items-center gap-3 p-3 ${R_CHIP} text-[hsl(var(--menu-bg))] font-semibold transition-transform active:scale-[0.98]`}
+              className={`w-full flex items-center gap-3 p-3 ${R_CHIP} text-[hsl(var(--menu-on-accent))] font-semibold transition-transform active:scale-[0.98]`}
               style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
             >
               <ShoppingCart className="w-[18px] h-[18px]" strokeWidth={2.4} />

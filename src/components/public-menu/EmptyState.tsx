@@ -36,7 +36,7 @@ export default function EmptyState({
         <button
           type="button"
           onClick={onAction}
-          className="mt-5 min-h-[44px] px-5 rounded-[14px] text-[13.5px] font-semibold text-[hsl(var(--menu-bg))] transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080909]"
+          className="mt-5 min-h-[44px] px-5 rounded-[14px] text-[13.5px] font-semibold text-[hsl(var(--menu-on-accent))] transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--menu-bg))]"
           style={{ backgroundColor: accentColor }}
         >
           {actionLabel}

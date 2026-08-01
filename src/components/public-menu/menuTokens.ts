@@ -23,11 +23,11 @@ export const SHADOW_FLOAT =
 
 /** Vidro escuro (barra do carrinho, headers sticky, botões flutuantes) */
 export const GLASS =
-  "bg-[hsl(var(--menu-card))]/[0.72] backdrop-blur-[22px] backdrop-saturate-150 border border-[hsl(var(--menu-ink)/0.12)] " +
+  "bg-[hsl(var(--menu-card)/0.72)] backdrop-blur-[22px] backdrop-saturate-150 border border-[hsl(var(--menu-ink)/0.12)] " +
   SHADOW_FLOAT;
 
 export const GLASS_SOFT =
-  "bg-[hsl(var(--menu-bg))] supports-[backdrop-filter]:bg-[hsl(var(--menu-bg) / 95)] backdrop-blur-xl backdrop-saturate-150 border-b border-[hsl(var(--menu-ink)/0.06)]";
+  "bg-[hsl(var(--menu-bg))] supports-[backdrop-filter]:bg-[hsl(var(--menu-bg)/0.95)] backdrop-blur-xl backdrop-saturate-150 border-b border-[hsl(var(--menu-ink)/0.06)]";
 
 /** Superfície padrão de card, com interação de hover no desktop */
 export const CARD_SURFACE = `${BG_CARD} ${BORDER} ${SHADOW_CARD} transition-[transform,border-color,background-color,box-shadow] duration-200 ease-out hover:border-[hsl(var(--menu-ink)/0.14)] hover:bg-[hsl(var(--menu-raised))] lg:hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0`;

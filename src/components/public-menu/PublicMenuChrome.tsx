@@ -317,7 +317,7 @@ export function MenuStickyBar({
                 data-chip={cat.id}
                 onClick={() => onCategory(cat.id)}
                 className="relative px-4 min-h-[40px] rounded-full text-[13px] whitespace-nowrap font-semibold transition-transform active:scale-[0.96]"
-                style={{ color: active ? "hsl(var(--menu-bg))" : undefined }}
+                style={{ color: active ? "hsl(var(--menu-on-accent))" : undefined }}
               >
                 {active && (
                   <motion.span
@@ -364,7 +364,7 @@ export function FloatingCartBar({
         className={`pointer-events-auto relative w-full max-w-md mx-auto flex items-center gap-3 rounded-full p-2.5 overflow-hidden ${GLASS}`}
       >
         <span
-          className="relative w-11 h-11 rounded-full flex items-center justify-center text-[hsl(var(--menu-bg))] shrink-0"
+          className="relative w-11 h-11 rounded-full flex items-center justify-center text-[hsl(var(--menu-on-accent))] shrink-0"
           style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
         >
           <ShoppingCart className="w-[18px] h-[18px]" strokeWidth={2.4} />

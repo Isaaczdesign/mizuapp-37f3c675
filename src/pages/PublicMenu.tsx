@@ -964,7 +964,7 @@ const PublicMenu = () => {
                       <button
                         onClick={() => setCart((prev) => prev.map((i) => i.cartKey === item.cartKey ? { ...i, quantity: i.quantity + 1 } : i))}
                         aria-label="Adicionar uma unidade"
-                        className="w-9 h-9 rounded-xl text-[hsl(var(--menu-bg))] flex items-center justify-center transition-transform active:scale-95"
+                        className="w-9 h-9 rounded-xl text-[hsl(var(--menu-on-accent))] flex items-center justify-center transition-transform active:scale-95"
                         style={{ backgroundColor: accentColor }}>
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
                       </button>
@@ -995,7 +995,7 @@ const PublicMenu = () => {
                   const closed = (restaurant as any)?.accepting_orders === false || (!!operatingHours && !isOpenNow(operatingHours));
                   return (
                     <Button
-                      className="w-full min-h-[52px] text-base rounded-[16px] font-bold text-[hsl(var(--menu-bg))]"
+                      className="w-full min-h-[52px] text-base rounded-[16px] font-bold text-[hsl(var(--menu-on-accent))]"
                       style={{ backgroundColor: accentColor }}
                       disabled={closed}
                       onClick={() => { setShowCart(false); setCheckoutStep(1); }}
@@ -1043,7 +1043,7 @@ const PublicMenu = () => {
                         <div
                           className={`relative w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${
                             done || active
-                              ? "text-[hsl(var(--menu-bg))]"
+                              ? "text-[hsl(var(--menu-on-accent))]"
                               : "bg-[hsl(var(--menu-ink)/0.045)] text-[hsl(var(--menu-ink)/0.4)] border border-[hsl(var(--menu-ink)/0.09)]"
                           } ${active ? "scale-105" : ""}`}
                           style={
@@ -1370,7 +1370,7 @@ const PublicMenu = () => {
                       Voltar
                     </Button>
                     <Button
-                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-bg))]"
+                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-on-accent))]"
                       style={{ backgroundColor: accentColor }}
                       disabled={
                         !customerName.trim() || !customerWhatsapp.trim() ||
@@ -1442,7 +1442,7 @@ const PublicMenu = () => {
                       Voltar
                     </Button>
                     <Button
-                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-bg))]"
+                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-on-accent))]"
                       style={{ backgroundColor: accentColor }}
                       disabled={!paymentMethod}
                       onClick={() => setCheckoutStep(4)}
@@ -1508,7 +1508,7 @@ const PublicMenu = () => {
                         />
                         <Button type="button" onClick={applyCouponCode}
                           disabled={couponValidating || !couponInput.trim()}
-                          className="px-5 min-h-[48px] rounded-[14px] font-semibold text-[hsl(var(--menu-bg))]" style={{ backgroundColor: accentColor }}>
+                          className="px-5 min-h-[48px] rounded-[14px] font-semibold text-[hsl(var(--menu-on-accent))]" style={{ backgroundColor: accentColor }}>
                           {couponValidating ? "..." : "Aplicar"}
                         </Button>
                       </div>
@@ -1582,7 +1582,7 @@ const PublicMenu = () => {
                     <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-[hsl(var(--menu-ink)/0.12)] bg-[hsl(var(--menu-ink)/0.03)]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
                       Voltar
                     </Button>
-                    <Button type="submit" className="flex-1 min-h-[52px] rounded-[16px] font-bold text-base text-[hsl(var(--menu-bg))]"
+                    <Button type="submit" className="flex-1 min-h-[52px] rounded-[16px] font-bold text-base text-[hsl(var(--menu-on-accent))]"
                       style={{ backgroundColor: accentColor }} disabled={submitting}>
                       {submitting ? "Enviando..." : "Confirmar"} <Send className="ml-2 w-4 h-4" />
                     </Button>

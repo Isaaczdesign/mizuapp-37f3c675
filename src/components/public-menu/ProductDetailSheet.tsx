@@ -174,7 +174,7 @@ export default function ProductDetailSheet({
           whileTap={{ scale: 0.9 }}
           onClick={() => onQty(qty + 1)}
           aria-label="Aumentar quantidade"
-          className="w-11 h-11 rounded-full text-[hsl(var(--menu-bg))] flex items-center justify-center"
+          className="w-11 h-11 rounded-full text-[hsl(var(--menu-on-accent))] flex items-center justify-center"
           style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
         >
           <Plus className="w-4 h-4" strokeWidth={2.6} />
@@ -191,7 +191,7 @@ export default function ProductDetailSheet({
       <button
         type="button"
         onClick={onAdd}
-        className="w-full min-h-[52px] rounded-[16px] font-bold text-[15px] text-[hsl(var(--menu-bg))] transition-transform active:scale-[0.985]"
+        className="w-full min-h-[52px] rounded-[16px] font-bold text-[15px] text-[hsl(var(--menu-on-accent))] transition-transform active:scale-[0.985]"
         style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
       >
         Adicionar • {fmt(totalPrice)}
@@ -329,8 +329,8 @@ function AddonRow({
           type="button"
           onClick={() => onChange(Math.min(99, quantity + 1))}
           aria-label={`Aumentar ${addon.name}`}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[hsl(var(--menu-bg))] transition-transform active:scale-90"
-          style={{ backgroundColor: selected ? accentColor : "hsl(var(--menu-ink)/0.14)", color: selected ? "hsl(var(--menu-bg))" : "#fff" }}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[hsl(var(--menu-on-accent))] transition-transform active:scale-90"
+          style={{ backgroundColor: selected ? accentColor : "hsl(var(--menu-ink)/0.14)", color: selected ? "hsl(var(--menu-on-accent))" : "#fff" }}
         >
           <Plus className="w-3.5 h-3.5" strokeWidth={2.6} />
         </button>

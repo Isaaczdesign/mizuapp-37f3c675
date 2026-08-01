@@ -83,7 +83,7 @@ const OptionCard = ({
           boxShadow: selected ? `0 0 0 3px ${accentColor}1f` : "none",
         }}
       >
-        {selected && <Check className="w-3 h-3 text-[hsl(var(--menu-bg))]" strokeWidth={3} />}
+        {selected && <Check className="w-3 h-3 text-[hsl(var(--menu-on-accent))]" strokeWidth={3} />}
       </span>
     ) : (
       <ChevronRight
