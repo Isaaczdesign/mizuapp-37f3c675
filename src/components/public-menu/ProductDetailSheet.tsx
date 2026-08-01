@@ -53,7 +53,7 @@ export default function ProductDetailSheet({
   const totalPrice = (basePrice + addonsPrice) * qty;
 
   const media = item.image_url ? (
-    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover object-center" />
   ) : (
     <div
       className="w-full h-full flex items-center justify-center"
