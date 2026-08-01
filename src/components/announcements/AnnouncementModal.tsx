@@ -226,8 +226,18 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   key={media}
                   src={media}
                   alt={current.title}
-                  className="block max-h-[55vh] min-h-48 w-full object-contain object-center md:max-h-[62vh]"
+                  className={`block w-full object-contain object-center ${
+                    isPortrait
+                      ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
+                      : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
+                  }`}
                   decoding="async"
+                  onLoad={(e) => {
+                    const t = e.currentTarget;
+                    if (t.naturalWidth && t.naturalHeight) {
+                      setMediaRatio(t.naturalWidth / t.naturalHeight);
+                    }
+                  }}
                 />
               ) : (
                 <AnnouncementVideo
@@ -236,6 +246,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   poster={poster}
                   loop={current.media_loop ?? true}
                   title={current.title}
+                  className={
+                    isPortrait ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]" : "max-h-[55vh] md:max-h-[62vh]"
+                  }
+                  onAspectRatio={handleAspectRatio}
                 />
               )}
             </div>
