@@ -758,7 +758,25 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                         </dl>
                       </div>
                       {isAdmin && (
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2.5 text-[11px]"
+                            onClick={() => startEdit(item)}
+                          >
+                            <PencilLine className="mr-1 h-3.5 w-3.5" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2.5 text-[11px]"
+                            onClick={() => resend(item)}
+                          >
+                            <Send className="mr-1 h-3.5 w-3.5" />
+                            Reenviar
+                          </Button>
                           <Switch checked={item.active} onCheckedChange={(v) => toggle(item, v)} aria-label="Ativar aviso" />
                           <Button variant="ghost" size="icon" onClick={() => remove(item)} aria-label="Excluir aviso">
                             <Trash2 className="h-4 w-4 text-destructive" />
