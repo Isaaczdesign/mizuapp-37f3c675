@@ -115,6 +115,10 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
     setReady(false);
     setBuffering(false);
     if (!video) return;
+    // Começa mudo (exigência de autoplay); o som é liberado no primeiro gesto.
+    video.muted = true;
+    video.volume = 1;
+    setMuted(true);
     // Pré-carrega o vídeo assim que a fonte muda para evitar espera ao dar play.
     if (video.readyState < 2) video.load();
     if (shouldAutoplay.current) void safePlay(false);
