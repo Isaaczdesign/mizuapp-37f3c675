@@ -9,8 +9,22 @@ import { Logo } from "@/components/Logo";
 import GuidedTour from "@/components/GuidedTour";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[]; end?: boolean };
-...
+
+const allNavItems: NavItem[] = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["owner", "manager"] },
+  { to: "/orders", icon: ShoppingBag, label: "Pedidos", roles: ["owner", "manager", "staff"] },
+  { to: "/kds", icon: ChefHat, label: "Cozinha" },
+  { to: "/menu-admin", icon: UtensilsCrossed, label: "Cardápio", roles: ["owner", "manager"] },
+  { to: "/customers", icon: Users, label: "CRM", roles: ["owner", "manager", "staff"] },
+  { to: "/avaliacoes", icon: Star, label: "Avaliações", roles: ["owner", "manager"] },
+  { to: "/tables", icon: QrCode, label: "Mesas", roles: ["owner", "manager"] },
+  { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
+  { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"] },
+  { to: "/expediente", icon: Lock, label: "Expediente", roles: ["owner", "manager"] },
+];
+
 const bottomItems: NavItem[] = [
+
   { to: "/perfil", icon: UserRound, label: "Meu perfil" },
   { to: "/settings/notifications", icon: Bell, label: "Notificações" },
   { to: "/settings", icon: Settings, label: "Configurações", roles: ["owner", "manager"], end: true },
