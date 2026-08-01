@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
@@ -451,38 +452,8 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
 
   const canPublish = title.trim().length > 0 && body.trim().length > 0;
 
-  return (
-    <AdminMizuLayout
-      title={updatesOnly ? "Atualizações do Mizu" : "Avisos e notificações"}
-      description={
-        updatesOnly
-          ? "Comunique novidades e melhorias da plataforma em pop-up para os restaurantes."
-          : "Publique, agende e acompanhe os comunicados exibidos no painel dos restaurantes."
-      }
-    >
-      <AnnouncementTabs mode={mode} />
-
-      {/* Resumo */}
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Publicados" value={String(stats.total)} icon={Megaphone} hint={updatesOnly ? "Atualizações criadas" : "Avisos criados"} />
-        <StatCard label="No ar agora" value={String(stats.live)} icon={Radio} accent hint="Visíveis nos painéis" />
-        <StatCard label="Agendados" value={String(stats.scheduled)} icon={Clock3} hint="Aguardando data" />
-        <StatCard label="Visualizações" value={String(stats.seen)} icon={Eye} hint="Registros de leitura" />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,440px)_minmax(0,1fr)] xl:items-start">
-        {/* Composer */}
-        {isAdmin && (
-          <SectionCard
-            className="xl:sticky xl:top-4"
-            title={editingId ? "Editando aviso" : updatesOnly ? "Nova atualização" : "Novo aviso"}
-            description={
-              editingId
-                ? "As alterações substituem o aviso já publicado."
-                : "Preencha as etapas abaixo e publique."
-            }
-            bodyClassName="space-y-3"
-          >
+  const composerContent = (
+    <>
             <StepBlock
               step={1}
               title="Conteúdo"
@@ -692,8 +663,57 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
                   .map((sl) => ({ ...sl, variant: effectiveVariant })),
               ]}
             />
+    </>
+  );
+
+  return (
+    <AdminMizuLayout
+      title={updatesOnly ? "Atualizações do Mizu" : "Avisos e notificações"}
+      description={
+        updatesOnly
+          ? "Comunique novidades e melhorias da plataforma em pop-up para os restaurantes."
+          : "Publique, agende e acompanhe os comunicados exibidos no painel dos restaurantes."
+      }
+    >
+      <AnnouncementTabs mode={mode} />
+
+      {/* Resumo */}
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Publicados" value={String(stats.total)} icon={Megaphone} hint={updatesOnly ? "Atualizações criadas" : "Avisos criados"} />
+        <StatCard label="No ar agora" value={String(stats.live)} icon={Radio} accent hint="Visíveis nos painéis" />
+        <StatCard label="Agendados" value={String(stats.scheduled)} icon={Clock3} hint="Aguardando data" />
+        <StatCard label="Visualizações" value={String(stats.seen)} icon={Eye} hint="Registros de leitura" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,440px)_minmax(0,1fr)] xl:items-start">
+        {/* Composer */}
+        {isAdmin && (
+          <SectionCard
+            className="xl:sticky xl:top-4"
+            title={updatesOnly ? "Nova atualização" : "Novo aviso"}
+            description="Preencha as etapas abaixo e publique."
+            bodyClassName="space-y-3"
+          >
+            {!editingId && composerContent}
+            {editingId && (
+              <p className="text-xs text-muted-foreground">
+                Você está editando um aviso na janela aberta. Feche-a para criar um novo.
+              </p>
+            )}
           </SectionCard>
         )}
+
+        {/* Edição em pop-up */}
+        <Dialog open={!!editingId} onOpenChange={(o) => { if (!o) resetForm(); }}>
+          <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{updatesOnly ? "Editar atualização" : "Editar aviso"}</DialogTitle>
+              <DialogDescription>As alterações substituem o aviso já publicado.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">{editingId ? composerContent : null}</div>
+          </DialogContent>
+        </Dialog>
+
 
         {/* Histórico */}
         <SectionCard
