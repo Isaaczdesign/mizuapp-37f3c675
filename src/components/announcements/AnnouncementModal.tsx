@@ -81,8 +81,8 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
-          hasMedia ? "max-w-[880px]" : "max-w-[440px]"
+        className={`w-[calc(100%-2rem)] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
+          hasMedia ? "max-w-[880px] sm:max-w-[880px]" : "max-w-[440px] sm:max-w-[440px]"
         }`}
       >
         {/* Brilho da marca */}
@@ -93,10 +93,12 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
         />
 
         <div
-          className={`relative grid grid-cols-1 ${hasMedia ? "md:grid-cols-[1fr_1.1fr] md:items-stretch" : ""}`}
+          className={`relative grid min-w-0 grid-cols-1 ${
+            hasMedia ? "md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-stretch" : ""
+          }`}
         >
           {/* Conteúdo — topo no mobile, esquerda no desktop */}
-          <div className="relative order-1 flex flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
+          <div className="relative order-1 flex min-w-0 flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
             <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-2`}>
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
@@ -125,7 +127,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   <h2 className="font-display text-xl font-semibold leading-snug">
                     {current.title || "Título do aviso"}
                   </h2>
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                  <p className="break-words [overflow-wrap:anywhere] whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                     {current.body || "Mensagem que o dono do restaurante vai ler."}
                   </p>
                   {publishedAt && (
@@ -202,14 +204,14 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
           {hasMedia && (
             <div
               key={`${current.id ?? safeIndex}-media`}
-              className={`relative order-2 flex ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2`}
+              className={`relative order-2 flex min-h-48 min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2`}
             >
               {type === "image" ? (
                 <img
                   key={media}
                   src={media}
                   alt={current.title}
-                  className="max-h-[55vh] w-full object-contain object-center md:max-h-[62vh]"
+                  className="block max-h-[55vh] min-h-48 w-full object-contain object-center md:max-h-[62vh]"
                   decoding="async"
                 />
               ) : (
