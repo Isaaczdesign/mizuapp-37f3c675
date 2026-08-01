@@ -260,7 +260,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   loop={current.media_loop ?? true}
                   title={current.title}
                   className={
-                    isPortrait ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]" : "max-h-[55vh] md:max-h-[62vh]"
+                    isPortrait
+                      ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]"
+                      : isWideLandscape
+                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        : "max-h-[55vh] md:max-h-[62vh]"
                   }
                   onAspectRatio={handleAspectRatio}
                 />
