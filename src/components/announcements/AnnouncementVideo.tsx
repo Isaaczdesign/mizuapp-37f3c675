@@ -61,7 +61,15 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
     if (!video) return false;
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
-    if (!fromUserGesture) video.muted = true;
+    video.volume = 1;
+    if (fromUserGesture) {
+      // Play a partir de um gesto do usuário pode sair com som.
+      video.muted = false;
+      setMuted(false);
+    } else {
+      video.muted = true;
+      setMuted(true);
+    }
 
     const attempt = async () => {
       try {
@@ -107,6 +115,10 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
     setReady(false);
     setBuffering(false);
     if (!video) return;
+    // Começa mudo (exigência de autoplay); o som é liberado no primeiro gesto.
+    video.muted = true;
+    video.volume = 1;
+    setMuted(true);
     // Pré-carrega o vídeo assim que a fonte muda para evitar espera ao dar play.
     if (video.readyState < 2) video.load();
     if (shouldAutoplay.current) void safePlay(false);
@@ -149,11 +161,12 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
   const toggleSound = () => {
     const video = videoRef.current;
     if (!video) return;
-    const next = !video.muted;
-    video.muted = next;
-    setMuted(next);
+    const nextMuted = !video.muted;
+    video.muted = nextMuted;
+    video.volume = 1;
+    setMuted(nextMuted);
     // Ativar som no iOS exige que o play parta do gesto do usuário.
-    if (!next && video.paused) void safePlay(true);
+    if (!nextMuted && video.paused) void safePlay(true);
   };
 
   // Tela cheia: usa a API padrão no container e o modo nativo do iOS no vídeo.
@@ -254,9 +267,10 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
         playsInline
         {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         controls={false}
-        muted={muted}
+        
         loop={loop}
         preload="auto"
+        onVolumeChange={(e) => setMuted(e.currentTarget.muted)}
         onLoadedMetadata={(e) => {
           const v = e.currentTarget;
           if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
@@ -306,6 +320,18 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
           aria-label={fullscreen ? "Sair da tela cheia" : "Abrir vídeo em tela cheia"}
           className="absolute inset-0 z-0 cursor-zoom-in"
         />
+      )}
+
+      {/* Aviso de som desativado (autoplay entra mudo por regra do navegador) */}
+      {started && muted && (
+        <button
+          type="button"
+          onClick={toggleSound}
+          className="absolute right-3 top-3 z-20 flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur transition-colors hover:bg-background"
+        >
+          <VolumeX className="h-3.5 w-3.5" />
+          Ativar som
+        </button>
       )}
 
       {/* Controles mínimos */}
