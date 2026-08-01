@@ -689,17 +689,30 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         {isAdmin && (
           <SectionCard
             className="xl:sticky xl:top-4"
-            title={editingId ? "Editando aviso" : updatesOnly ? "Nova atualização" : "Novo aviso"}
-            description={
-              editingId
-                ? "As alterações substituem o aviso já publicado."
-                : "Preencha as etapas abaixo e publique."
-            }
+            title={updatesOnly ? "Nova atualização" : "Novo aviso"}
+            description="Preencha as etapas abaixo e publique."
             bodyClassName="space-y-3"
           >
-            {composerContent}
+            {!editingId && composerContent}
+            {editingId && (
+              <p className="text-xs text-muted-foreground">
+                Você está editando um aviso na janela aberta. Feche-a para criar um novo.
+              </p>
+            )}
           </SectionCard>
         )}
+
+        {/* Edição em pop-up */}
+        <Dialog open={!!editingId} onOpenChange={(o) => { if (!o) resetForm(); }}>
+          <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{updatesOnly ? "Editar atualização" : "Editar aviso"}</DialogTitle>
+              <DialogDescription>As alterações substituem o aviso já publicado.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">{editingId ? composerContent : null}</div>
+          </DialogContent>
+        </Dialog>
+
 
         {/* Histórico */}
         <SectionCard
