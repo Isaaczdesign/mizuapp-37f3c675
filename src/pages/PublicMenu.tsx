@@ -745,7 +745,7 @@ const PublicMenu = () => {
         <div className="hidden lg:block px-8 pt-8">
           <div className="relative h-56 xl:h-64 rounded-[22px] overflow-hidden border border-[hsl(var(--menu-ink)/0.07)]">
             <img src={restaurant.banner_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg) / 85)] via-[hsl(var(--menu-bg) / 25)] to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg)/0.85)] via-[hsl(var(--menu-bg)/0.25)] to-transparent" />
             <div className="absolute bottom-5 left-6 right-6">
               <h2 className="font-display text-2xl xl:text-[28px] font-bold tracking-tight">{restaurant.name}</h2>
               {restaurant.description && (

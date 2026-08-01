@@ -59,7 +59,7 @@ export function RestaurantHero({
             style={{ background: `radial-gradient(120% 90% at 50% 0%, ${accentColor}33 0%, transparent 70%)` }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg))] via-[hsl(var(--menu-bg) / 60)] to-[hsl(var(--menu-bg) / 10)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg))] via-[hsl(var(--menu-bg)/0.6)] to-[hsl(var(--menu-bg)/0.1)]" />
 
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <GlassIconButton label="Compartilhar" onClick={share}>
