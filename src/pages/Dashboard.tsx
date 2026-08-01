@@ -526,7 +526,10 @@ const Dashboard = () => {
                 )}
               </div>
             </Surface>
+
+            <ReviewsPanel restaurantId={rid} />
           </div>
+
         </div>
       </div>
 
