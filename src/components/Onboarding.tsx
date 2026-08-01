@@ -93,9 +93,12 @@ export default function Onboarding() {
   const [testStarted, setTestStarted] = useState(false);
   const [testComplete, setTestComplete] = useState(false);
 
+  const [draftRestored, setDraftRestored] = useState(false);
+
   // If user already has a restaurant, load it and skip step 0
   useEffect(() => {
     async function loadExistingRestaurant() {
+      let hydratedStep: number | null = null;
       if (profile?.restaurant_id) {
         const { data: rest } = await supabase
           .from("restaurants")
@@ -122,13 +125,50 @@ export default function Onboarding() {
             setHours((settingsRow as any).operating_hours as OperatingHours);
           }
           try { localStorage.removeItem("koban_signup_restaurant_name"); } catch {}
-          setStep(1); // skip identity step
+          hydratedStep = 1; // skip identity step
         }
       }
+
+      // Restaura rascunho salvo automaticamente (retomar de onde parou)
+      const draft = loadOnboardingDraft(user?.id);
+      if (draft) {
+        if (draft.name) setName(draft.name);
+        if (draft.primaryColor) setPrimaryColor(draft.primaryColor);
+        if (draft.hours) setHours(draft.hours as OperatingHours);
+        if (typeof draft.pickupEnabled === "boolean") setPickupEnabled(draft.pickupEnabled);
+        if (typeof draft.dineInEnabled === "boolean") setDineInEnabled(draft.dineInEnabled);
+        if (typeof draft.deliveryEnabled === "boolean") setDeliveryEnabled(draft.deliveryEnabled);
+        if (typeof draft.deliveryFee === "string") setDeliveryFee(draft.deliveryFee);
+        if (draft.menuChoice !== undefined) setMenuChoice(draft.menuChoice ?? null);
+        if (typeof draft.menuImported === "boolean") setMenuImported(draft.menuImported);
+        if (Array.isArray(draft.paymentMethods) && draft.paymentMethods.length) setPaymentMethods(draft.paymentMethods);
+        if (typeof draft.testComplete === "boolean") setTestComplete(draft.testComplete);
+        if (typeof draft.step === "number") {
+          const target = Math.min(Math.max(draft.step, hydratedStep ?? 0), STEPS.length - 1);
+          hydratedStep = target;
+          if (target > 0) toast.info("Retomamos sua configuração de onde você parou.");
+        }
+      }
+
+      if (hydratedStep !== null) setStep(hydratedStep);
       setInitialLoading(false);
+      setDraftRestored(true);
     }
     loadExistingRestaurant();
-  }, [profile?.restaurant_id]);
+  }, [profile?.restaurant_id, user?.id]);
+
+  // Salvamento automático do progresso
+  useEffect(() => {
+    if (!draftRestored || !user?.id) return;
+    saveOnboardingDraft(user.id, {
+      step, name, primaryColor, hours,
+      pickupEnabled, dineInEnabled, deliveryEnabled, deliveryFee,
+      menuChoice, menuImported, paymentMethods, testComplete,
+    });
+  }, [draftRestored, user?.id, step, name, primaryColor, hours, pickupEnabled,
+      dineInEnabled, deliveryEnabled, deliveryFee, menuChoice, menuImported,
+      paymentMethods, testComplete]);
+
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
   const publicUrl = typeof window !== "undefined"
