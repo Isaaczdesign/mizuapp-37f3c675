@@ -57,10 +57,10 @@ function Tags({ tags, dense, className = "" }: { tags: string[]; dense?: boolean
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 380, damping: 20 }}
-            className="relative inline-flex items-center gap-1 text-[9.5px] leading-none px-2 py-[5px] rounded-full font-bold text-white uppercase tracking-[0.06em] overflow-hidden"
+            className="relative inline-flex items-center gap-1 text-[9.5px] leading-none px-2 py-[5px] rounded-full font-bold text-[hsl(var(--menu-ink))] uppercase tracking-[0.06em] overflow-hidden"
             style={{
               backgroundImage: b.gradient,
-              boxShadow: `${b.glow}, inset 0 1px 0 rgba(255,255,255,0.22)`,
+              boxShadow: `${b.glow}, inset 0 1px 0 hsl(var(--menu-ink)/0.22)`,
               border: `1px solid ${b.ring}`,
             }}
           >
@@ -90,7 +90,7 @@ function AddButton({
       whileTap={{ scale: 0.9 }}
       transition={{ type: "spring", stiffness: 420, damping: 20 }}
       onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-      className={`${dims} shrink-0 rounded-full flex items-center justify-center text-white`}
+      className={`${dims} shrink-0 rounded-full flex items-center justify-center text-[hsl(var(--menu-ink))]`}
       style={{ backgroundColor: color, boxShadow: `0 10px 24px -12px ${color}` }}
     >
       <Plus className={icon} strokeWidth={2.6} />
@@ -114,7 +114,7 @@ export default function MenuItemCard({ item, theme, accentColor, inCart = 0, ind
   const showImage = theme.showImage && !!item.image_url;
 
   const priceEl = theme.boldPrice ? (
-    <span className={`${theme.priceClass} px-3 py-1 rounded-full text-white`} style={{ backgroundColor: accentColor }}>
+    <span className={`${theme.priceClass} px-3 py-1 rounded-full text-[hsl(var(--menu-ink))]`} style={{ backgroundColor: accentColor }}>
       {fmt(price)}
     </span>
   ) : (
@@ -193,7 +193,7 @@ export default function MenuItemCard({ item, theme, accentColor, inCart = 0, ind
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-3">
             <h3 className={`${theme.titleClass} min-w-0`}>{item.name}</h3>
-            <span className="flex-1 border-b border-dashed border-white/[0.12] translate-y-[-3px]" aria-hidden />
+            <span className="flex-1 border-b border-dashed border-[hsl(var(--menu-ink)/0.12)] translate-y-[-3px]" aria-hidden />
             <span className={theme.priceClass} style={{ color: accentColor }}>{fmt(price)}</span>
           </div>
           {theme.showDescription && item.description && (

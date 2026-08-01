@@ -58,7 +58,7 @@ const OptionCard = ({
       <Icon
         className={ICON_LG}
         strokeWidth={ICON_STROKE}
-        style={{ color: selected ? accentColor : "rgba(255,255,255,0.65)" }}
+        style={{ color: selected ? accentColor : "hsl(var(--menu-ink)/0.65)" }}
       />
     </span>
 
@@ -78,18 +78,18 @@ const OptionCard = ({
       <span
         className="w-[22px] h-[22px] shrink-0 rounded-full border flex items-center justify-center transition-all duration-300 ease-out"
         style={{
-          borderColor: selected ? accentColor : "rgba(255,255,255,0.18)",
+          borderColor: selected ? accentColor : "hsl(var(--menu-ink)/0.18)",
           backgroundColor: selected ? accentColor : "transparent",
           boxShadow: selected ? `0 0 0 3px ${accentColor}1f` : "none",
         }}
       >
-        {selected && <Check className="w-3 h-3 text-[#080909]" strokeWidth={3} />}
+        {selected && <Check className="w-3 h-3 text-[hsl(var(--menu-bg))]" strokeWidth={3} />}
       </span>
     ) : (
       <ChevronRight
         className={`${ICON_SM} shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-0.5 group-hover:opacity-100`}
         strokeWidth={ICON_STROKE}
-        style={{ color: selected ? accentColor : "rgba(255,255,255,0.35)" }}
+        style={{ color: selected ? accentColor : "hsl(var(--menu-ink)/0.35)" }}
       />
     )}
   </button>

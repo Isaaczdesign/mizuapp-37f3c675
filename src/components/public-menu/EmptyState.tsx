@@ -31,12 +31,12 @@ export default function EmptyState({
         {icon}
       </span>
       <h3 className="font-display text-[17px] font-bold tracking-tight">{title}</h3>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-[#A5A5A0]">{description}</p>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-[hsl(var(--menu-ink-2))]">{description}</p>
       {actionLabel && onAction && (
         <button
           type="button"
           onClick={onAction}
-          className="mt-5 min-h-[44px] px-5 rounded-[14px] text-[13.5px] font-semibold text-[#080909] transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080909]"
+          className="mt-5 min-h-[44px] px-5 rounded-[14px] text-[13.5px] font-semibold text-[hsl(var(--menu-bg))] transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080909]"
           style={{ backgroundColor: accentColor }}
         >
           {actionLabel}

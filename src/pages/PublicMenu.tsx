@@ -701,7 +701,7 @@ const PublicMenu = () => {
   const categoryCounts = categorizedItems.map((c) => ({ id: c.id, name: c.name, count: c.items.length }));
 
   return (
-    <div className="min-h-[100dvh] overflow-x-clip bg-[#080909] text-[#F7F7F5] lg:flex lg:items-start">
+    <div className="min-h-[100dvh] overflow-x-clip bg-[hsl(var(--menu-bg))] text-[hsl(var(--menu-ink))] lg:flex lg:items-start">
       {/* ── Desktop: sidebar fixa ── */}
       <MenuSidebar
         name={restaurant.name}
@@ -743,13 +743,13 @@ const PublicMenu = () => {
       {/* ── Desktop: banner de capa ── */}
       {restaurant.banner_url && (
         <div className="hidden lg:block px-8 pt-8">
-          <div className="relative h-56 xl:h-64 rounded-[22px] overflow-hidden border border-white/[0.07]">
+          <div className="relative h-56 xl:h-64 rounded-[22px] overflow-hidden border border-[hsl(var(--menu-ink)/0.07)]">
             <img src={restaurant.banner_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#080909]/85 via-[#080909]/25 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg) / 85)] via-[hsl(var(--menu-bg) / 25)] to-transparent" />
             <div className="absolute bottom-5 left-6 right-6">
               <h2 className="font-display text-2xl xl:text-[28px] font-bold tracking-tight">{restaurant.name}</h2>
               {restaurant.description && (
-                <p className="mt-1 text-[13.5px] text-[#A5A5A0] line-clamp-1 max-w-2xl">{restaurant.description}</p>
+                <p className="mt-1 text-[13.5px] text-[hsl(var(--menu-ink-2))] line-clamp-1 max-w-2xl">{restaurant.description}</p>
               )}
             </div>
           </div>
@@ -833,16 +833,16 @@ const PublicMenu = () => {
             data-cat-id={cat.id}
             className="mb-10 lg:mb-12 scroll-mt-[calc(var(--menu-sticky-h,112px)+12px)] lg:scroll-mt-6"
           >
-            <div className="sticky top-[var(--menu-sticky-h,112px)] lg:top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-3 pb-2.5 lg:pt-5 lg:pb-3 mb-4 bg-[#080909] border-b border-white/[0.05]">
+            <div className="sticky top-[var(--menu-sticky-h,112px)] lg:top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-3 pb-2.5 lg:pt-5 lg:pb-3 mb-4 bg-[hsl(var(--menu-bg))] border-b border-[hsl(var(--menu-ink)/0.05)]">
 
               <div className="flex items-baseline gap-3">
                 <h2 className={menuTheme.categoryTitleClass}>{cat.name}</h2>
-                <span className="text-[11.5px] tabular-nums text-[#74746F]">
+                <span className="text-[11.5px] tabular-nums text-[hsl(var(--menu-ink-3))]">
                   {cat.items.length} {cat.items.length === 1 ? "item" : "itens"}
                 </span>
               </div>
               <span className="mt-2 block h-px w-14 rounded-full" style={{ backgroundColor: accentColor + "66" }} />
-              <span aria-hidden className="pointer-events-none absolute inset-x-0 top-full h-4 bg-gradient-to-b from-[#080909] to-transparent" />
+              <span aria-hidden className="pointer-events-none absolute inset-x-0 top-full h-4 bg-gradient-to-b from-[hsl(var(--menu-bg))] to-transparent" />
             </div>
 
 
@@ -927,14 +927,14 @@ const PublicMenu = () => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
               ref={cartTrapRef}
-              className={`relative bg-[#131414] border-t lg:border-t-0 lg:border-l border-white/[0.08] rounded-t-[24px] lg:rounded-none transition-[max-height,height,margin,border-radius] duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[88%]"} lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
+              className={`relative bg-[hsl(var(--menu-card))] border-t lg:border-t-0 lg:border-l border-[hsl(var(--menu-ink)/0.08)] rounded-t-[24px] lg:rounded-none transition-[max-height,height,margin,border-radius] duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[88%]"} lg:max-h-none lg:h-full lg:mt-0 lg:w-[420px] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
-                <div className="w-10 h-1 rounded-full bg-white/25" />
+                <div className="w-10 h-1 rounded-full bg-[hsl(var(--menu-ink)/0.25)]" />
               </div>
-              <div className="flex items-center justify-between px-4 pt-1 pb-3 lg:pt-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between px-4 pt-1 pb-3 lg:pt-4 border-b border-[hsl(var(--menu-ink)/0.06)]">
                 <h2 className="font-display text-lg font-bold">Seu Pedido</h2>
-                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-10 h-10 ${R_TILE} bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                <button onClick={() => setShowCart(false)} aria-label="Fechar carrinho" className={`w-10 h-10 ${R_TILE} bg-[hsl(var(--menu-ink)/0.06)] ${BORDER} flex items-center justify-center transition-colors hover:bg-[hsl(var(--menu-ink)/0.1)]`}>
                   <X className={ICON_SM} strokeWidth={ICON_STROKE} />
                 </button>
               </div>
@@ -957,14 +957,14 @@ const PublicMenu = () => {
                       <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{fmt(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-9 h-9 rounded-xl bg-white/[0.06] ${BORDER} flex items-center justify-center transition-colors hover:bg-white/[0.1]`}>
+                      <button onClick={() => removeFromCart(item.cartKey)} aria-label="Remover uma unidade" className={`w-9 h-9 rounded-xl bg-[hsl(var(--menu-ink)/0.06)] ${BORDER} flex items-center justify-center transition-colors hover:bg-[hsl(var(--menu-ink)/0.1)]`}>
                         <Minus className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} />
                       </button>
                       <span className="text-sm font-bold w-6 text-center tabular-nums">{item.quantity}</span>
                       <button
                         onClick={() => setCart((prev) => prev.map((i) => i.cartKey === item.cartKey ? { ...i, quantity: i.quantity + 1 } : i))}
                         aria-label="Adicionar uma unidade"
-                        className="w-9 h-9 rounded-xl text-[#080909] flex items-center justify-center transition-transform active:scale-95"
+                        className="w-9 h-9 rounded-xl text-[hsl(var(--menu-bg))] flex items-center justify-center transition-transform active:scale-95"
                         style={{ backgroundColor: accentColor }}>
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
                       </button>
@@ -974,19 +974,19 @@ const PublicMenu = () => {
 
 
                 {/* Order notes */}
-                <div className="pt-3 border-t border-white/[0.06] scroll-mb-24">
+                <div className="pt-3 border-t border-[hsl(var(--menu-ink)/0.06)] scroll-mb-24">
 
                   <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5`}>
                     <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                   </label>
                 <AutoResizeTextarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[16px] leading-snug outline-none focus:border-white/20 transition-colors placeholder:text-white/30`}
+                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-[hsl(var(--menu-ink)/0.04)] ${BORDER} text-[16px] leading-snug outline-none focus:border-[hsl(var(--menu-ink)/0.2)] transition-colors placeholder:text-[hsl(var(--menu-ink)/0.3)]`}
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
               </div>
 
 
-              <div className="px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-white/[0.06] space-y-3">
+              <div className="px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-[hsl(var(--menu-ink)/0.06)] space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold" style={{ color: accentColor }}>{fmt(cartTotal)}</span>
@@ -995,7 +995,7 @@ const PublicMenu = () => {
                   const closed = (restaurant as any)?.accepting_orders === false || (!!operatingHours && !isOpenNow(operatingHours));
                   return (
                     <Button
-                      className="w-full min-h-[52px] text-base rounded-[16px] font-bold text-[#080909]"
+                      className="w-full min-h-[52px] text-base rounded-[16px] font-bold text-[hsl(var(--menu-bg))]"
                       style={{ backgroundColor: accentColor }}
                       disabled={closed}
                       onClick={() => { setShowCart(false); setCheckoutStep(1); }}
@@ -1026,14 +1026,14 @@ const PublicMenu = () => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
               ref={checkoutTrapRef}
-              className={`transition-[max-height,height,margin,border-radius] duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[92%]"} lg:mt-0 relative bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl lg:max-h-[86%] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
+              className={`transition-[max-height,height,margin,border-radius] duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${keyboardOpen ? "mt-0 h-full max-h-full rounded-t-none" : "mt-auto max-h-[92%]"} lg:mt-0 relative bg-[hsl(var(--menu-card))] border-t lg:border border-[hsl(var(--menu-ink)/0.08)] rounded-t-[24px] lg:rounded-[24px] lg:w-full lg:max-w-xl lg:max-h-[86%] flex flex-col shadow-[0_-24px_60px_rgba(0,0,0,0.5)]`}
             >
               <div className="flex justify-center pt-3 pb-1 lg:hidden">
-                <div className="w-10 h-1 rounded-full bg-white/25" />
+                <div className="w-10 h-1 rounded-full bg-[hsl(var(--menu-ink)/0.25)]" />
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 pt-2.5 pb-3.5 border-b border-white/[0.06] overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 pt-2.5 pb-3.5 border-b border-[hsl(var(--menu-ink)/0.06)] overflow-x-auto no-scrollbar">
                 {["Tipo", "Infos", "Pagamento", "Revisão"].map((label, i) => {
                   const done = checkoutStep > i + 1;
                   const active = checkoutStep === i + 1;
@@ -1043,8 +1043,8 @@ const PublicMenu = () => {
                         <div
                           className={`relative w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${
                             done || active
-                              ? "text-[#080909]"
-                              : "bg-white/[0.045] text-white/40 border border-white/[0.09]"
+                              ? "text-[hsl(var(--menu-bg))]"
+                              : "bg-[hsl(var(--menu-ink)/0.045)] text-[hsl(var(--menu-ink)/0.4)] border border-[hsl(var(--menu-ink)/0.09)]"
                           } ${active ? "scale-105" : ""}`}
                           style={
                             done || active
@@ -1061,14 +1061,14 @@ const PublicMenu = () => {
                         </div>
                         <span
                           className={`text-[10.5px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap transition-colors duration-300 ${
-                            active ? "text-white inline" : done ? "text-white/55 hidden sm:inline" : "text-white/30 hidden sm:inline"
+                            active ? "text-[hsl(var(--menu-ink))] inline" : done ? "text-[hsl(var(--menu-ink)/0.55)] hidden sm:inline" : "text-[hsl(var(--menu-ink)/0.3)] hidden sm:inline"
                           }`}
                         >
                           {label}
                         </span>
                       </div>
                       {i < 3 && (
-                        <div className="w-5 sm:w-6 h-[2px] rounded-full bg-white/[0.08] overflow-hidden">
+                        <div className="w-5 sm:w-6 h-[2px] rounded-full bg-[hsl(var(--menu-ink)/0.08)] overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500 ease-out"
                             style={{
@@ -1122,7 +1122,7 @@ const PublicMenu = () => {
                   )}
 
                   {!restaurant.dine_in_enabled && !restaurant.pickup_enabled && !restaurant.delivery_enabled && (
-                    <p className="text-sm text-white/45 text-center py-4">Nenhum tipo de atendimento disponível.</p>
+                    <p className="text-sm text-[hsl(var(--menu-ink)/0.45)] text-center py-4">Nenhum tipo de atendimento disponível.</p>
                   )}
                 </div>
               )}
@@ -1132,7 +1132,7 @@ const PublicMenu = () => {
               {checkoutStep === 2 && orderType && (
                 <div className={`${SHEET_PAD} space-y-4 overflow-y-auto flex-1`}>
                   {hasSavedData && (
-                    <div className={`${R_FIELD} bg-white/[0.03] ${BORDER} p-3 text-xs space-y-2.5`}>
+                    <div className={`${R_FIELD} bg-[hsl(var(--menu-ink)/0.03)] ${BORDER} p-3 text-xs space-y-2.5`}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">
                           {autofillEnabled ? "✨ Dados salvos neste dispositivo" : "Preenchimento automático desativado"}
@@ -1201,7 +1201,7 @@ const PublicMenu = () => {
                               className={`min-h-[52px] px-2 ${R_TILE} text-sm font-semibold ${SELECTABLE_BASE} ${
                                 selectedTableId === t.id
                                   ? "font-bold"
-                                  : `${SELECTABLE_IDLE} text-white/70`
+                                  : `${SELECTABLE_IDLE} text-[hsl(var(--menu-ink)/0.7)]`
                               }`}
                               style={selectedTableId === t.id ? { ...selectedSurface(accentColor), color: accentColor } : {}}
                             >
@@ -1247,7 +1247,7 @@ const PublicMenu = () => {
                                   <MapPin
                                     className={`${ICON_SM} shrink-0`}
                                     strokeWidth={ICON_STROKE}
-                                    style={{ color: active ? accentColor : "rgba(255,255,255,0.45)" }}
+                                    style={{ color: active ? accentColor : "hsl(var(--menu-ink)/0.45)" }}
                                   />
                                   <div className="min-w-0 flex-1">
                                     <p className="font-medium truncate">{a.label}</p>
@@ -1290,7 +1290,7 @@ const PublicMenu = () => {
                               className={`w-full flex items-center justify-center gap-2 ${TOUCH} ${R_FIELD} border-dashed px-3 text-sm font-medium ${SELECTABLE_BASE} ${
                                 selectedAddressId === null
                                   ? ""
-                                  : `${SELECTABLE_IDLE} text-white/60 hover:text-white`
+                                  : `${SELECTABLE_IDLE} text-[hsl(var(--menu-ink)/0.6)] hover:text-[hsl(var(--menu-ink))]`
                               }`}
                               style={selectedAddressId === null ? { ...selectedSurface(accentColor), color: accentColor } : {}}
                               onClick={() => {
@@ -1366,11 +1366,11 @@ const PublicMenu = () => {
                   </label>
 
                   <div className="flex gap-2.5 pt-2">
-                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(1)}>
+                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-[hsl(var(--menu-ink)/0.12)] bg-[hsl(var(--menu-ink)/0.03)]" onClick={() => setCheckoutStep(1)}>
                       Voltar
                     </Button>
                     <Button
-                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[#080909]"
+                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-bg))]"
                       style={{ backgroundColor: accentColor }}
                       disabled={
                         !customerName.trim() || !customerWhatsapp.trim() ||
@@ -1438,11 +1438,11 @@ const PublicMenu = () => {
                   )}
 
                   <div className="flex gap-2.5 pt-2">
-                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(2)}>
+                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-[hsl(var(--menu-ink)/0.12)] bg-[hsl(var(--menu-ink)/0.03)]" onClick={() => setCheckoutStep(2)}>
                       Voltar
                     </Button>
                     <Button
-                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[#080909]"
+                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-bg))]"
                       style={{ backgroundColor: accentColor }}
                       disabled={!paymentMethod}
                       onClick={() => setCheckoutStep(4)}
@@ -1465,7 +1465,7 @@ const PublicMenu = () => {
                     ))}
                   </div>
                   {/* Coupon */}
-                  <div className="border-t border-white/[0.06] pt-3">
+                  <div className="border-t border-[hsl(var(--menu-ink)/0.06)] pt-3">
                     <label className={`text-xs font-medium ${TEXT_SECONDARY} flex items-center gap-1.5 mb-1.5`}>
                       <Ticket className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Cupom de desconto
                     </label>
@@ -1508,7 +1508,7 @@ const PublicMenu = () => {
                         />
                         <Button type="button" onClick={applyCouponCode}
                           disabled={couponValidating || !couponInput.trim()}
-                          className="px-5 min-h-[48px] rounded-[14px] font-semibold text-[#080909]" style={{ backgroundColor: accentColor }}>
+                          className="px-5 min-h-[48px] rounded-[14px] font-semibold text-[hsl(var(--menu-bg))]" style={{ backgroundColor: accentColor }}>
                           {couponValidating ? "..." : "Aplicar"}
                         </Button>
                       </div>
@@ -1524,7 +1524,7 @@ const PublicMenu = () => {
                     </AnimatePresence>
                   </div>
 
-                  <div className="border-t border-white/[0.06] pt-3 space-y-1 text-sm">
+                  <div className="border-t border-[hsl(var(--menu-ink)/0.06)] pt-3 space-y-1 text-sm">
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span><span>{fmt(cartTotal)}</span>
                     </div>
@@ -1545,7 +1545,7 @@ const PublicMenu = () => {
                       <span className="font-display text-xl font-bold" style={{ color: accentColor }}>{fmt(grandTotal)}</span>
                     </div>
                   </div>
-                  <div className={`text-xs ${TEXT_SECONDARY} space-y-2 border-t border-white/[0.06] pt-3`}>
+                  <div className={`text-xs ${TEXT_SECONDARY} space-y-2 border-t border-[hsl(var(--menu-ink)/0.06)] pt-3`}>
                     <p className="flex items-center gap-2">
                       <Phone className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
                       <span className="truncate">{customerName} · {customerWhatsapp}</span>
@@ -1573,16 +1573,16 @@ const PublicMenu = () => {
                       <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                     </label>
                     <AutoResizeTextarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-white/[0.04] ${BORDER} text-[16px] leading-snug outline-none focus:border-white/20 transition-colors`}
+                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-[hsl(var(--menu-ink)/0.04)] ${BORDER} text-[16px] leading-snug outline-none focus:border-[hsl(var(--menu-ink)/0.2)] transition-colors`}
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
 
 
                   <div className="flex gap-2.5">
-                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-white/[0.12] bg-white/[0.03]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
+                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-[hsl(var(--menu-ink)/0.12)] bg-[hsl(var(--menu-ink)/0.03)]" onClick={() => setCheckoutStep(orderType === "dine_in" ? 2 : 3)}>
                       Voltar
                     </Button>
-                    <Button type="submit" className="flex-1 min-h-[52px] rounded-[16px] font-bold text-base text-[#080909]"
+                    <Button type="submit" className="flex-1 min-h-[52px] rounded-[16px] font-bold text-base text-[hsl(var(--menu-bg))]"
                       style={{ backgroundColor: accentColor }} disabled={submitting}>
                       {submitting ? "Enviando..." : "Confirmar"} <Send className="ml-2 w-4 h-4" />
                     </Button>
@@ -1653,7 +1653,7 @@ const PublicMenu = () => {
                   animate={{ pathLength: 1, opacity: 1 }}
                   transition={{ delay: 0.35, duration: 0.5, ease: "easeOut" }}
                 >
-                  <Check className="w-14 h-14 text-white" strokeWidth={3.5} />
+                  <Check className="w-14 h-14 text-[hsl(var(--menu-ink))]" strokeWidth={3.5} />
                 </motion.div>
               </motion.div>
               <motion.h2
