@@ -947,7 +947,9 @@ const PublicMenu = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.name}</p>
                       {item.selectedAddons.length > 0 && (
-                        <p className={`text-[10px] ${TEXT_TERTIARY}`}>+ {item.selectedAddons.map((a) => a.name).join(", ")}</p>
+                        <p className={`text-[10px] ${TEXT_TERTIARY}`}>
+                          + {item.selectedAddons.map((a) => `${(a.quantity ?? 1) > 1 ? `${a.quantity}x ` : ""}${a.name}${Number(a.price) > 0 ? ` (${fmt(Number(a.price) * (a.quantity ?? 1))})` : ""}`).join(", ")}
+                        </p>
                       )}
                       <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{fmt(item.price)}</p>
                     </div>
