@@ -65,6 +65,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const media = usePlatformMediaUrl(rawMedia);
   const poster = usePlatformMediaUrl(current?.media_poster ?? null);
 
+  useEffect(() => {
+    setMediaRatio(null);
+  }, [current?.id, safeIndex]);
+
   if (!current) return null;
 
   const goTo = (i: number) => {
