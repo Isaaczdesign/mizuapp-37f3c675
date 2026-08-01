@@ -362,6 +362,7 @@ export default function Onboarding() {
         onboarding_complete: true,
       } as any).eq("user_id", user.id);
       clearOnboardingDraft(user.id);
+      markTourPending(user.id);
       toast.success("Tudo pronto! Bem-vindo à Mizu 🎉");
       window.location.reload();
     } catch (err: any) {
