@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Megaphone, Trash2, Users, Eye, CalendarClock, ChevronDown } from "lucide-react";
+import { Megaphone, Trash2, Users, Eye, CalendarClock, ChevronDown, MonitorPlay } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import AnnouncementCard from "@/components/announcements/AnnouncementCard";
+import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 
 type Announcement = {
