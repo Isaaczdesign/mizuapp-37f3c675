@@ -48,18 +48,21 @@ function toModalItems(a: Announcement) {
     starts_at: a.starts_at,
     created_at: a.created_at,
   };
-  const extras = (a.slides ?? []).map((s, i) => ({
-    ...base,
-    id: `${a.id}:${i}`,
-    title: s.title ?? "",
-    body: s.body ?? "",
-    media_url: s.media_url ?? null,
-    media_type: s.media_type ?? "none",
-    media_poster: s.media_poster ?? null,
-    media_loop: s.media_loop ?? true,
-    cta_label: s.cta_label ?? null,
-    cta_url: s.cta_url ?? null,
-  }));
+  const extras = (a.slides ?? []).map((s, i) => {
+    const url = s.media_url?.trim() || null;
+    return {
+      ...base,
+      id: `${a.id}:${i}`,
+      title: s.title ?? "",
+      body: s.body ?? "",
+      media_url: url,
+      media_type: s.media_type && s.media_type !== "none" ? s.media_type : url ? "image" : "none",
+      media_poster: s.media_poster ?? null,
+      media_loop: s.media_loop ?? true,
+      cta_label: s.cta_label ?? null,
+      cta_url: s.cta_url ?? null,
+    };
+  });
   return [base, ...extras];
 }
 

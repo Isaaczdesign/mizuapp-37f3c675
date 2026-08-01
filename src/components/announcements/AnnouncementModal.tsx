@@ -44,9 +44,13 @@ function formatDate(value?: string | null) {
 export default function AnnouncementModal({ open, onOpenChange, data, items }: Props) {
   const list = items && items.length > 0 ? items : data ? [data] : [];
   const [index, setIndex] = useState(0);
+  const [dir, setDir] = useState<"next" | "prev">("next");
 
   useEffect(() => {
-    if (open) setIndex(0);
+    if (open) {
+      setIndex(0);
+      setDir("next");
+    }
   }, [open]);
 
   const total = list.length;
@@ -54,10 +58,17 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const current = list[safeIndex];
   if (!current) return null;
 
+  const goTo = (i: number) => {
+    setDir(i > safeIndex ? "next" : "prev");
+    setIndex(i);
+  };
+  const enterAnim = dir === "next" ? "animate-slide-next" : "animate-slide-prev";
+
   const Icon = ANNOUNCEMENT_ICONS[current.variant] ?? Megaphone;
   const media = current.media_url?.trim();
-  const type = current.media_type ?? "none";
-  const hasMedia = !!media && (type === "image" || type === "video");
+  const rawType = current.media_type ?? "none";
+  const type = rawType === "image" || rawType === "video" ? rawType : media ? "image" : "none";
+  const hasMedia = !!media && type !== "none";
   const publishedAt = formatDate(current.starts_at ?? current.created_at);
   const isLast = safeIndex >= total - 1;
   const hasCta = !!current.cta_url?.trim();
@@ -81,7 +92,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
         >
           {/* Conteúdo — topo no mobile, esquerda no desktop */}
           <div className="relative order-1 flex flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
-            <div key={current.id ?? safeIndex} className="animate-fade-up space-y-2">
+            <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-2`}>
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -158,7 +169,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                       ? undefined
                       : { backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }
                   }
-                  onClick={() => setIndex(safeIndex + 1)}
+                  onClick={() => goTo(safeIndex + 1)}
                 >
                   Próxima novidade
                   <ArrowRight className="ml-1 h-4 w-4" />
@@ -172,7 +183,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   <button
                     key={item.id ?? i}
                     aria-label={`Ver novidade ${i + 1}`}
-                    onClick={() => setIndex(i)}
+                    onClick={() => goTo(i)}
                     className={`h-1.5 rounded-full transition-all ${
                       i === safeIndex ? "w-6 bg-accent" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
                     }`}
@@ -184,7 +195,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
 
           {/* Mídia — base no mobile, direita no desktop */}
           {hasMedia && (
-            <div className="relative order-2 flex animate-fade-in items-center justify-center overflow-hidden bg-brand-ink md:order-2">
+            <div
+              key={`${current.id ?? safeIndex}-media`}
+              className={`relative order-2 flex ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2`}
+            >
               {type === "image" ? (
                 <img
                   key={media}

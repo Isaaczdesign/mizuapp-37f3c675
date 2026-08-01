@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
-import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide } from "@/components/admin-mizu/AnnouncementSlidesEditor";
+import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
 import { Link } from "react-router-dom";
 
 type Announcement = {
@@ -109,7 +109,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [previewModal, setPreviewModal] = useState(false);
-  const [slides, setSlides] = useState<AnnouncementSlide[]>([]);
+  const [slides, setSlides] = useState<AnnouncementSlide[]>(() => loadSlidesDraft());
   // Pop-up existe apenas para atualizações.
   const modalEnabled = updatesOnly && showModal;
 
@@ -220,6 +220,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
     setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
     setScope("all"); setSelected([]); setSearch("");
     setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl(""); setSlides([]);
+    clearSlidesDraft();
     load();
   };
 
