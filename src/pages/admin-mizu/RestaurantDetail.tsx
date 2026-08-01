@@ -201,7 +201,10 @@ export default function AdminRestaurantDetail() {
             {notes.length === 0 && <li className="text-muted-foreground">Nenhuma observação registrada.</li>}
             {notes.map((n) => (
               <li key={n.id} className="rounded-lg border border-border p-2.5">
-                <p>{n.body}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="min-w-0 flex-1 break-words">{n.body}</p>
+                  <NoteActions noteId={n.id} body={n.body} onDone={load} />
+                </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}</p>
               </li>
             ))}
