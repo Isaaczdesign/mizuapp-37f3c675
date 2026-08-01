@@ -11,6 +11,8 @@ type Announcement = {
   variant: string;
   media_url: string | null;
   media_type: string | null;
+  media_poster: string | null;
+  media_loop: boolean | null;
   show_modal: boolean;
   cta_label: string | null;
   cta_url: string | null;
@@ -39,7 +41,9 @@ export default function PlatformAnnouncementBanner() {
     const now = new Date().toISOString();
     const { data } = await supabase
       .from("platform_announcements")
-      .select("id, title, body, variant, media_url, media_type, show_modal, cta_label, cta_url")
+      .select(
+        "id, title, body, variant, media_url, media_type, media_poster, media_loop, show_modal, cta_label, cta_url"
+      )
       .eq("active", true)
       .lte("starts_at", now)
       .or(`ends_at.is.null,ends_at.gt.${now}`)
