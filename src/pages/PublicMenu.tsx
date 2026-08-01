@@ -79,19 +79,23 @@ const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 1
 
 // ── Operating Hours helper ──
 function getOpenStatus(hours: any): { isOpen: boolean; label: string } {
-  if (!hours) return { isOpen: true, label: "Aberto" };
+  if (!hours || typeof hours !== "object") return { isOpen: true, label: "Aberto" };
   const now = new Date();
-  const dayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  const dayKey = dayKeys[now.getDay()];
-  const today = hours[dayKey];
-  if (!today || today.closed) return { isOpen: false, label: "Fechado hoje" };
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const [oh, om] = (today.open || "00:00").split(":").map(Number);
-  const [ch, cm] = (today.close || "23:59").split(":").map(Number);
-  const openMin = oh * 60 + om;
-  const closeMin = ch * 60 + cm;
-  if (nowMin >= openMin && nowMin <= closeMin) return { isOpen: true, label: `Aberto até ${today.close}` };
-  if (nowMin < openMin) return { isOpen: false, label: `Abre às ${today.open}` };
+  if (isOpenNow(hours, now)) {
+    const dayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const todayFmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", weekday: "short" })
+      .format(now).toLowerCase().slice(0, 3);
+    const today = hours[todayFmt];
+    const closeLabel = today && !today.closed ? today.close : null;
+    return { isOpen: true, label: closeLabel ? `Aberto até ${closeLabel}` : "Aberto" };
+  }
+  const next = nextOpenAt(hours, now);
+  if (next) {
+    const hhmm = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hour12: false,
+    }).format(next);
+    return { isOpen: false, label: `Abre às ${hhmm}` };
+  }
   return { isOpen: false, label: "Fechado agora" };
 }
 
