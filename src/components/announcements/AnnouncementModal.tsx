@@ -225,7 +225,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             <div
               key={`${current.id ?? safeIndex}-media`}
               className={`relative order-2 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
-                isPortrait ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]" : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
+                isPortrait
+                  ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
+                  : isWideLandscape
+                    ? "min-h-[50vh] max-h-[60vh] md:max-h-[78vh]"
+                    : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
               }`}
             >
               {type === "image" ? (
