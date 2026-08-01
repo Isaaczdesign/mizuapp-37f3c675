@@ -43,6 +43,9 @@ const VARIANTS: { id: string; label: string }[] = [
   { id: "maintenance", label: "Manutenção" },
 ];
 
+// Atualizações têm página própria; aqui ficam apenas os demais avisos.
+const PICKER_VARIANTS = VARIANTS.filter((v) => v.id !== "update");
+
 const fmt = (v: string | null) => (v ? new Date(v).toLocaleString("pt-BR") : "—");
 
 function statusOf(item: Announcement) {
