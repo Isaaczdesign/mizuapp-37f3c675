@@ -150,6 +150,8 @@ export function AdminNotifications() {
         show_modal: showModal,
         media_type: mediaType,
         media_url: mediaUrl.trim() || null,
+        media_poster: mediaType === "video" ? mediaPoster.trim() || null : null,
+        media_loop: mediaLoop,
         cta_label: ctaLabel.trim() || null,
         cta_url: ctaUrl.trim() || null,
       })
@@ -302,6 +304,8 @@ export function AdminNotifications() {
               variant,
               media_url: mediaUrl,
               media_type: mediaType,
+              media_poster: mediaPoster,
+              media_loop: mediaLoop,
               cta_label: ctaLabel,
               cta_url: ctaUrl,
             }}
