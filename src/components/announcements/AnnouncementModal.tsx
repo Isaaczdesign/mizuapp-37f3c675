@@ -169,7 +169,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                       ? undefined
                       : { backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }
                   }
-                  onClick={() => setIndex(safeIndex + 1)}
+                  onClick={() => goTo(safeIndex + 1)}
                 >
                   Próxima novidade
                   <ArrowRight className="ml-1 h-4 w-4" />
@@ -183,7 +183,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                   <button
                     key={item.id ?? i}
                     aria-label={`Ver novidade ${i + 1}`}
-                    onClick={() => setIndex(i)}
+                    onClick={() => goTo(i)}
                     className={`h-1.5 rounded-full transition-all ${
                       i === safeIndex ? "w-6 bg-accent" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
                     }`}
@@ -195,7 +195,10 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
 
           {/* Mídia — base no mobile, direita no desktop */}
           {hasMedia && (
-            <div className="relative order-2 flex animate-fade-in items-center justify-center overflow-hidden bg-brand-ink md:order-2">
+            <div
+              key={`${current.id ?? safeIndex}-media`}
+              className={`relative order-2 flex ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2`}
+            >
               {type === "image" ? (
                 <img
                   key={media}
