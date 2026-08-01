@@ -293,6 +293,80 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
     return { total: scopeItems.length, ...counts, seen };
   }, [scopeItems, views]);
 
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
+    setScope("all"); setSelected([]); setSearch("");
+    setShowModal(true); setMediaType("none"); setMediaUrl(""); setMediaPoster(""); setMediaLoop(true);
+    setCtaLabel(""); setCtaUrl(""); setSlides([]);
+    clearSlidesDraft();
+  };
+
+  /** Carrega um aviso já publicado no formulário para editar e reenviar. */
+  const startEdit = (item: Announcement) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setBody(item.body);
+    setVariant(item.variant);
+    setStartsAt(toLocalInput(item.starts_at));
+    setEndsAt(toLocalInput(item.ends_at));
+    setScope(item.target_scope === "restaurants" ? "restaurants" : "all");
+    setSelected(item.target_restaurant_ids ?? []);
+    setShowModal(item.show_modal ?? true);
+    const mt = item.media_type === "image" || item.media_type === "video" ? item.media_type : "none";
+    setMediaType(mt);
+    setMediaUrl(item.media_url ?? "");
+    setMediaPoster(item.media_poster ?? "");
+    setMediaLoop(item.media_loop ?? true);
+    setCtaLabel(item.cta_label ?? "");
+    setCtaUrl(item.cta_url ?? "");
+    setSlides(
+      (item.slides ?? []).map((sl) => ({
+        ...emptySlide(),
+        title: sl.title ?? "",
+        body: sl.body ?? "",
+        media_type: sl.media_type === "image" || sl.media_type === "video" ? sl.media_type : "none",
+        media_url: sl.media_url ?? "",
+        media_poster: sl.media_poster ?? "",
+        media_loop: sl.media_loop ?? true,
+        cta_label: sl.cta_label ?? "",
+        cta_url: sl.cta_url ?? "",
+      }))
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const buildPayload = () => ({
+    title: title.trim(),
+    body: body.trim(),
+    variant: effectiveVariant,
+    starts_at: startsAt ? new Date(startsAt).toISOString() : new Date().toISOString(),
+    ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+    target_scope: scope,
+    target_restaurant_ids: scope === "restaurants" ? selected : [],
+    show_modal: modalEnabled,
+    media_type: modalEnabled ? mediaType : "none",
+    media_url: modalEnabled ? mediaUrl.trim() || null : null,
+    media_poster: modalEnabled && mediaType === "video" ? mediaPoster.trim() || null : null,
+    media_loop: mediaLoop,
+    cta_label: modalEnabled ? ctaLabel.trim() || null : null,
+    cta_url: modalEnabled ? ctaUrl.trim() || null : null,
+    slides: modalEnabled
+      ? slides
+          .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
+          .map((sl) => ({
+            title: sl.title.trim(),
+            body: sl.body.trim(),
+            media_type: sl.media_url.trim() ? sl.media_type : "none",
+            media_url: sl.media_url.trim() || null,
+            media_poster: sl.media_type === "video" ? sl.media_poster.trim() || null : null,
+            media_loop: sl.media_loop,
+            cta_label: sl.cta_label.trim() || null,
+            cta_url: sl.cta_url.trim() || null,
+          }))
+      : [],
+  });
+
   const create = async () => {
     if (!title.trim() || !body.trim()) {
       toast.error("Preencha título e mensagem.");
@@ -307,38 +381,27 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
       return;
     }
     setSaving(true);
+    const payload = buildPayload();
+
+    if (editingId) {
+      const { data, error } = await supabase
+        .from("platform_announcements")
+        .update(payload)
+        .eq("id", editingId)
+        .select()
+        .single();
+      setSaving(false);
+      if (error) { toast.error("Erro ao salvar as alterações."); return; }
+      await logPlatformAction({ action: "announcement.update", entityType: "platform_announcement", entityId: editingId, newValue: data });
+      toast.success("Aviso atualizado. As alterações já valem para os restaurantes.");
+      resetForm();
+      load();
+      return;
+    }
+
     const { data, error } = await supabase
       .from("platform_announcements")
-      .insert({
-        title: title.trim(),
-        body: body.trim(),
-        variant: effectiveVariant,
-        starts_at: startsAt ? new Date(startsAt).toISOString() : new Date().toISOString(),
-        ends_at: endsAt ? new Date(endsAt).toISOString() : null,
-        target_scope: scope,
-        target_restaurant_ids: scope === "restaurants" ? selected : [],
-        show_modal: modalEnabled,
-        media_type: modalEnabled ? mediaType : "none",
-        media_url: modalEnabled ? mediaUrl.trim() || null : null,
-        media_poster: modalEnabled && mediaType === "video" ? mediaPoster.trim() || null : null,
-        media_loop: mediaLoop,
-        cta_label: modalEnabled ? ctaLabel.trim() || null : null,
-        cta_url: modalEnabled ? ctaUrl.trim() || null : null,
-        slides: modalEnabled
-          ? slides
-              .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
-              .map((sl) => ({
-                title: sl.title.trim(),
-                body: sl.body.trim(),
-                media_type: sl.media_url.trim() ? sl.media_type : "none",
-                media_url: sl.media_url.trim() || null,
-                media_poster: sl.media_type === "video" ? sl.media_poster.trim() || null : null,
-                media_loop: sl.media_loop,
-                cta_label: sl.cta_label.trim() || null,
-                cta_url: sl.cta_url.trim() || null,
-              }))
-          : [],
-      })
+      .insert(payload)
       .select()
       .single();
     setSaving(false);
@@ -349,10 +412,22 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         ? "Aviso agendado. Ele aparecerá automaticamente na data escolhida."
         : "Aviso publicado. Ele aparece na hora no painel dos restaurantes."
     );
-    setTitle(""); setBody(""); setStartsAt(""); setEndsAt(""); setVariant("info");
-    setScope("all"); setSelected([]); setSearch("");
-    setShowModal(true); setMediaType("none"); setMediaUrl(""); setCtaLabel(""); setCtaUrl(""); setSlides([]);
-    clearSlidesDraft();
+    resetForm();
+    load();
+  };
+
+  /** Reenvia: o pop-up volta a aparecer para quem já tinha visto. */
+  const resend = async (item: Announcement) => {
+    if (!confirm("Reenviar este aviso? Ele voltará a aparecer para todos os restaurantes do público-alvo.")) return;
+    const startsNow = new Date().toISOString();
+    const { error } = await supabase
+      .from("platform_announcements")
+      .update({ active: true, starts_at: startsNow, ends_at: null })
+      .eq("id", item.id);
+    if (error) { toast.error("Não foi possível reenviar."); return; }
+    await supabase.from("platform_announcement_views").delete().eq("announcement_id", item.id);
+    await logPlatformAction({ action: "announcement.resend", entityType: "platform_announcement", entityId: item.id, newValue: { starts_at: startsNow } });
+    toast.success("Aviso reenviado. Ele reaparece no painel dos restaurantes.");
     load();
   };
 
