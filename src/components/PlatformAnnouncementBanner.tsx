@@ -18,7 +18,50 @@ type Announcement = {
   cta_url: string | null;
   starts_at: string | null;
   created_at: string | null;
+  slides: AnnouncementSlide[] | null;
 };
+
+type AnnouncementSlide = {
+  title?: string | null;
+  body?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
+  media_poster?: string | null;
+  media_loop?: boolean | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
+};
+
+/** Um aviso pode conter várias novidades — vira uma sequência de telas no pop-up. */
+function toModalItems(a: Announcement) {
+  const base = {
+    id: a.id,
+    title: a.title,
+    body: a.body,
+    variant: a.variant,
+    media_url: a.media_url,
+    media_type: a.media_type,
+    media_poster: a.media_poster,
+    media_loop: a.media_loop,
+    cta_label: a.cta_label,
+    cta_url: a.cta_url,
+    starts_at: a.starts_at,
+    created_at: a.created_at,
+  };
+  const extras = (a.slides ?? []).map((s, i) => ({
+    ...base,
+    id: `${a.id}:${i}`,
+    title: s.title ?? "",
+    body: s.body ?? "",
+    media_url: s.media_url ?? null,
+    media_type: s.media_type ?? "none",
+    media_poster: s.media_poster ?? null,
+    media_loop: s.media_loop ?? true,
+    cta_label: s.cta_label ?? null,
+    cta_url: s.cta_url ?? null,
+  }));
+  return [base, ...extras];
+}
 
 const DISMISS_KEY = "mizu:dismissed-announcements";
 const MODAL_KEY = "mizu:seen-announcement-modals";
@@ -35,7 +78,8 @@ export default function PlatformAnnouncementBanner() {
   const { user } = useAuth();
   const [items, setItems] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<string[]>(() => readList(DISMISS_KEY));
-  const [modalItems, setModalItems] = useState<Announcement[]>([]);
+  const [modalItems, setModalItems] = useState<ReturnType<typeof toModalItems>>([]);
+  const [modalIds, setModalIds] = useState<string[]>([]);
   const restaurantIdRef = useRef<string | null>(null);
 
   const fetchAnnouncements = useCallback(async () => {
@@ -44,7 +88,7 @@ export default function PlatformAnnouncementBanner() {
     const { data } = await supabase
       .from("platform_announcements")
       .select(
-        "id, title, body, variant, media_url, media_type, media_poster, media_loop, show_modal, cta_label, cta_url, starts_at, created_at"
+        "id, title, body, variant, media_url, media_type, media_poster, media_loop, show_modal, cta_label, cta_url, starts_at, created_at, slides"
       )
       .eq("active", true)
       .lte("starts_at", now)
@@ -71,7 +115,10 @@ export default function PlatformAnnouncementBanner() {
 
     const seenModals = readList(MODAL_KEY);
     const pending = list.filter((a) => a.show_modal && !seenModals.includes(a.id));
-    if (pending.length > 0) setModalItems(pending);
+    if (pending.length > 0) {
+      setModalIds(pending.map((a) => a.id));
+      setModalItems(pending.flatMap(toModalItems));
+    }
   }, [user]);
 
   useEffect(() => {
@@ -94,10 +141,11 @@ export default function PlatformAnnouncementBanner() {
   }, [user, fetchAnnouncements]);
 
   const closeModal = () => {
-    if (modalItems.length > 0) {
-      const next = [...new Set([...readList(MODAL_KEY), ...modalItems.map((m) => m.id)])];
+    if (modalIds.length > 0) {
+      const next = [...new Set([...readList(MODAL_KEY), ...modalIds])];
       localStorage.setItem(MODAL_KEY, JSON.stringify(next));
     }
+    setModalIds([]);
     setModalItems([]);
   };
 
