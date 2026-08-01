@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize } from "lucide-react";
 
 type Props = {
   src: string;
@@ -23,9 +23,12 @@ const saveData = () => {
 /** Vídeo do pop-up: thumbnail, autoplay controlado, loop opcional e reprodução estável no iOS. */
 export default function AnnouncementVideo({ src, poster, loop = true, title }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const wasPlayingRef = useRef(false);
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
 
   // Autoplay só quando faz sentido: desktop, sem economia de dados e sem "reduzir animações".
   const shouldAutoplay = useRef(false);
@@ -129,16 +132,100 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
     if (!next && video.paused) void safePlay(true);
   };
 
+  // Tela cheia: usa a API padrão no container e o modo nativo do iOS no vídeo.
+  const openFullscreen = async () => {
+    const video = videoRef.current as (HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitSupportsFullscreen?: boolean;
+    }) | null;
+    const container = containerRef.current as (HTMLDivElement & {
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    }) | null;
+    if (!video) return;
+
+    wasPlayingRef.current = !video.paused;
+    if (video.paused) await safePlay(true);
+
+    try {
+      if (container?.requestFullscreen) {
+        await container.requestFullscreen();
+        setFullscreen(true);
+      } else if (container?.webkitRequestFullscreen) {
+        await container.webkitRequestFullscreen();
+        setFullscreen(true);
+      } else if (video.webkitEnterFullscreen) {
+        // iPhone: só o elemento <video> entra em tela cheia (player nativo).
+        video.webkitEnterFullscreen();
+        setFullscreen(true);
+      }
+    } catch {
+      /* usuário/navegador recusou — segue no pop-up */
+    }
+  };
+
+  const exitFullscreen = async () => {
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch {
+        /* noop */
+      }
+    }
+    setFullscreen(false);
+  };
+
+  const toggleFullscreen = () => {
+    if (fullscreen || document.fullscreenElement) void exitFullscreen();
+    else void openFullscreen();
+  };
+
+  // Ao sair da tela cheia (gesto, ESC ou player nativo do iOS) volta ao estado do pop-up.
+  useEffect(() => {
+    const video = videoRef.current;
+
+    const restore = () => {
+      setFullscreen(false);
+      const v = videoRef.current;
+      if (!v) return;
+      v.setAttribute("playsinline", "");
+      if (wasPlayingRef.current) {
+        void v.play().catch(() => undefined);
+      } else {
+        v.pause();
+      }
+    };
+
+    const onChange = () => {
+      if (document.fullscreenElement) setFullscreen(true);
+      else restore();
+    };
+
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+    video?.addEventListener("webkitendfullscreen", restore);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange);
+      video?.removeEventListener("webkitendfullscreen", restore);
+    };
+  }, []);
+
   return (
-    <div className="group relative w-full overflow-hidden bg-brand-ink aspect-[4/3] max-h-[52vh] sm:aspect-square sm:max-h-none">
+    <div
+      ref={containerRef}
+      className={`group relative w-full overflow-hidden bg-brand-ink ${
+        fullscreen
+          ? "flex h-full max-h-none items-center justify-center aspect-auto"
+          : "aspect-[4/3] max-h-[52vh] sm:aspect-square sm:max-h-none"
+      }`}
+    >
       <video
         ref={videoRef}
         src={src}
         poster={poster ?? undefined}
-        className="h-full w-full object-cover object-center"
+        className={`h-full w-full object-center ${fullscreen ? "object-contain" : "object-cover"}`}
         playsInline
         {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
-        disablePictureInPicture
         controls={false}
         muted={muted}
         loop={loop}
@@ -157,7 +244,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
           type="button"
           onClick={toggle}
           aria-label={`Reproduzir vídeo${title ? `: ${title}` : ""}`}
-          className="absolute inset-0 flex items-center justify-center bg-brand-ink/35 backdrop-blur-[1px] transition-colors hover:bg-brand-ink/25"
+          className="absolute inset-0 z-10 flex items-center justify-center bg-brand-ink/35 backdrop-blur-[1px] transition-colors hover:bg-brand-ink/25"
         >
           <span className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-background/80 shadow-[var(--shadow-orange)] transition-transform duration-300 hover:scale-105">
             <Play className="ml-0.5 h-6 w-6 fill-accent text-accent" />
@@ -165,9 +252,19 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
         </button>
       )}
 
+      {/* Toque na área do vídeo abre em tela cheia */}
+      {started && (
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={fullscreen ? "Sair da tela cheia" : "Abrir vídeo em tela cheia"}
+          className="absolute inset-0 z-0 cursor-zoom-in"
+        />
+      )}
+
       {/* Controles mínimos */}
       {started && (
-        <div className="absolute bottom-3 left-3 flex gap-2 opacity-0 transition-opacity duration-200 focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+        <div className="absolute bottom-3 left-3 z-20 flex gap-2 opacity-0 transition-opacity duration-200 focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
           <button
             type="button"
             onClick={toggle}
@@ -183,6 +280,14 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
             className="rounded-full bg-background/70 p-2 text-foreground backdrop-blur transition-colors hover:bg-background"
           >
             {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label={fullscreen ? "Sair da tela cheia" : "Tela cheia"}
+            className="rounded-full bg-background/70 p-2 text-foreground backdrop-blur transition-colors hover:bg-background"
+          >
+            {fullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </button>
         </div>
       )}
