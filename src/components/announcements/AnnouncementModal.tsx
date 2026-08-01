@@ -46,6 +46,8 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const list = items && items.length > 0 ? items : data ? [data] : [];
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState<"next" | "prev">("next");
+  const [mediaRatio, setMediaRatio] = useState<number | null>(null);
+  const handleAspectRatio = useCallback((ratio: number) => setMediaRatio(ratio), []);
 
   useEffect(() => {
     if (open) {
