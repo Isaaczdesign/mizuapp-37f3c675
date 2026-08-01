@@ -29,6 +29,7 @@ export default function AnnouncementVideo({ src, poster, loop = true, title }: P
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
+  const [ratio, setRatio] = useState<number | null>(null);
 
   // Autoplay só quando faz sentido: desktop, sem economia de dados e sem "reduzir animações".
   const shouldAutoplay = useRef(false);
