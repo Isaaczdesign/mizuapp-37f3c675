@@ -74,6 +74,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
 }
 
 const App = () => (
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="mizu-theme" disableTransitionOnChange>
   <QueryClientProvider client={queryClient}>
     <MotionConfig reducedMotion="user">
     <TooltipProvider>
