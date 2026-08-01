@@ -64,7 +64,7 @@ export default function NotificationSettings() {
       setPermission(result);
       if (result === "granted") {
         toast.success("Notificações ativadas!");
-        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui.", icon: "/mizu-icon.png", badge: "/mizu-icon.png" });
+        new Notification("Mizu", { body: "Você receberá alertas de novos pedidos aqui.", icon: NOTIFICATION_ICON, badge: NOTIFICATION_BADGE });
         save({ browser_push_enabled: true });
       } else if (result === "denied") {
         toast.error("Permissão negada. Clique no cadeado 🔒 na barra de endereço do navegador e permita 'Notificações'.");
