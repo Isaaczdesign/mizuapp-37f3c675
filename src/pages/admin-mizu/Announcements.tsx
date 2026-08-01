@@ -183,13 +183,13 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
         ends_at: endsAt ? new Date(endsAt).toISOString() : null,
         target_scope: scope,
         target_restaurant_ids: scope === "restaurants" ? selected : [],
-        show_modal: showModal,
-        media_type: mediaType,
-        media_url: mediaUrl.trim() || null,
-        media_poster: mediaType === "video" ? mediaPoster.trim() || null : null,
+        show_modal: modalEnabled,
+        media_type: modalEnabled ? mediaType : "none",
+        media_url: modalEnabled ? mediaUrl.trim() || null : null,
+        media_poster: modalEnabled && mediaType === "video" ? mediaPoster.trim() || null : null,
         media_loop: mediaLoop,
-        cta_label: ctaLabel.trim() || null,
-        cta_url: ctaUrl.trim() || null,
+        cta_label: modalEnabled ? ctaLabel.trim() || null : null,
+        cta_url: modalEnabled ? ctaUrl.trim() || null : null,
       })
       .select()
       .single();
