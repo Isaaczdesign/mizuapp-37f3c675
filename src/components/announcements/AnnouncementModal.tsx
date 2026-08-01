@@ -217,7 +217,9 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
           {hasMedia && (
             <div
               key={`${current.id ?? safeIndex}-media`}
-              className={`relative order-2 flex min-h-48 min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2`}
+              className={`relative order-2 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
+                isPortrait ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]" : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
+              }`}
             >
               {type === "image" ? (
                 <img
