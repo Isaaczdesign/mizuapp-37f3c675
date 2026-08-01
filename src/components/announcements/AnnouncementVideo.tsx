@@ -157,11 +157,12 @@ export default function AnnouncementVideo({ src, poster, loop = true, title, cla
   const toggleSound = () => {
     const video = videoRef.current;
     if (!video) return;
-    const next = !video.muted;
-    video.muted = next;
-    setMuted(next);
+    const nextMuted = !video.muted;
+    video.muted = nextMuted;
+    video.volume = 1;
+    setMuted(nextMuted);
     // Ativar som no iOS exige que o play parta do gesto do usuário.
-    if (!next && video.paused) void safePlay(true);
+    if (!nextMuted && video.paused) void safePlay(true);
   };
 
   // Tela cheia: usa a API padrão no container e o modo nativo do iOS no vídeo.
