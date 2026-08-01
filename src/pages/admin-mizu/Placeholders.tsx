@@ -1,5 +1,5 @@
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
-import { Bell, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 
 export function AdminCoupons() {
   return (
