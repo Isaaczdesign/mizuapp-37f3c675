@@ -284,4 +284,59 @@ function Choice({
   );
 }
 
+/** Linha de adicional com seletor de quantidade (– 1 +). Quantidade 0 = não selecionado. */
+function AddonRow({
+  addon, quantity, accentColor, onChange,
+}: { addon: Addon; quantity: number; accentColor: string; onChange: (n: number) => void }) {
+  const selected = quantity > 0;
+  const unit = Number(addon.price);
+  return (
+    <div
+      className={`w-full flex items-center gap-3 min-h-[52px] px-3 py-2 ${R_CHIP} text-[13.5px] border transition-colors duration-150`}
+      style={
+        selected
+          ? { borderColor: accentColor, backgroundColor: accentFaint(accentColor) }
+          : { borderColor: "rgba(255,255,255,0.07)", backgroundColor: "rgba(255,255,255,0.03)" }
+      }
+    >
+      <button
+        type="button"
+        onClick={() => onChange(selected ? 0 : 1)}
+        aria-pressed={selected}
+        className="flex-1 min-w-0 text-left"
+      >
+        <span className="block font-medium truncate">{addon.name}</span>
+        <span className="block text-[11.5px] tabular-nums" style={{ color: accentColor }}>
+          {unit > 0 ? `+${fmt(unit)}` : "grátis"}
+          {selected && quantity > 1 && (
+            <span className={`ml-1.5 ${TEXT_SECONDARY}`}>· {quantity}x = {fmt(unit * quantity)}</span>
+          )}
+        </span>
+      </button>
+
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(0, quantity - 1))}
+          disabled={quantity === 0}
+          aria-label={`Diminuir ${addon.name}`}
+          className={`w-9 h-9 rounded-full ${BORDER} bg-white/[0.05] flex items-center justify-center transition-all hover:bg-white/[0.1] active:scale-90 disabled:opacity-30 disabled:pointer-events-none`}
+        >
+          <Minus className="w-3.5 h-3.5" />
+        </button>
+        <span className="w-6 text-center font-semibold tabular-nums" aria-live="polite">{quantity}</span>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(99, quantity + 1))}
+          aria-label={`Aumentar ${addon.name}`}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[#080909] transition-transform active:scale-90"
+          style={{ backgroundColor: selected ? accentColor : "rgba(255,255,255,0.14)", color: selected ? "#080909" : "#fff" }}
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.6} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export { EASE };
