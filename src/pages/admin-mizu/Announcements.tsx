@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Megaphone, Trash2 } from "lucide-react";
+import { Megaphone, Trash2, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Announcement = {
   id: string;
@@ -18,7 +19,11 @@ type Announcement = {
   starts_at: string;
   ends_at: string | null;
   created_at: string;
+  target_scope: string;
+  target_restaurant_ids: string[] | null;
 };
+
+type RestaurantOption = { id: string; name: string; slug: string };
 
 const VARIANTS: { id: string; label: string }[] = [
   { id: "update", label: "Atualização" },
@@ -36,6 +41,10 @@ export function AdminNotifications() {
   const [body, setBody] = useState("");
   const [variant, setVariant] = useState("update");
   const [endsAt, setEndsAt] = useState("");
+  const [scope, setScope] = useState<"all" | "restaurants">("all");
+  const [restaurants, setRestaurants] = useState<RestaurantOption[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
 
   const load = async () => {
     const { data, error } = await supabase
@@ -49,9 +58,31 @@ export function AdminNotifications() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      const { data } = await supabase
+        .from("restaurants")
+        .select("id, name, slug")
+        .order("name");
+      setRestaurants((data ?? []) as RestaurantOption[]);
+    })();
+  }, [isAdmin]);
+
+  const toggleRestaurant = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]));
+
+  const filteredRestaurants = restaurants.filter((r) =>
+    `${r.name} ${r.slug}`.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
   const create = async () => {
     if (!title.trim() || !body.trim()) {
       toast.error("Preencha título e mensagem.");
+      return;
+    }
+    if (scope === "restaurants" && selected.length === 0) {
+      toast.error("Selecione ao menos um restaurante.");
       return;
     }
     setSaving(true);
@@ -62,6 +93,8 @@ export function AdminNotifications() {
         body: body.trim(),
         variant,
         ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+        target_scope: scope,
+        target_restaurant_ids: scope === "restaurants" ? selected : [],
       })
       .select()
       .single();
@@ -70,6 +103,7 @@ export function AdminNotifications() {
     await logPlatformAction({ action: "announcement.create", entityType: "platform_announcement", entityId: data.id, newValue: data });
     toast.success("Aviso publicado. Os restaurantes verão ao recarregar a página.");
     setTitle(""); setBody(""); setEndsAt(""); setVariant("update");
+    setScope("all"); setSelected([]); setSearch("");
     load();
   };
 
@@ -114,6 +148,61 @@ export function AdminNotifications() {
               </button>
             ))}
           </div>
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold">Quem recebe este aviso</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { id: "all", label: "Todos os restaurantes" },
+                { id: "restaurants", label: "Restaurantes selecionados" },
+              ] as const).map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => setScope(o.id)}
+                  className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                    scope === o.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+
+            {scope === "restaurants" && (
+              <div className="space-y-2">
+                <Input
+                  placeholder="Buscar restaurante por nome ou link"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+                  {filteredRestaurants.length === 0 ? (
+                    <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante encontrado.</p>
+                  ) : (
+                    filteredRestaurants.map((r) => (
+                      <label
+                        key={r.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-muted/60"
+                      >
+                        <Checkbox
+                          checked={selected.includes(r.id)}
+                          onCheckedChange={() => toggleRestaurant(r.id)}
+                        />
+                        <span className="min-w-0 flex-1 truncate">{r.name}</span>
+                        <span className="shrink-0 text-[10px] text-muted-foreground">/{r.slug}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {selected.length} restaurante(s) selecionado(s).
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-xs text-muted-foreground">Expira em (opcional)</label>
             <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className="w-auto" />
@@ -140,6 +229,11 @@ export function AdminNotifications() {
                   <p className="text-sm font-semibold">{item.title}</p>
                   <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                     {VARIANTS.find((v) => v.id === item.variant)?.label ?? item.variant}
+                  </span>
+                  <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                    {item.target_scope === "restaurants"
+                      ? `${item.target_restaurant_ids?.length ?? 0} restaurante(s)`
+                      : "Todos"}
                   </span>
                 </div>
                 <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{item.body}</p>
