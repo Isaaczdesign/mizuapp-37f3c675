@@ -119,11 +119,11 @@ export default function PlatformAnnouncementBanner() {
 
   return (
     <>
-      {modalItem && (
+      {modalItems.length > 0 && (
         <AnnouncementModal
-          open={!!modalItem}
+          open={modalItems.length > 0}
           onOpenChange={(o) => !o && closeModal()}
-          data={modalItem}
+          items={modalItems}
         />
       )}
       {visible.length > 0 && (
