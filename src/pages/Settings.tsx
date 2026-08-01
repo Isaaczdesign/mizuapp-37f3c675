@@ -10,11 +10,10 @@ import { Label } from "@/components/ui/label";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Crown, User, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
+import { Save, User, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
-import DangerZone from "@/components/settings/DangerZone";
 import { menuUrl, isReservedSlug } from "@/lib/publicMenuUrl";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -39,9 +38,6 @@ const Settings = () => {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerPhone, setOwnerPhone] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
   const [hours, setHours] = useState<OperatingHours>(defaultHours);
 
   const [whatsappProvider, setWhatsappProvider] = useState("");
@@ -81,21 +77,9 @@ const Settings = () => {
     },
   });
 
-  const { data: subscription } = useQuery({
-    queryKey: ["subscription", rid],
-    enabled: !!rid,
-    queryFn: async () => {
-      const { data } = await supabase.from("subscriptions").select("*").eq("restaurant_id", rid!).maybeSingle();
-      return data;
-    },
-  });
-
   useEffect(() => {
     if (restaurant) {
       setName(restaurant.name);
-      setOwnerName((restaurant as any).owner_name ?? "");
-      setOwnerPhone((restaurant as any).owner_phone ?? "");
-      setOwnerEmail((restaurant as any).owner_email ?? "");
 
       const pm = (restaurant as any).payment_methods;
       if (Array.isArray(pm) && pm.length > 0) setPaymentMethods(pm);
@@ -164,7 +148,7 @@ const Settings = () => {
       }
 
       const payload: any = {
-        name, owner_name: ownerName, owner_phone: ownerPhone, owner_email: ownerEmail,
+        name,
         payment_methods: paymentMethods,
 
         dine_in_enabled: dineInEnabled, pickup_enabled: pickupEnabled,
@@ -226,8 +210,6 @@ const Settings = () => {
     );
   };
 
-  const planLabels: Record<string, string> = { free: "Gratuito", starter: "Starter", pro: "Profissional", enterprise: "Enterprise" };
-  const statusLabels: Record<string, string> = { active: "Ativo", inactive: "Inativo", trial: "Trial", expired: "Expirado" };
 
   return (
     <AdminLayout>
@@ -557,8 +539,6 @@ const Settings = () => {
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
-
-          <DangerZone />
         </div>
       </PageShell>
     </AdminLayout>
