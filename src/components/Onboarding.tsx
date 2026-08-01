@@ -13,9 +13,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Store, Upload, Clock, UtensilsCrossed, CreditCard, QrCode,
   ShoppingCart, ArrowRight, ArrowLeft, Check, Copy, Download,
-  Palette, FileText, Plus, CheckCircle2, Sparkles,
+  Palette, FileText, Plus, CheckCircle2, Sparkles, RotateCcw,
 } from "lucide-react";
 import { loadOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from "@/lib/onboardingDraft";
+import { markTourPending } from "@/lib/guidedTour";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -362,6 +368,7 @@ export default function Onboarding() {
         onboarding_complete: true,
       } as any).eq("user_id", user.id);
       clearOnboardingDraft(user.id);
+      markTourPending(user.id);
       toast.success("Tudo pronto! Bem-vindo à Mizu 🎉");
       window.location.reload();
     } catch (err: any) {
@@ -371,7 +378,34 @@ export default function Onboarding() {
     }
   };
 
+  // ---- Restart onboarding from scratch (clears autosaved draft) ----
+  const handleRestart = () => {
+    clearOnboardingDraft(user?.id);
+    setStep(restaurantId ? 1 : 0);
+    setPrimaryColor("#F97316");
+    setHours(defaultHours);
+    setPickupEnabled(false);
+    setDineInEnabled(true);
+    setDeliveryEnabled(false);
+    setDeliveryFee("0");
+    setMenuChoice(null);
+    setMenuFile(null);
+    setMenuImported(false);
+    setMenuStage("idle");
+    setMenuJob(null);
+    setPaymentMethods(["cash"]);
+    setTestStarted(false);
+    setTestComplete(false);
+    if (!restaurantId) {
+      setName("");
+      setLogoFile(null);
+      setLogoPreview(null);
+    }
+    toast.success("Configuração reiniciada. Vamos começar do zero!");
+  };
+
   // ---- Skip onboarding ----
+
   const handleSkip = async () => {
     if (!user) return;
     setLoading(true);
@@ -1107,13 +1141,38 @@ export default function Onboarding() {
       <div className="sticky bottom-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
 
-          <Button
-            variant="ghost"
-            onClick={() => setStep(Math.max(0, step - 1))}
-            disabled={step === 0}
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              onClick={() => setStep(Math.max(0, step - 1))}
+              disabled={step === 0}
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" disabled={loading} title="Recomeçar do zero" aria-label="Recomeçar do zero">
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Recomeçar a configuração?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Isso apaga o rascunho salvo automaticamente e volta o onboarding para o início.
+                    Dados já salvos no restaurante (nome, horários, cardápio) permanecem no painel.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRestart}>Recomeçar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
+
 
           <div className="flex items-center gap-2">
             {step < STEPS.length - 1 && restaurantId && (
