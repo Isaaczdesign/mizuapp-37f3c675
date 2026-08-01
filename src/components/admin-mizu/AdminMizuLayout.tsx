@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { usePlatformRole } from "@/hooks/usePlatformRole";
 
-const NAV = [
+const NAV: { to: string; label: string; icon: any; end?: boolean; superAdminOnly?: boolean }[] = [
   { to: "/admin-mizu", label: "Visão geral", icon: LayoutDashboard, end: true },
   { to: "/admin-mizu/restaurantes", label: "Restaurantes", icon: Store },
   { to: "/admin-mizu/usuarios", label: "Usuários", icon: Users },
