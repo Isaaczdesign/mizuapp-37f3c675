@@ -7,6 +7,8 @@ import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight,
 import { Button } from "@/components/ui/button";
 import { useNotificationPrefs, PopupPosition } from "@/hooks/useNotificationPrefs";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
+import { NOTIFICATION_ICON, NOTIFICATION_BADGE } from "@/lib/notificationAssets";
+
 
 interface NewOrderPayload {
   id: string;
