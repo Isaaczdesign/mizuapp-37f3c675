@@ -7,6 +7,7 @@ import {
   BORDER, R_CHIP, R_CARD_SM, TEXT_SECONDARY, TEXT_TERTIARY,
   accentFaint, accentGlow, brl, D_MICRO,
 } from "./menuTokens";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Cat = { id: string; name: string; count: number };
 
@@ -54,7 +55,7 @@ export default function MenuSidebar({
     >
       {/* Identidade */}
       <div className="p-5 pb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           {logoUrl ? (
             <img src={logoUrl} alt="" className={`w-12 h-12 ${R_CARD_SM} object-cover ${BORDER}`} />
           ) : (
@@ -74,6 +75,7 @@ export default function MenuSidebar({
               {statusLabel}
             </span>
           </div>
+          <ThemeToggle variant="menu" className="!w-9 !h-9 shrink-0" />
         </div>
 
         {description && (
