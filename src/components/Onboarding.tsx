@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Store, Upload, Clock, UtensilsCrossed, CreditCard, QrCode,
   ShoppingCart, ArrowRight, ArrowLeft, Check, Copy, Download,
-  Palette, FileText, Plus, CheckCircle2,
+  Palette, FileText, Plus, CheckCircle2, Sparkles,
 } from "lucide-react";
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
