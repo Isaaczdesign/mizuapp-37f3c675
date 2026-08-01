@@ -232,56 +232,23 @@ const Settings = () => {
   return (
     <AdminLayout>
       <PageShell className="max-w-2xl">
-        <PageHeader emoji="⚙️" title="Configurações" subtitle="Dados do restaurante, horários, pagamentos e integrações." />
+        <PageHeader emoji="⚙️" title="Configurações do estabelecimento" subtitle="Endereço do cardápio, horários, atendimento, pagamentos e integrações." />
 
         <div className="space-y-8">
-          {/* Plan Status */}
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Crown className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Plano</h2>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <p className="text-lg font-bold">{planLabels[subscription?.plan ?? "free"] ?? subscription?.plan ?? "Gratuito"}</p>
-                <p className="text-sm text-muted-foreground">
-                  Status: <span className={`font-medium ${subscription?.status === "active" ? "text-green-500" : "text-destructive"}`}>
-                    {statusLabels[subscription?.status ?? "active"] ?? subscription?.status ?? "Ativo"}
-                  </span>
-                </p>
-                {subscription?.expires_at && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Expira em: {new Date(subscription.expires_at).toLocaleDateString("pt-BR")}
-                  </p>
-                )}
-                {subscription?.started_at && (
-                  <p className="text-xs text-muted-foreground">
-                    Início: {new Date(subscription.started_at).toLocaleDateString("pt-BR")}
-                  </p>
-                )}
-              </div>
+          {/* Atalho para o perfil */}
+          <div className="glass-card p-6 flex items-start gap-3">
+            <User className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Dados pessoais e plano</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Nome de exibição, contato do responsável, plano e exclusão de conta agora ficam no seu perfil.
+              </p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/perfil")}>
+                Abrir meu perfil
+              </Button>
             </div>
           </div>
 
-          {/* Owner info */}
-          <div className="glass-card p-6 space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <User className="w-5 h-5 text-primary" />
-              <h2 className="font-display font-bold">Responsável</h2>
-            </div>
-            <div>
-              <Label>Nome do Responsável</Label>
-              <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="mt-1" placeholder="Nome completo" />
-            </div>
-            <div>
-              <Label>Telefone</Label>
-              <Input value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} className="mt-1" placeholder="(11) 99999-9999" />
-            </div>
-            <div>
-              <Label>E-mail</Label>
-              <Input value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} className="mt-1" placeholder="responsavel@email.com" />
-            </div>
-          </div>
 
           {/* Restaurant info */}
           <div className="glass-card p-6 space-y-4">
