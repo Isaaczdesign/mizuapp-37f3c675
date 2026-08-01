@@ -207,13 +207,77 @@ export function AdminNotifications() {
             ))}
           </div>
 
+          <div className="space-y-3 rounded-lg border border-border p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <MonitorPlay className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold">Exibir também como pop-up na tela</p>
+              </div>
+              <Switch checked={showModal} onCheckedChange={setShowModal} aria-label="Exibir pop-up" />
+            </div>
+            {showModal && (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { id: "none", label: "Sem mídia" },
+                    { id: "image", label: "Imagem" },
+                    { id: "video", label: "Vídeo" },
+                  ] as const).map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setMediaType(o.id)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                        mediaType === o.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                {mediaType !== "none" && (
+                  <Input
+                    placeholder={mediaType === "video" ? "URL do vídeo (.mp4)" : "URL da imagem (quadrada, ex.: 800x800)"}
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                  />
+                )}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input placeholder="Texto do botão (opcional)" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
+                  <Input placeholder="Link do botão (opcional)" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-primary" />
-              <p className="text-xs font-semibold">Prévia no topo do painel</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold">Prévia no topo do painel</p>
+              </div>
+              {showModal && (
+                <Button variant="outline" size="sm" onClick={() => setPreviewModal(true)}>
+                  Ver prévia do pop-up
+                </Button>
+              )}
             </div>
             <AnnouncementCard title={title} body={body} variant={variant} />
           </div>
+
+          <AnnouncementModal
+            open={previewModal}
+            onOpenChange={setPreviewModal}
+            data={{
+              title,
+              body,
+              variant,
+              media_url: mediaUrl,
+              media_type: mediaType,
+              cta_label: ctaLabel,
+              cta_url: ctaUrl,
+            }}
+          />
+
 
           <div className="space-y-2 rounded-lg border border-border p-3">
             <div className="flex items-center gap-2">
