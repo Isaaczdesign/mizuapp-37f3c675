@@ -25,7 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
-import AnnouncementSlidesEditor, { AnnouncementSlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
+import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
 import { Link } from "react-router-dom";
 import { SectionCard, StatCard, StatusPill, EmptyState, SegmentedControl } from "@/components/admin-mizu/ui";
 
