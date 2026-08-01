@@ -119,11 +119,11 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
         >
           {/* Conteúdo — topo no mobile (abaixo do vídeo widescreen), esquerda no desktop */}
           <div
-            className={`relative flex min-w-0 flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9 ${
+            className={`relative flex min-w-0 flex-col justify-center gap-6 px-6 py-6 md:order-1 md:px-9 md:py-9 ${
               hasMedia && isWideLandscape ? "order-2" : "order-1"
             }`}
           >
-            <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-2`}>
+            <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-3`}>
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -136,7 +136,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                 )}
               </div>
 
-              <div className="flex items-start gap-3 pt-1">
+              <div className="flex items-start gap-3">
                 <div className="relative shrink-0">
                   <div
                     aria-hidden
@@ -155,7 +155,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                     {current.body || "Mensagem que o dono do restaurante vai ler."}
                   </p>
                   {publishedAt && (
-                    <p className="pt-1 text-[11px] font-medium text-muted-foreground/80">
+                    <p className="text-[11px] font-medium text-muted-foreground/80">
                       Publicado em {publishedAt}
                     </p>
                   )}
@@ -163,67 +163,69 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
               </div>
             </div>
 
-            <div
-              className={`flex animate-fade-up flex-col gap-3 pt-2 sm:flex-row sm:gap-2 ${
-                !hasCta ? "ml-[calc(2.5rem+0.75rem)]" : ""
-              }`}
-              style={{ animationDelay: "140ms", opacity: 0 }}
-            >
-              {hasCta && (
-                <Button
-                  asChild
-                  className="h-11 rounded-xl border-0 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:brightness-110"
-                  style={{ backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }}
-                >
-                  <a href={current.cta_url!} target="_blank" rel="noopener noreferrer">
-                    {current.cta_label?.trim() || "Saiba mais"}
-                    <ArrowUpRight className="ml-1 h-4 w-4" />
-                  </a>
-                </Button>
-              )}
-              {isLast ? (
-                <Button
-                  variant="outline"
-                  className="h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
-                  onClick={() => onOpenChange(false)}
-                >
-                  {hasCta ? "Agora não" : "Entendi"}
-                </Button>
-              ) : (
-                <Button
-                  variant={hasCta ? "outline" : "default"}
-                  className={
-                    hasCta
-                      ? "h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
-                      : "h-11 rounded-xl border-0 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:brightness-110"
-                  }
-                  style={
-                    hasCta
-                      ? undefined
-                      : { backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }
-                  }
-                  onClick={() => goTo(safeIndex + 1)}
-                >
-                  Próxima novidade
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
+            <div className="flex flex-col gap-3">
+              <div
+                className={`flex animate-fade-up flex-col gap-3 sm:flex-row sm:gap-2 ${
+                  !hasCta ? "ml-[calc(2.5rem+0.75rem)]" : ""
+                }`}
+                style={{ animationDelay: "140ms", opacity: 0 }}
+              >
+                {hasCta && (
+                  <Button
+                    asChild
+                    className="h-11 rounded-xl border-0 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:brightness-110"
+                    style={{ backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }}
+                  >
+                    <a href={current.cta_url!} target="_blank" rel="noopener noreferrer">
+                      {current.cta_label?.trim() || "Saiba mais"}
+                      <ArrowUpRight className="ml-1 h-4 w-4" />
+                    </a>
+                  </Button>
+                )}
+                {isLast ? (
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    {hasCta ? "Agora não" : "Entendi"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant={hasCta ? "outline" : "default"}
+                    className={
+                      hasCta
+                        ? "h-11 rounded-xl border-border bg-transparent text-muted-foreground transition-colors hover:border-accent/40 hover:bg-secondary hover:text-foreground"
+                        : "h-11 rounded-xl border-0 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:brightness-110"
+                    }
+                    style={
+                      hasCta
+                        ? undefined
+                        : { backgroundImage: "var(--gradient-orange)", boxShadow: "var(--shadow-orange)" }
+                    }
+                    onClick={() => goTo(safeIndex + 1)}
+                  >
+                    Próxima novidade
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              {total > 1 && (
+                <div className={`flex items-center gap-1.5 ${!hasCta ? "ml-[calc(2.5rem+0.75rem)]" : ""}`}>
+                  {list.map((item, i) => (
+                    <button
+                      key={item.id ?? i}
+                      aria-label={`Ver novidade ${i + 1}`}
+                      onClick={() => goTo(i)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === safeIndex ? "w-6 bg-accent" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                      }`}
+                    />
+                  ))}
+                </div>
               )}
             </div>
-
-            {total > 1 && (
-              <div className="flex items-center gap-1.5 pt-1">
-                {list.map((item, i) => (
-                  <button
-                    key={item.id ?? i}
-                    aria-label={`Ver novidade ${i + 1}`}
-                    onClick={() => goTo(i)}
-                    className={`h-1.5 rounded-full transition-all ${
-                      i === safeIndex ? "w-6 bg-accent" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Mídia — topo no mobile (widescreen) / base, direita no desktop */}
