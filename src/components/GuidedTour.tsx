@@ -55,16 +55,19 @@ export default function GuidedTour() {
   useEffect(() => {
     if (user?.id && isTourPending(user.id)) {
       setActive(true);
-      setIndex(0);
+      setIndex(Math.min(getTourStep(user.id), TOUR_STEPS.length - 1));
+    } else {
+      setActive(false);
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    if (!active) return;
-    const target = TOUR_STEPS[index].route;
+  const goTo = (next: number) => {
+    const clamped = Math.max(0, Math.min(next, TOUR_STEPS.length - 1));
+    setIndex(clamped);
+    setTourStep(user?.id, clamped);
+    const target = TOUR_STEPS[clamped].route;
     if (location.pathname !== target) navigate(target);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, index]);
+  };
 
   const close = (completed: boolean) => {
     finishTour(user?.id);
