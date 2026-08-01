@@ -16,6 +16,8 @@ type Announcement = {
   show_modal: boolean;
   cta_label: string | null;
   cta_url: string | null;
+  starts_at: string | null;
+  created_at: string | null;
 };
 
 const DISMISS_KEY = "mizu:dismissed-announcements";
@@ -42,7 +44,7 @@ export default function PlatformAnnouncementBanner() {
     const { data } = await supabase
       .from("platform_announcements")
       .select(
-        "id, title, body, variant, media_url, media_type, media_poster, media_loop, show_modal, cta_label, cta_url"
+        "id, title, body, variant, media_url, media_type, media_poster, media_loop, show_modal, cta_label, cta_url, starts_at, created_at"
       )
       .eq("active", true)
       .lte("starts_at", now)
@@ -112,7 +114,8 @@ export default function PlatformAnnouncementBanner() {
     }
   };
 
-  const visible = items.filter((a) => !dismissed.includes(a.id));
+  // Avisos de atualização aparecem só no pop-up, não no topo do painel.
+  const visible = items.filter((a) => !dismissed.includes(a.id) && a.variant !== "update");
 
   return (
     <>
