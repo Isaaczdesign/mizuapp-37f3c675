@@ -54,8 +54,8 @@ interface MenuItem {
 }
 interface CartItem {
   cartKey: string; menuItemId: string; name: string; price: number; quantity: number;
-  variationName?: string; variationId?: string | null; addonIds?: string[];
-  selectedAddons: { name: string; price: number }[];
+  variationName?: string; variationId?: string | null; addonIds?: { id: string; quantity: number }[];
+  selectedAddons: { name: string; price: number; quantity: number }[];
   image_url: string | null; itemNotes?: string;
 }
 interface Category { id: string; name: string; sort_order: number; }
