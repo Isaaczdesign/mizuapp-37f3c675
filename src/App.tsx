@@ -93,6 +93,18 @@ const App = () => (
             <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
             <Route path="/expediente" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Expediente /></ProtectedRoute>} />
             <Route path="/expediente/historico" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><ExpedienteHistorico /></ProtectedRoute>} />
+            <Route path="/admin-mizu" element={<AdminOverview />} />
+            <Route path="/admin-mizu/restaurantes" element={<AdminRestaurants />} />
+            <Route path="/admin-mizu/restaurantes/:id" element={<AdminRestaurantDetail />} />
+            <Route path="/admin-mizu/usuarios" element={<AdminUsers />} />
+            <Route path="/admin-mizu/planos" element={<AdminPlans />} />
+            <Route path="/admin-mizu/assinaturas" element={<AdminSubscriptions />} />
+            <Route path="/admin-mizu/pagamentos" element={<AdminSubscriptions mode="payments" />} />
+            <Route path="/admin-mizu/cupons" element={<AdminCoupons />} />
+            <Route path="/admin-mizu/suporte" element={<AdminSupport />} />
+            <Route path="/admin-mizu/notificacoes" element={<AdminNotifications />} />
+            <Route path="/admin-mizu/logs" element={<AdminLogs />} />
+            <Route path="/admin-mizu/configuracoes" element={<AdminPlatformSettings />} />
             {import.meta.env.DEV && (
               <Route path="/dev/sheet-harness" element={<DevSheetHarness />} />
             )}
