@@ -104,7 +104,9 @@ const PublicMenu = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const tableToken = searchParams.get("t");
+  // `t` is the canonical param; `table` kept for QR codes printed before the URL change.
+  const tableToken = searchParams.get("t") ?? searchParams.get("table");
+
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [tableId, setTableId] = useState<string | null>(null);

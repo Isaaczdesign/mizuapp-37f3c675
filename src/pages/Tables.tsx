@@ -10,6 +10,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { Plus, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
+import { tableMenuUrl } from "@/lib/publicMenuUrl";
+
 
 const Tables = () => {
   const { profile } = useAuth();
@@ -75,10 +77,8 @@ const Tables = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tables", rid] }),
   });
 
-  const getQrUrl = (token: string) => {
-    const slug = restaurant?.slug ?? "";
-    return `${window.location.origin}/m/${slug}?table=${token}`;
-  };
+  const getQrUrl = (token: string) => tableMenuUrl(restaurant?.slug ?? "", token);
+
 
   return (
     <AdminLayout>

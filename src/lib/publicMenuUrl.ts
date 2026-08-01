@@ -25,3 +25,9 @@ export function menuUrl(slug: string, origin?: string): string {
   const base = origin ?? (typeof window !== "undefined" ? window.location.origin : "");
   return `${base}${menuPath(slug)}`;
 }
+
+/** Absolute URL of the public menu pre-filled for a table QR code. */
+export function tableMenuUrl(slug: string, tableToken: string, origin?: string): string {
+  return `${menuUrl(slug, origin)}?t=${encodeURIComponent(tableToken)}`;
+}
+
