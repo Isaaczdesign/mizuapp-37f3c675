@@ -74,6 +74,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   const goTo = (i: number) => {
     setDir(i > safeIndex ? "next" : "prev");
     setIndex(i);
+    setMediaRatio(null);
   };
   const enterAnim = dir === "next" ? "animate-slide-next" : "animate-slide-prev";
 
