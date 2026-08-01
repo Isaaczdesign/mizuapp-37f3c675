@@ -1100,9 +1100,12 @@ const MenuAdmin = () => {
 
         {/* Item Dialog - Enhanced */}
         <Dialog open={!!itemDialog} onOpenChange={() => setItemDialog(null)}>
-          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{itemDialog?.mode === "create" ? "Novo Item" : "Editar Item"}</DialogTitle></DialogHeader>
-            <div className="space-y-4">
+          <DialogContent className="p-0 gap-0 flex flex-col overflow-hidden max-sm:w-screen max-sm:max-w-none max-sm:h-[100dvh] max-sm:rounded-none sm:max-w-lg sm:max-h-[85vh]">
+            <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
+              <DialogTitle>{itemDialog?.mode === "create" ? "Novo Item" : "Editar Item"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 overflow-y-auto flex-1 px-5 py-4 overscroll-contain">
+
               <div>
                 <Label>Nome *</Label>
                 <Input placeholder="Nome do item" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} className="mt-1" />
