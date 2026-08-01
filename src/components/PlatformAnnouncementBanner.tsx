@@ -69,6 +69,9 @@ function toModalItems(a: Announcement) {
 const DISMISS_KEY = "mizu:dismissed-announcements";
 const MODAL_KEY = "mizu:seen-announcement-modals";
 
+/** Identidade do pop-up por publicação — muda quando o aviso é reenviado ou editado. */
+const modalKey = (a: Announcement) => `${a.id}@${a.starts_at ?? ""}`;
+
 function readList(key: string): string[] {
   try {
     return JSON.parse(localStorage.getItem(key) ?? "[]");
