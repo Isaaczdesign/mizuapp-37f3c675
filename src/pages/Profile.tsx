@@ -11,6 +11,8 @@ import { Save, Crown, User, IdCard, Bell, Settings as SettingsIcon } from "lucid
 import { useNavigate } from "react-router-dom";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import DangerZone from "@/components/settings/DangerZone";
+import ChangePassword from "@/components/settings/ChangePassword";
+
 
 const planLabels: Record<string, string> = { free: "Gratuito", starter: "Starter", pro: "Profissional", enterprise: "Enterprise" };
 const statusLabels: Record<string, string> = { active: "Ativo", inactive: "Inativo", trial: "Trial", expired: "Expirado" };
@@ -103,11 +105,10 @@ export default function Profile() {
               <Input value={user?.email ?? ""} readOnly disabled className="mt-1" />
               <p className="text-[11px] text-muted-foreground mt-1">O e-mail de login não pode ser alterado por aqui.</p>
             </div>
-            <div>
-              <Label>Permissões</Label>
-              <p className="text-sm text-muted-foreground mt-1">{(roles.length > 0 ? roles : ["owner"]).join(" · ")}</p>
-            </div>
           </div>
+
+          <ChangePassword email={user?.email} />
+
 
           {/* Responsável pelo estabelecimento */}
           {isOwner && (
