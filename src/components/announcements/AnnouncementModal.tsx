@@ -46,7 +46,7 @@ export default function AnnouncementModal({ open, onOpenChange, data }: Props) {
                 <img
                   src={media}
                   alt={data.title}
-                  className="aspect-square w-full object-cover object-center"
+                  className="max-h-[62vh] w-full bg-brand-ink object-contain object-center"
                   loading="lazy"
                 />
               ) : (

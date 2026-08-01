@@ -30,7 +30,7 @@ export default function MediaUploader({ kind, value, onChange, label, hint, maxM
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
 
-  const limitMb = maxMb ?? (kind === "video" ? 50 : 8);
+  const limitMb = maxMb ?? (kind === "video" ? 200 : 25);
   const accept = kind === "video" ? "video/mp4,video/webm,video/quicktime" : "image/*";
   const Icon = kind === "video" ? Film : ImageIcon;
 
@@ -77,9 +77,9 @@ export default function MediaUploader({ kind, value, onChange, label, hint, maxM
       {value ? (
         <div className="relative overflow-hidden rounded-xl border border-border bg-muted/20">
           {kind === "image" ? (
-            <img src={value} alt="Prévia da mídia" className="h-40 w-full object-cover object-center" />
+            <img src={value} alt="Prévia da mídia" className="max-h-56 w-full bg-brand-ink object-contain object-center" />
           ) : (
-            <video src={value} className="h-40 w-full bg-brand-ink object-cover" muted playsInline controls />
+            <video src={value} className="max-h-56 w-full bg-brand-ink object-contain" muted playsInline controls />
           )}
           <button
             type="button"
@@ -115,7 +115,7 @@ export default function MediaUploader({ kind, value, onChange, label, hint, maxM
           </span>
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Icon className="h-3 w-3" />
-            {hint ?? (kind === "video" ? `MP4 ou WebM até ${limitMb}MB` : `JPG/PNG quadrado (800x800) até ${limitMb}MB`)}
+            {hint ?? (kind === "video" ? `MP4 ou WebM, qualquer proporção, até ${limitMb}MB` : `JPG/PNG/WebP, qualquer proporção, até ${limitMb}MB`)}
           </span>
         </button>
       )}
