@@ -111,6 +111,220 @@ function AnnouncementTabs({ mode }: { mode: Mode }) {
     { to: "/admin-mizu/notificacoes", label: "Notificações", id: "all" },
     { to: "/admin-mizu/notificacoes/atualizacoes", label: "Atualizações", id: "updates" },
   ];
+  const composerContent = (
+    <>
+            <StepBlock
+              step={1}
+              title="Conteúdo"
+              icon={PencilLine}
+              description="O que o dono do restaurante vai ler."
+            >
+              <div>
+                <FieldLabel>Título</FieldLabel>
+                <Input placeholder="Ex.: Nova atualização do Mizu" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
+              </div>
+              <div>
+                <FieldLabel hint={`${body.length}/600 caracteres`}>Mensagem</FieldLabel>
+                <Textarea placeholder="Descreva a novidade em poucas linhas" value={body} onChange={(e) => setBody(e.target.value)} rows={4} maxLength={600} />
+              </div>
+              {!updatesOnly && (
+                <div>
+                  <FieldLabel hint="Define a cor e o ícone do aviso no painel.">Tipo do aviso</FieldLabel>
+                  <ChipGroup value={variant} onChange={setVariant} options={PICKER_VARIANTS} />
+                </div>
+              )}
+            </StepBlock>
+
+            {updatesOnly && (
+              <StepBlock
+                step={2}
+                title="Pop-up e mídia"
+                icon={MonitorPlay}
+                description="A atualização abre em tela cheia para o restaurante."
+              >
+                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                  <p className="text-xs">Exibir como pop-up</p>
+                  <Switch checked={showModal} onCheckedChange={setShowModal} aria-label="Exibir pop-up" />
+                </div>
+                {showModal && (
+                  <>
+                    <div>
+                      <FieldLabel>Mídia principal</FieldLabel>
+                      <ChipGroup<"none" | "image" | "video">
+                        value={mediaType}
+                        onChange={setMediaType}
+                        options={[
+                          { id: "none", label: "Sem mídia" },
+                          { id: "image", label: "Imagem" },
+                          { id: "video", label: "Vídeo" },
+                        ]}
+                      />
+                    </div>
+                    {mediaType !== "none" && (
+                      <div className="space-y-2">
+                        <MediaUploader
+                          kind={mediaType}
+                          value={mediaUrl}
+                          onChange={setMediaUrl}
+                          label={mediaType === "video" ? "Vídeo do pop-up" : "Imagem do pop-up"}
+                        />
+                        <Input
+                          placeholder={mediaType === "video" ? "Ou cole a URL do vídeo (.mp4)" : "Ou cole a URL da imagem"}
+                          value={mediaUrl}
+                          onChange={(e) => setMediaUrl(e.target.value)}
+                        />
+                        {mediaType === "video" && (
+                          <>
+                            <MediaUploader
+                              kind="image"
+                              value={mediaPoster}
+                              onChange={setMediaPoster}
+                              label="Miniatura do vídeo (opcional)"
+                              hint="Aparece antes do play — JPG/PNG"
+                            />
+                            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                              <p className="text-xs text-muted-foreground">Repetir vídeo (loop)</p>
+                              <Switch checked={mediaLoop} onCheckedChange={setMediaLoop} aria-label="Loop do vídeo" />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <div>
+                      <FieldLabel hint="Opcional — leva o restaurante para uma página.">Botão de ação</FieldLabel>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Input placeholder="Texto do botão" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
+                        <Input placeholder="Link do botão" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
+                      </div>
+                    </div>
+                    <AnnouncementSlidesEditor slides={slides} onChange={setSlides} />
+                  </>
+                )}
+              </StepBlock>
+            )}
+
+            <StepBlock
+              step={updatesOnly ? 3 : 2}
+              title="Público-alvo"
+              icon={Users}
+              description="Escolha quais restaurantes recebem."
+            >
+              <ChipGroup<"all" | "restaurants">
+                value={scope}
+                onChange={setScope}
+                options={[
+                  { id: "all", label: "Todos os restaurantes" },
+                  { id: "restaurants", label: "Selecionar restaurantes" },
+                ]}
+              />
+              {scope === "restaurants" && (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className="pl-8"
+                      placeholder="Buscar por nome ou link"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+                    {filteredRestaurants.length === 0 ? (
+                      <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante encontrado.</p>
+                    ) : (
+                      filteredRestaurants.map((r) => (
+                        <label
+                          key={r.id}
+                          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-muted/60"
+                        >
+                          <Checkbox checked={selected.includes(r.id)} onCheckedChange={() => toggleRestaurant(r.id)} />
+                          <span className="min-w-0 flex-1 truncate">{r.name}</span>
+                          <span className="shrink-0 text-[10px] text-muted-foreground">/{r.slug}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">{selected.length} restaurante(s) selecionado(s).</p>
+                </div>
+              )}
+            </StepBlock>
+
+            <StepBlock
+              step={updatesOnly ? 4 : 3}
+              title="Agendamento"
+              icon={CalendarClock}
+              description="O aviso aparece e some sozinho conforme as datas."
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Publicar em</FieldLabel>
+                  <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Vazio = agora</p>
+                </div>
+                <div>
+                  <FieldLabel>Expira em</FieldLabel>
+                  <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Opcional</p>
+                </div>
+              </div>
+            </StepBlock>
+
+            {/* Prévia + publicar */}
+            <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+              <div className="flex items-center gap-1.5">
+                <Eye className="h-3.5 w-3.5 text-primary" />
+                <p className="text-xs font-semibold">{updatesOnly ? "Prévia do pop-up" : "Prévia no painel"}</p>
+              </div>
+              {updatesOnly ? (
+                <Button variant="outline" size="sm" disabled={!showModal || !canPublish} onClick={() => setPreviewModal(true)}>
+                  Ver prévia do pop-up
+                </Button>
+              ) : (
+                <AnnouncementCard title={title || "Título do aviso"} body={body || "Mensagem exibida ao restaurante."} variant={effectiveVariant} />
+              )}
+              <Button className="w-full" onClick={create} disabled={saving || !canPublish}>
+                {saving
+                  ? "Salvando..."
+                  : editingId
+                    ? "Salvar alterações"
+                    : updatesOnly
+                      ? "Publicar atualização"
+                      : "Publicar aviso"}
+              </Button>
+              {editingId && (
+                <Button variant="ghost" className="w-full" onClick={resetForm} disabled={saving}>
+                  <X className="mr-1 h-3.5 w-3.5" />
+                  Cancelar edição
+                </Button>
+              )}
+              {!canPublish && (
+                <p className="text-center text-[11px] text-muted-foreground">Preencha título e mensagem para publicar.</p>
+              )}
+            </div>
+
+            <AnnouncementModal
+              open={previewModal}
+              onOpenChange={setPreviewModal}
+              items={[
+                {
+                  title,
+                  body,
+                  variant: effectiveVariant,
+                  media_url: mediaUrl,
+                  media_type: mediaType,
+                  media_poster: mediaPoster,
+                  media_loop: mediaLoop,
+                  cta_label: ctaLabel,
+                  cta_url: ctaUrl,
+                },
+                ...slides
+                  .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
+                  .map((sl) => ({ ...sl, variant: effectiveVariant })),
+              ]}
+            />
+    </>
+  );
+
   return (
     <div className="mb-5 inline-flex items-center gap-0.5 rounded-xl border border-border bg-background/60 p-0.5">
       {tabs.map((t) => (
@@ -483,215 +697,7 @@ export function AdminNotifications({ mode = "all" }: { mode?: Mode } = {}) {
             }
             bodyClassName="space-y-3"
           >
-            <StepBlock
-              step={1}
-              title="Conteúdo"
-              icon={PencilLine}
-              description="O que o dono do restaurante vai ler."
-            >
-              <div>
-                <FieldLabel>Título</FieldLabel>
-                <Input placeholder="Ex.: Nova atualização do Mizu" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
-              </div>
-              <div>
-                <FieldLabel hint={`${body.length}/600 caracteres`}>Mensagem</FieldLabel>
-                <Textarea placeholder="Descreva a novidade em poucas linhas" value={body} onChange={(e) => setBody(e.target.value)} rows={4} maxLength={600} />
-              </div>
-              {!updatesOnly && (
-                <div>
-                  <FieldLabel hint="Define a cor e o ícone do aviso no painel.">Tipo do aviso</FieldLabel>
-                  <ChipGroup value={variant} onChange={setVariant} options={PICKER_VARIANTS} />
-                </div>
-              )}
-            </StepBlock>
-
-            {updatesOnly && (
-              <StepBlock
-                step={2}
-                title="Pop-up e mídia"
-                icon={MonitorPlay}
-                description="A atualização abre em tela cheia para o restaurante."
-              >
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <p className="text-xs">Exibir como pop-up</p>
-                  <Switch checked={showModal} onCheckedChange={setShowModal} aria-label="Exibir pop-up" />
-                </div>
-                {showModal && (
-                  <>
-                    <div>
-                      <FieldLabel>Mídia principal</FieldLabel>
-                      <ChipGroup<"none" | "image" | "video">
-                        value={mediaType}
-                        onChange={setMediaType}
-                        options={[
-                          { id: "none", label: "Sem mídia" },
-                          { id: "image", label: "Imagem" },
-                          { id: "video", label: "Vídeo" },
-                        ]}
-                      />
-                    </div>
-                    {mediaType !== "none" && (
-                      <div className="space-y-2">
-                        <MediaUploader
-                          kind={mediaType}
-                          value={mediaUrl}
-                          onChange={setMediaUrl}
-                          label={mediaType === "video" ? "Vídeo do pop-up" : "Imagem do pop-up"}
-                        />
-                        <Input
-                          placeholder={mediaType === "video" ? "Ou cole a URL do vídeo (.mp4)" : "Ou cole a URL da imagem"}
-                          value={mediaUrl}
-                          onChange={(e) => setMediaUrl(e.target.value)}
-                        />
-                        {mediaType === "video" && (
-                          <>
-                            <MediaUploader
-                              kind="image"
-                              value={mediaPoster}
-                              onChange={setMediaPoster}
-                              label="Miniatura do vídeo (opcional)"
-                              hint="Aparece antes do play — JPG/PNG"
-                            />
-                            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                              <p className="text-xs text-muted-foreground">Repetir vídeo (loop)</p>
-                              <Switch checked={mediaLoop} onCheckedChange={setMediaLoop} aria-label="Loop do vídeo" />
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    <div>
-                      <FieldLabel hint="Opcional — leva o restaurante para uma página.">Botão de ação</FieldLabel>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <Input placeholder="Texto do botão" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={40} />
-                        <Input placeholder="Link do botão" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
-                      </div>
-                    </div>
-                    <AnnouncementSlidesEditor slides={slides} onChange={setSlides} />
-                  </>
-                )}
-              </StepBlock>
-            )}
-
-            <StepBlock
-              step={updatesOnly ? 3 : 2}
-              title="Público-alvo"
-              icon={Users}
-              description="Escolha quais restaurantes recebem."
-            >
-              <ChipGroup<"all" | "restaurants">
-                value={scope}
-                onChange={setScope}
-                options={[
-                  { id: "all", label: "Todos os restaurantes" },
-                  { id: "restaurants", label: "Selecionar restaurantes" },
-                ]}
-              />
-              {scope === "restaurants" && (
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      className="pl-8"
-                      placeholder="Buscar por nome ou link"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
-                    {filteredRestaurants.length === 0 ? (
-                      <p className="p-2 text-xs text-muted-foreground">Nenhum restaurante encontrado.</p>
-                    ) : (
-                      filteredRestaurants.map((r) => (
-                        <label
-                          key={r.id}
-                          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-muted/60"
-                        >
-                          <Checkbox checked={selected.includes(r.id)} onCheckedChange={() => toggleRestaurant(r.id)} />
-                          <span className="min-w-0 flex-1 truncate">{r.name}</span>
-                          <span className="shrink-0 text-[10px] text-muted-foreground">/{r.slug}</span>
-                        </label>
-                      ))
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">{selected.length} restaurante(s) selecionado(s).</p>
-                </div>
-              )}
-            </StepBlock>
-
-            <StepBlock
-              step={updatesOnly ? 4 : 3}
-              title="Agendamento"
-              icon={CalendarClock}
-              description="O aviso aparece e some sozinho conforme as datas."
-            >
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <FieldLabel>Publicar em</FieldLabel>
-                  <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
-                  <p className="mt-1 text-[11px] text-muted-foreground">Vazio = agora</p>
-                </div>
-                <div>
-                  <FieldLabel>Expira em</FieldLabel>
-                  <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
-                  <p className="mt-1 text-[11px] text-muted-foreground">Opcional</p>
-                </div>
-              </div>
-            </StepBlock>
-
-            {/* Prévia + publicar */}
-            <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
-              <div className="flex items-center gap-1.5">
-                <Eye className="h-3.5 w-3.5 text-primary" />
-                <p className="text-xs font-semibold">{updatesOnly ? "Prévia do pop-up" : "Prévia no painel"}</p>
-              </div>
-              {updatesOnly ? (
-                <Button variant="outline" size="sm" disabled={!showModal || !canPublish} onClick={() => setPreviewModal(true)}>
-                  Ver prévia do pop-up
-                </Button>
-              ) : (
-                <AnnouncementCard title={title || "Título do aviso"} body={body || "Mensagem exibida ao restaurante."} variant={effectiveVariant} />
-              )}
-              <Button className="w-full" onClick={create} disabled={saving || !canPublish}>
-                {saving
-                  ? "Salvando..."
-                  : editingId
-                    ? "Salvar alterações"
-                    : updatesOnly
-                      ? "Publicar atualização"
-                      : "Publicar aviso"}
-              </Button>
-              {editingId && (
-                <Button variant="ghost" className="w-full" onClick={resetForm} disabled={saving}>
-                  <X className="mr-1 h-3.5 w-3.5" />
-                  Cancelar edição
-                </Button>
-              )}
-              {!canPublish && (
-                <p className="text-center text-[11px] text-muted-foreground">Preencha título e mensagem para publicar.</p>
-              )}
-            </div>
-
-            <AnnouncementModal
-              open={previewModal}
-              onOpenChange={setPreviewModal}
-              items={[
-                {
-                  title,
-                  body,
-                  variant: effectiveVariant,
-                  media_url: mediaUrl,
-                  media_type: mediaType,
-                  media_poster: mediaPoster,
-                  media_loop: mediaLoop,
-                  cta_label: ctaLabel,
-                  cta_url: ctaUrl,
-                },
-                ...slides
-                  .filter((sl) => sl.title.trim() || sl.body.trim() || sl.media_url.trim())
-                  .map((sl) => ({ ...sl, variant: effectiveVariant })),
-              ]}
-            />
+            {composerContent}
           </SectionCard>
         )}
 
