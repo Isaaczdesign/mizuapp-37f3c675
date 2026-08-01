@@ -9,6 +9,7 @@ import {
   TEXT_SECONDARY, accentFaint, accentGlow, brl as fmt, D_MICRO, EASE,
 } from "./menuTokens";
 import { useVisualViewport } from "@/hooks/useSheetViewport";
+import ThemeToggle from "@/components/ThemeToggle";
 
 
 /* ════════════════════════════════════════════════════════
@@ -59,9 +60,10 @@ export function RestaurantHero({
             style={{ background: `radial-gradient(120% 90% at 50% 0%, ${accentColor}33 0%, transparent 70%)` }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080909] via-[#080909]/60 to-[#080909]/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--menu-bg))] via-[hsl(var(--menu-bg)/0.6)] to-[hsl(var(--menu-bg)/0.1)]" />
 
         <div className="absolute top-4 right-4 flex items-center gap-2">
+          <ThemeToggle variant="menu" />
           <GlassIconButton label="Compartilhar" onClick={share}>
             <Share2 className="w-[18px] h-[18px]" />
           </GlassIconButton>
@@ -82,7 +84,7 @@ export function RestaurantHero({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: EASE }}
-          className={`${R_BANNER} ${BORDER} bg-[#131414] ${SHADOW_CARD} p-4 sm:p-5`}
+          className={`${R_BANNER} ${BORDER} bg-[hsl(var(--menu-card))] ${SHADOW_CARD} p-4 sm:p-5`}
         >
           <div className="flex items-start gap-3.5">
             {logoUrl ? (
@@ -171,7 +173,7 @@ function GlassIconButton({ children, label, onClick }: { children: React.ReactNo
       aria-label={label}
       onClick={onClick}
       whileTap={{ scale: 0.9 }}
-      className={`w-11 h-11 rounded-full flex items-center justify-center text-[#F7F7F5] ${GLASS}`}
+      className={`w-11 h-11 rounded-full flex items-center justify-center text-[hsl(var(--menu-ink))] ${GLASS}`}
     >
       {children}
     </motion.button>
@@ -180,7 +182,7 @@ function GlassIconButton({ children, label, onClick }: { children: React.ReactNo
 
 function InfoChip({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border border-white/[0.08] bg-white/[0.04] text-[#A5A5A0]">
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border border-[hsl(var(--menu-ink)/0.08)] bg-[hsl(var(--menu-ink)/0.04)] text-[hsl(var(--menu-ink-2))]">
       {icon}
       {children}
     </span>
@@ -262,9 +264,9 @@ export function MenuStickyBar({
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-2">
         <div
-          className={`relative ${R_CHIP} bg-white/[0.05] transition-shadow duration-150`}
+          className={`relative ${R_CHIP} bg-[hsl(var(--menu-ink)/0.05)] transition-shadow duration-150`}
           style={{
-            boxShadow: focused ? `0 0 0 1.5px ${accentColor}` : "0 0 0 1px rgba(255,255,255,0.07)",
+            boxShadow: focused ? `0 0 0 1.5px ${accentColor}` : "0 0 0 1px hsl(var(--menu-ink)/0.07)",
           }}
         >
           <Search
@@ -279,7 +281,7 @@ export function MenuStickyBar({
             onBlur={() => setFocused(false)}
             placeholder="Buscar no cardápio..."
             aria-label="Buscar no cardápio"
-            className="w-full bg-transparent rounded-[14px] pl-10 pr-11 min-h-[48px] text-[14px] outline-none placeholder:text-[#74746F]"
+            className="w-full bg-transparent rounded-[14px] pl-10 pr-11 min-h-[48px] text-[14px] outline-none placeholder:text-[hsl(var(--menu-ink-3))]"
           />
           <AnimatePresence>
             {search && (
@@ -291,9 +293,9 @@ export function MenuStickyBar({
                 transition={{ duration: D_MICRO }}
                 onClick={() => onSearch("")}
                 aria-label="Limpar busca"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.08]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center bg-[hsl(var(--menu-ink)/0.08)]"
               >
-                <X className="w-3.5 h-3.5 text-[#A5A5A0]" />
+                <X className="w-3.5 h-3.5 text-[hsl(var(--menu-ink-2))]" />
               </motion.button>
             )}
           </AnimatePresence>
@@ -317,7 +319,7 @@ export function MenuStickyBar({
                 data-chip={cat.id}
                 onClick={() => onCategory(cat.id)}
                 className="relative px-4 min-h-[40px] rounded-full text-[13px] whitespace-nowrap font-semibold transition-transform active:scale-[0.96]"
-                style={{ color: active ? "#080909" : undefined }}
+                style={{ color: active ? "hsl(var(--menu-on-accent))" : undefined }}
               >
                 {active && (
                   <motion.span
@@ -327,7 +329,7 @@ export function MenuStickyBar({
                     style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
                   />
                 )}
-                {!active && <span className="absolute inset-0 rounded-full border border-white/[0.08] bg-white/[0.04]" />}
+                {!active && <span className="absolute inset-0 rounded-full border border-[hsl(var(--menu-ink)/0.08)] bg-[hsl(var(--menu-ink)/0.04)]" />}
                 <span className="relative">{cat.name}</span>
               </button>
             );
@@ -364,7 +366,7 @@ export function FloatingCartBar({
         className={`pointer-events-auto relative w-full max-w-md mx-auto flex items-center gap-3 rounded-full p-2.5 overflow-hidden ${GLASS}`}
       >
         <span
-          className="relative w-11 h-11 rounded-full flex items-center justify-center text-[#080909] shrink-0"
+          className="relative w-11 h-11 rounded-full flex items-center justify-center text-[hsl(var(--menu-on-accent))] shrink-0"
           style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
         >
           <ShoppingCart className="w-[18px] h-[18px]" strokeWidth={2.4} />
@@ -375,7 +377,7 @@ export function FloatingCartBar({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
               transition={{ type: "spring", stiffness: 520, damping: 24 }}
-              className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 rounded-full text-[10.5px] font-bold flex items-center justify-center bg-[#080909] text-[#F7F7F5] border border-white/15"
+              className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 rounded-full text-[10.5px] font-bold flex items-center justify-center bg-[hsl(var(--menu-bg))] text-[hsl(var(--menu-ink))] border border-[hsl(var(--menu-ink)/0.15)]"
             >
               {count}
             </motion.span>
@@ -384,7 +386,7 @@ export function FloatingCartBar({
 
         <span className="relative flex-1 min-w-0 text-left">
           <span className="block text-[14.5px] font-bold leading-tight">Ver carrinho</span>
-          <span className="block text-[11.5px] text-[#A5A5A0] leading-tight">
+          <span className="block text-[11.5px] text-[hsl(var(--menu-ink-2))] leading-tight">
             {count} {count === 1 ? "item" : "itens"}
           </span>
         </span>
@@ -402,7 +404,7 @@ export function FloatingCartBar({
               {fmt(total)}
             </motion.span>
           </AnimatePresence>
-          <ChevronRight className="w-4 h-4 text-[#A5A5A0]" />
+          <ChevronRight className="w-4 h-4 text-[hsl(var(--menu-ink-2))]" />
         </span>
       </motion.button>
     </motion.div>

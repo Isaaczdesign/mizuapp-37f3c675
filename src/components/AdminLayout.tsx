@@ -8,6 +8,7 @@ import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 import { Logo } from "@/components/Logo";
 import GuidedTour from "@/components/GuidedTour";
 import PlatformAnnouncementBanner from "@/components/PlatformAnnouncementBanner";
+import ThemeToggle from "@/components/ThemeToggle";
 
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[]; end?: boolean };
@@ -177,6 +178,8 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         <div className="relative p-5 border-b border-border/60 flex items-center justify-between gap-2 min-w-[16rem]">
           <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
           <a href="/" aria-label="Mizu" className="relative transition-transform duration-200 hover:scale-[1.03]"><Logo className="h-9" /></a>
+          <div className="relative flex items-center gap-1">
+          <ThemeToggle />
           {collapsible && (
             <button
               onClick={() => setHidden(true)}
@@ -187,6 +190,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
               <PanelLeftClose className="w-4 h-4" />
             </button>
           )}
+          </div>
         </div>
         <div className="flex-1 flex flex-col min-w-[16rem]">
           {renderNav()}
@@ -219,7 +223,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             <Menu className="w-5 h-5" />
           </button>
           <a href="/" aria-label="Mizu"><Logo className="h-7" /></a>
-          <div className="w-9" />
+          <ThemeToggle />
         </div>
       )}
 
@@ -244,6 +248,8 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
             <a href="/" aria-label="Mizu" onClick={() => setMobileOpen(false)}><Logo className="h-8" /></a>
+            <div className="flex items-center gap-1">
+            <ThemeToggle />
             <button
               onClick={() => setMobileOpen(false)}
               className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
@@ -251,6 +257,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             >
               <X className="w-5 h-5" />
             </button>
+            </div>
           </div>
           {renderNav(() => setMobileOpen(false))}
         </aside>

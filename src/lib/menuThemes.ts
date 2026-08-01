@@ -32,7 +32,7 @@ export type MenuTheme = {
 
 /** Base compartilhada: mesmas bordas, sombras e vidro em todos os templates */
 const SURFACE =
-  "bg-[#131414] border border-white/[0.07] shadow-[0_16px_40px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.04)] transition-[transform,border-color,background-color] duration-200 ease-out hover:border-white/[0.14] hover:bg-[#171818] lg:hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25";
+  "bg-[hsl(var(--menu-card))] border border-[hsl(var(--menu-ink)/0.07)] shadow-[0_16px_40px_rgba(0,0,0,0.32),inset_0_1px_0_hsl(var(--menu-ink)/0.04)] transition-[transform,border-color,background-color] duration-200 ease-out hover:border-[hsl(var(--menu-ink)/0.14)] hover:bg-[hsl(var(--menu-raised))] lg:hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--menu-ink)/0.25)]";
 
 export const MENU_THEMES: MenuTheme[] = [
   {
@@ -42,8 +42,8 @@ export const MENU_THEMES: MenuTheme[] = [
     layout: "row",
     listClass: "space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:grid-cols-2",
     cardClass: `group flex gap-4 p-3.5 rounded-3xl ${SURFACE}`,
-    imageClass: "w-[88px] h-[88px] sm:w-24 sm:h-24 rounded-2xl object-cover object-center bg-white/[0.03] shrink-0",
-    titleClass: "font-display font-semibold text-[15px] leading-snug tracking-tight",
+    imageClass: "w-[88px] h-[88px] sm:w-24 sm:h-24 rounded-2xl object-cover object-center bg-[hsl(var(--menu-ink)/0.03)] shrink-0",
+    titleClass: "text-[hsl(var(--menu-ink))] font-display font-semibold text-[15px] leading-snug tracking-tight",
     priceClass: "font-display font-bold text-[15px] tabular-nums",
     categoryTitleClass: "font-display text-lg font-bold tracking-tight",
     showImage: true,
@@ -56,8 +56,8 @@ export const MENU_THEMES: MenuTheme[] = [
     layout: "stacked",
     listClass: "space-y-5 md:grid md:grid-cols-2 md:gap-5 md:space-y-0 xl:grid-cols-3",
     cardClass: `group block overflow-hidden rounded-[28px] ${SURFACE}`,
-    imageClass: "w-full h-52 object-cover object-center bg-white/[0.03]",
-    titleClass: "font-display font-bold text-[17px] leading-snug tracking-tight",
+    imageClass: "w-full h-52 object-cover object-center bg-[hsl(var(--menu-ink)/0.03)]",
+    titleClass: "text-[hsl(var(--menu-ink))] font-display font-bold text-[17px] leading-snug tracking-tight",
     priceClass: "font-display font-bold text-lg tabular-nums",
     categoryTitleClass: "font-display text-xl font-bold tracking-tight",
     showImage: true,
@@ -70,8 +70,8 @@ export const MENU_THEMES: MenuTheme[] = [
     layout: "tile",
     listClass: "grid grid-cols-2 gap-3.5 md:grid-cols-3 md:gap-4 xl:grid-cols-4",
     cardClass: `group flex flex-col overflow-hidden rounded-3xl ${SURFACE}`,
-    imageClass: "w-full aspect-square object-cover object-center bg-white/[0.03]",
-    titleClass: "font-display font-semibold text-[13.5px] leading-snug line-clamp-2 tracking-tight",
+    imageClass: "w-full aspect-square object-cover object-center bg-[hsl(var(--menu-ink)/0.03)]",
+    titleClass: "text-[hsl(var(--menu-ink))] font-display font-semibold text-[13.5px] leading-snug line-clamp-2 tracking-tight",
     priceClass: "font-display font-bold text-[15px] tabular-nums",
     categoryTitleClass: "font-display text-lg font-bold tracking-tight",
     showImage: true,
@@ -82,10 +82,10 @@ export const MENU_THEMES: MenuTheme[] = [
     name: "Mizu Elegant",
     description: "Muito espaço em branco, divisores finos e foto discreta. Visual fine dining.",
     layout: "editorial",
-    listClass: "divide-y divide-white/[0.06] md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0 lg:grid-cols-2 xl:grid-cols-3",
-    cardClass: "group flex items-center gap-5 py-6 md:border-b md:border-white/[0.06]",
-    imageClass: "w-14 h-14 rounded-2xl object-cover object-center bg-white/[0.03] shrink-0",
-    titleClass: "font-display text-[15px] tracking-[0.06em] uppercase leading-snug",
+    listClass: "divide-y divide-[hsl(var(--menu-ink)/0.06)] md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0 lg:grid-cols-2 xl:grid-cols-3",
+    cardClass: "group flex items-center gap-5 py-6 md:border-b md:border-[hsl(var(--menu-ink)/0.06)]",
+    imageClass: "w-14 h-14 rounded-2xl object-cover object-center bg-[hsl(var(--menu-ink)/0.03)] shrink-0",
+    titleClass: "text-[hsl(var(--menu-ink))] font-display text-[15px] tracking-[0.06em] uppercase leading-snug",
     priceClass: "text-[13px] tracking-[0.12em] tabular-nums",
     categoryTitleClass: "font-display text-sm tracking-[0.28em] uppercase",
     showImage: true,
@@ -98,8 +98,8 @@ export const MENU_THEMES: MenuTheme[] = [
     layout: "express",
     listClass: "space-y-2 md:grid md:grid-cols-2 md:gap-2.5 md:space-y-0 xl:grid-cols-3",
     cardClass: `group flex items-center gap-3.5 px-3.5 py-3 rounded-2xl ${SURFACE}`,
-    imageClass: "w-12 h-12 rounded-xl object-cover object-center bg-white/[0.03] shrink-0",
-    titleClass: "font-display font-semibold text-[14.5px] leading-snug tracking-tight",
+    imageClass: "w-12 h-12 rounded-xl object-cover object-center bg-[hsl(var(--menu-ink)/0.03)] shrink-0",
+    titleClass: "text-[hsl(var(--menu-ink))] font-display font-semibold text-[14.5px] leading-snug tracking-tight",
     priceClass: "font-display font-bold text-base tabular-nums",
     categoryTitleClass: "font-display text-base font-bold uppercase tracking-[0.14em]",
     showImage: true,

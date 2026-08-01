@@ -7,6 +7,7 @@ import {
   BORDER, R_CHIP, R_CARD_SM, TEXT_SECONDARY, TEXT_TERTIARY,
   accentFaint, accentGlow, brl, D_MICRO,
 } from "./menuTokens";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Cat = { id: string; name: string; count: number };
 
@@ -49,12 +50,12 @@ export default function MenuSidebar({
 
   return (
     <aside
-      className="hidden lg:flex flex-col w-[272px] xl:w-[300px] shrink-0 h-[100dvh] sticky top-0 border-r border-white/[0.06] bg-[#0D0E0E]"
+      className="hidden lg:flex flex-col w-[272px] xl:w-[300px] shrink-0 h-[100dvh] sticky top-0 border-r border-[hsl(var(--menu-ink)/0.06)] bg-[hsl(var(--menu-soft))]"
       aria-label="Navegação do cardápio"
     >
       {/* Identidade */}
       <div className="p-5 pb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           {logoUrl ? (
             <img src={logoUrl} alt="" className={`w-12 h-12 ${R_CARD_SM} object-cover ${BORDER}`} />
           ) : (
@@ -74,6 +75,7 @@ export default function MenuSidebar({
               {statusLabel}
             </span>
           </div>
+          <ThemeToggle variant="menu" className="!w-9 !h-9 shrink-0" />
         </div>
 
         {description && (
@@ -112,11 +114,11 @@ export default function MenuSidebar({
       {/* Busca */}
       <div className="px-5 pb-3">
         <div
-          className={`relative ${R_CHIP} bg-white/[0.045] transition-shadow duration-150`}
+          className={`relative ${R_CHIP} bg-[hsl(var(--menu-ink)/0.045)] transition-shadow duration-150`}
           style={{
             boxShadow: focused
               ? `0 0 0 1.5px ${accentColor}`
-              : "0 0 0 1px rgba(255,255,255,0.07)",
+              : "0 0 0 1px hsl(var(--menu-ink)/0.07)",
           }}
         >
           <Search
@@ -131,14 +133,14 @@ export default function MenuSidebar({
             onBlur={() => setFocused(false)}
             placeholder="Buscar prato..."
             aria-label="Buscar no cardápio"
-            className="w-full bg-transparent rounded-[14px] pl-9 pr-9 min-h-[44px] text-[13.5px] outline-none placeholder:text-[#74746F]"
+            className="w-full bg-transparent rounded-[14px] pl-9 pr-9 min-h-[44px] text-[13.5px] outline-none placeholder:text-[hsl(var(--menu-ink-3))]"
           />
           {search && (
             <button
               type="button"
               onClick={() => onSearch("")}
               aria-label="Limpar busca"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.07] hover:bg-white/[0.12] transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center bg-[hsl(var(--menu-ink)/0.07)] hover:bg-[hsl(var(--menu-ink)/0.12)] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -161,7 +163,7 @@ export default function MenuSidebar({
                   onClick={() => onCategory(cat.id)}
                   aria-current={active ? "true" : undefined}
                   className={`relative w-full flex items-center gap-2 min-h-[42px] px-3 ${R_CHIP} text-[13.5px] font-medium text-left transition-colors duration-150 ${
-                    active ? "text-[#F7F7F5]" : "text-[#A5A5A0] hover:text-[#F7F7F5] hover:bg-white/[0.04]"
+                    active ? "text-[hsl(var(--menu-ink))]" : "text-[hsl(var(--menu-ink-2))] hover:text-[hsl(var(--menu-ink))] hover:bg-[hsl(var(--menu-ink)/0.04)]"
                   }`}
                   style={active ? { backgroundColor: accentFaint(accentColor) } : undefined}
                 >
@@ -174,7 +176,7 @@ export default function MenuSidebar({
                     />
                   )}
                   <span className="flex-1 min-w-0 truncate">{cat.name}</span>
-                  <span className="text-[11px] tabular-nums text-[#74746F]">{cat.count}</span>
+                  <span className="text-[11px] tabular-nums text-[hsl(var(--menu-ink-3))]">{cat.count}</span>
                 </button>
               </li>
             );
@@ -186,7 +188,7 @@ export default function MenuSidebar({
       </nav>
 
       {/* Carrinho */}
-      <div className="p-4 border-t border-white/[0.06]">
+      <div className="p-4 border-t border-[hsl(var(--menu-ink)/0.06)]">
         <AnimatePresence initial={false} mode="wait">
           {cartCount > 0 ? (
             <motion.button
@@ -197,7 +199,7 @@ export default function MenuSidebar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: D_MICRO }}
-              className={`w-full flex items-center gap-3 p-3 ${R_CHIP} text-[#080909] font-semibold transition-transform active:scale-[0.98]`}
+              className={`w-full flex items-center gap-3 p-3 ${R_CHIP} text-[hsl(var(--menu-on-accent))] font-semibold transition-transform active:scale-[0.98]`}
               style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
             >
               <ShoppingCart className="w-[18px] h-[18px]" strokeWidth={2.4} />
@@ -225,7 +227,7 @@ export default function MenuSidebar({
 
 function Chip({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-medium px-2.5 py-1 rounded-full border border-white/[0.08] bg-white/[0.04] text-[#A5A5A0]">
+    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-medium px-2.5 py-1 rounded-full border border-[hsl(var(--menu-ink)/0.08)] bg-[hsl(var(--menu-ink)/0.04)] text-[hsl(var(--menu-ink-2))]">
       {icon}
       {children}
     </span>
@@ -236,7 +238,7 @@ function SideAction({
   children, onClick, href, label,
 }: { children: React.ReactNode; onClick?: () => void; href?: string; label: string }) {
   const cls =
-    "flex-1 inline-flex items-center justify-center gap-1.5 min-h-[36px] rounded-[12px] text-[11.5px] font-semibold text-[#A5A5A0] border border-white/[0.08] bg-white/[0.03] hover:text-[#F7F7F5] hover:bg-white/[0.07] transition-colors";
+    "flex-1 inline-flex items-center justify-center gap-1.5 min-h-[36px] rounded-[12px] text-[11.5px] font-semibold text-[hsl(var(--menu-ink-2))] border border-[hsl(var(--menu-ink)/0.08)] bg-[hsl(var(--menu-ink)/0.03)] hover:text-[hsl(var(--menu-ink))] hover:bg-[hsl(var(--menu-ink)/0.07)] transition-colors";
   if (href) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={cls}>

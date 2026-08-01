@@ -82,8 +82,8 @@ export default function ProductDetailSheet({
       )}
 
       {item.ingredients && (
-        <div className={`rounded-2xl ${BORDER} bg-white/[0.03] p-4`}>
-          <p className="text-[10.5px] font-bold text-[#74746F] uppercase tracking-[0.16em] mb-1.5">Ingredientes</p>
+        <div className={`rounded-2xl ${BORDER} bg-[hsl(var(--menu-ink)/0.03)] p-4`}>
+          <p className="text-[10.5px] font-bold text-[hsl(var(--menu-ink-3))] uppercase tracking-[0.16em] mb-1.5">Ingredientes</p>
           <p className="text-[13px] leading-relaxed">{item.ingredients}</p>
         </div>
       )}
@@ -97,7 +97,7 @@ export default function ProductDetailSheet({
 
       {(item.variations?.length ?? 0) > 0 && (
         <fieldset>
-          <legend className="text-[10.5px] font-bold text-[#74746F] uppercase tracking-[0.16em] mb-2.5">
+          <legend className="text-[10.5px] font-bold text-[hsl(var(--menu-ink-3))] uppercase tracking-[0.16em] mb-2.5">
             Escolha a variação
           </legend>
           <div className="space-y-2">
@@ -126,7 +126,7 @@ export default function ProductDetailSheet({
 
       {(item.addons?.length ?? 0) > 0 && (
         <fieldset>
-          <legend className="text-[10.5px] font-bold text-[#74746F] uppercase tracking-[0.16em] mb-2.5">
+          <legend className="text-[10.5px] font-bold text-[hsl(var(--menu-ink-3))] uppercase tracking-[0.16em] mb-2.5">
             Adicionais
           </legend>
           <div className="space-y-2">
@@ -152,7 +152,7 @@ export default function ProductDetailSheet({
           whileTap={{ scale: 0.9 }}
           onClick={() => onQty(Math.max(1, qty - 1))}
           aria-label="Diminuir quantidade"
-          className={`w-11 h-11 rounded-full ${BORDER} bg-white/[0.04] flex items-center justify-center`}
+          className={`w-11 h-11 rounded-full ${BORDER} bg-[hsl(var(--menu-ink)/0.04)] flex items-center justify-center`}
         >
           <Minus className="w-4 h-4" />
         </motion.button>
@@ -174,7 +174,7 @@ export default function ProductDetailSheet({
           whileTap={{ scale: 0.9 }}
           onClick={() => onQty(qty + 1)}
           aria-label="Aumentar quantidade"
-          className="w-11 h-11 rounded-full text-[#080909] flex items-center justify-center"
+          className="w-11 h-11 rounded-full text-[hsl(var(--menu-on-accent))] flex items-center justify-center"
           style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
         >
           <Plus className="w-4 h-4" strokeWidth={2.6} />
@@ -185,13 +185,13 @@ export default function ProductDetailSheet({
 
   const footer = (
     <div
-      className="p-4 border-t border-white/[0.06] bg-[#131414] lg:p-5"
+      className="p-4 border-t border-[hsl(var(--menu-ink)/0.06)] bg-[hsl(var(--menu-card))] lg:p-5"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
     >
       <button
         type="button"
         onClick={onAdd}
-        className="w-full min-h-[52px] rounded-[16px] font-bold text-[15px] text-[#080909] transition-transform active:scale-[0.985]"
+        className="w-full min-h-[52px] rounded-[16px] font-bold text-[15px] text-[hsl(var(--menu-on-accent))] transition-transform active:scale-[0.985]"
         style={{ backgroundColor: accentColor, boxShadow: accentGlow(accentColor) }}
       >
         Adicionar • {fmt(totalPrice)}
@@ -224,15 +224,15 @@ export default function ProductDetailSheet({
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 32, stiffness: 340 }}
         ref={trapRef}
-        className="mt-auto relative w-full sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-4xl bg-[#131414] border-t lg:border border-white/[0.08] rounded-t-[24px] lg:rounded-[24px] max-h-[92%] lg:max-h-[86%] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+        className="mt-auto relative w-full sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-4xl bg-[hsl(var(--menu-card))] border-t lg:border border-[hsl(var(--menu-ink)/0.08)] rounded-t-[24px] lg:rounded-[24px] max-h-[92%] lg:max-h-[86%] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
       >
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-white/25 lg:hidden" aria-hidden />
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-10 h-1 rounded-full bg-[hsl(var(--menu-ink)/0.25)] lg:hidden" aria-hidden />
 
         <button
           type="button"
           onClick={onClose}
           aria-label="Fechar"
-          className="absolute top-3 right-3 lg:right-auto lg:left-3 z-20 w-10 h-10 rounded-full flex items-center justify-center bg-black/45 backdrop-blur-xl border border-white/10 active:scale-90 transition-transform"
+          className="absolute top-3 right-3 lg:right-auto lg:left-3 z-20 w-10 h-10 rounded-full flex items-center justify-center bg-black/45 backdrop-blur-xl border border-[hsl(var(--menu-ink)/0.1)] active:scale-90 transition-transform"
         >
           <X className="w-4 h-4" />
         </button>
@@ -241,7 +241,7 @@ export default function ProductDetailSheet({
         <div className="lg:hidden overflow-y-auto flex-1 overscroll-contain">
           <div className="relative h-60 sm:h-64">
             {media}
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#131414] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[hsl(var(--menu-card))] to-transparent" />
           </div>
           {choices}
         </div>
@@ -250,7 +250,7 @@ export default function ProductDetailSheet({
         {/* Desktop: duas colunas */}
         <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] flex-1 min-h-0">
           <div className="relative min-h-0">{media}</div>
-          <div className="flex flex-col min-h-0 border-l border-white/[0.06]">
+          <div className="flex flex-col min-h-0 border-l border-[hsl(var(--menu-ink)/0.06)]">
             <div className="overflow-y-auto flex-1">{choices}</div>
             {footer}
           </div>
@@ -275,7 +275,7 @@ function Choice({
       style={
         selected
           ? { borderColor: accentColor, backgroundColor: accentFaint(accentColor) }
-          : { borderColor: "rgba(255,255,255,0.07)", backgroundColor: "rgba(255,255,255,0.03)" }
+          : { borderColor: "hsl(var(--menu-ink)/0.07)", backgroundColor: "hsl(var(--menu-ink)/0.03)" }
       }
     >
       <span className="font-medium text-left">{label}</span>
@@ -296,7 +296,7 @@ function AddonRow({
       style={
         selected
           ? { borderColor: accentColor, backgroundColor: accentFaint(accentColor) }
-          : { borderColor: "rgba(255,255,255,0.07)", backgroundColor: "rgba(255,255,255,0.03)" }
+          : { borderColor: "hsl(var(--menu-ink)/0.07)", backgroundColor: "hsl(var(--menu-ink)/0.03)" }
       }
     >
       <button
@@ -320,7 +320,7 @@ function AddonRow({
           onClick={() => onChange(Math.max(0, quantity - 1))}
           disabled={quantity === 0}
           aria-label={`Diminuir ${addon.name}`}
-          className={`w-9 h-9 rounded-full ${BORDER} bg-white/[0.05] flex items-center justify-center transition-all hover:bg-white/[0.1] active:scale-90 disabled:opacity-30 disabled:pointer-events-none`}
+          className={`w-9 h-9 rounded-full ${BORDER} bg-[hsl(var(--menu-ink)/0.05)] flex items-center justify-center transition-all hover:bg-[hsl(var(--menu-ink)/0.1)] active:scale-90 disabled:opacity-30 disabled:pointer-events-none`}
         >
           <Minus className="w-3.5 h-3.5" />
         </button>
@@ -329,8 +329,8 @@ function AddonRow({
           type="button"
           onClick={() => onChange(Math.min(99, quantity + 1))}
           aria-label={`Aumentar ${addon.name}`}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[#080909] transition-transform active:scale-90"
-          style={{ backgroundColor: selected ? accentColor : "rgba(255,255,255,0.14)", color: selected ? "#080909" : "#fff" }}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[hsl(var(--menu-on-accent))] transition-transform active:scale-90"
+          style={{ backgroundColor: selected ? accentColor : "hsl(var(--menu-ink)/0.14)", color: selected ? "hsl(var(--menu-on-accent))" : "#fff" }}
         >
           <Plus className="w-3.5 h-3.5" strokeWidth={2.6} />
         </button>

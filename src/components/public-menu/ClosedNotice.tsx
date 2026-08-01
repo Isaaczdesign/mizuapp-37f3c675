@@ -21,7 +21,7 @@ function Unit({ value, label }: { value: number; label: string }) {
   const text = String(value).padStart(2, "0");
   return (
     <div className="flex flex-col items-center">
-      <div className="relative h-9 min-w-[42px] px-2 rounded-xl bg-white/[0.05] border border-white/[0.08] overflow-hidden flex items-center justify-center">
+      <div className="relative h-9 min-w-[42px] px-2 rounded-xl bg-[hsl(var(--menu-ink)/0.05)] border border-[hsl(var(--menu-ink)/0.08)] overflow-hidden flex items-center justify-center">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
             key={text}
@@ -96,7 +96,7 @@ export function ClosedNotice({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-[#141414]/80 backdrop-blur-xl p-4 sm:p-5 shadow-[0_22px_60px_-44px_rgba(0,0,0,1)]"
+        className="relative overflow-hidden rounded-[24px] border border-[hsl(var(--menu-ink)/0.07)] bg-[hsl(var(--menu-card)/0.8)] backdrop-blur-xl p-4 sm:p-5 shadow-[0_22px_60px_-44px_rgba(0,0,0,1)]"
       >
         <span
           className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-amber-400/70 to-amber-400/10"
@@ -140,7 +140,7 @@ export function ClosedNotice({
                   <Unit value={parts.seconds} label="seg" />
                 </div>
                 {openLabel && (
-                  <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground px-3 py-1.5 rounded-full bg-[hsl(var(--menu-ink)/0.03)] border border-[hsl(var(--menu-ink)/0.06)]">
                     <Clock className="w-3 h-3" />
                     Abre {openLabel}
                   </span>

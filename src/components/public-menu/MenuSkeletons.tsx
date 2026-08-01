@@ -4,7 +4,7 @@ import { BG_CARD, BORDER, R_CARD, R_BANNER } from "./menuTokens";
 function Bar({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`bg-white/[0.055] animate-pulse motion-reduce:animate-none ${className}`}
+      className={`bg-[hsl(var(--menu-ink)/0.055)] animate-pulse motion-reduce:animate-none ${className}`}
       aria-hidden
     />
   );
@@ -26,7 +26,7 @@ export function SkeletonCard() {
 
 export function SkeletonSidebar() {
   return (
-    <div className="hidden lg:flex flex-col gap-5 w-[248px] shrink-0 border-r border-white/[0.06] p-5 h-[100dvh]">
+    <div className="hidden lg:flex flex-col gap-5 w-[248px] shrink-0 border-r border-[hsl(var(--menu-ink)/0.06)] p-5 h-[100dvh]">
       <div className="flex items-center gap-3">
         <Bar className="w-12 h-12 rounded-2xl" />
         <div className="flex-1 space-y-2">
@@ -47,7 +47,7 @@ export function SkeletonSidebar() {
 /** Skeleton completo da página, no formato final dos componentes */
 export function MenuSkeleton() {
   return (
-    <div className="min-h-[100dvh] bg-[#080909] lg:flex">
+    <div className="min-h-[100dvh] bg-[hsl(var(--menu-bg))] lg:flex">
       <SkeletonSidebar />
       <div className="flex-1 min-w-0">
         <Bar className="lg:hidden w-full h-52" />
