@@ -118,6 +118,7 @@ const App = () => (
             {import.meta.env.DEV && (
               <Route path="/dev/sheet-harness" element={<DevSheetHarness />} />
             )}
+            <Route path="/:slug" element={<RootSlugMenu />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
