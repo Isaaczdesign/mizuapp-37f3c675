@@ -14,7 +14,7 @@ export function Logo({ variant = "full", className }: LogoProps) {
     <img
       src={src}
       alt="Mizu — Gestão de Restaurantes"
-      className={cn("w-auto object-contain select-none", className)}
+      className={cn("logo-adaptive w-auto object-contain select-none", className)}
       draggable={false}
     />
   );

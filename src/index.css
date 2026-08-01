@@ -153,6 +153,15 @@
 }
 
 @layer components {
+  /* Marca Mizu (areia clara) precisa escurecer no tema claro para manter contraste */
+  .logo-adaptive {
+    filter: brightness(0.6) saturate(1.5);
+  }
+
+  .dark .logo-adaptive {
+    filter: none;
+  }
+
   .glass-card {
     @apply bg-card/70 backdrop-blur-xl border border-border/70 rounded-[20px];
     box-shadow: 0 1px 0 0 hsl(var(--foreground) / 0.04) inset, 0 12px 40px -24px hsl(0 0% 0% / 0.9);
