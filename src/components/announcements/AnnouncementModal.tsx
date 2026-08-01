@@ -91,12 +91,12 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`w-[calc(100%-2rem)] max-h-[92vh] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
+        className={`max-h-[92vh] overflow-hidden border-border/70 bg-card/95 p-0 backdrop-blur-xl [&>button]:z-20 [&>button]:rounded-full [&>button]:bg-background/60 [&>button]:p-1.5 [&>button]:backdrop-blur ${
           hasMedia
             ? isWideLandscape
-              ? "max-w-[1024px] sm:max-w-[1024px]"
-              : "max-w-[880px] sm:max-w-[880px]"
-            : "max-w-[440px] sm:max-w-[440px]"
+              ? "w-[calc(100%-1rem)] max-w-[1024px] sm:w-[calc(100%-2rem)] sm:max-w-[1024px]"
+              : "w-[calc(100%-2rem)] max-w-[880px] sm:max-w-[880px]"
+            : "w-[calc(100%-2rem)] max-w-[440px] sm:max-w-[440px]"
         }`}
       >
         {/* Brilho da marca */}
@@ -117,8 +117,12 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
               : ""
           }`}
         >
-          {/* Conteúdo — topo no mobile, esquerda no desktop */}
-          <div className="relative order-1 flex min-w-0 flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9">
+          {/* Conteúdo — topo no mobile (abaixo do vídeo widescreen), esquerda no desktop */}
+          <div
+            className={`relative flex min-w-0 flex-col justify-center space-y-4 px-6 py-6 md:order-1 md:px-9 md:py-9 ${
+              hasMedia && isWideLandscape ? "order-2" : "order-1"
+            }`}
+          >
             <div key={current.id ?? safeIndex} className={`${enterAnim} space-y-2`}>
               <div className="flex items-center gap-2">
                 <img src={logoMark} alt="Mizu" className="h-3.5 w-auto opacity-70" draggable={false} />
@@ -220,16 +224,16 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
             )}
           </div>
 
-          {/* Mídia — base no mobile, direita no desktop */}
+          {/* Mídia — topo no mobile (widescreen) / base, direita no desktop */}
           {hasMedia && (
             <div
               key={`${current.id ?? safeIndex}-media`}
-              className={`relative order-2 flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
+              className={`relative flex min-w-0 ${enterAnim} items-center justify-center overflow-hidden bg-brand-ink md:order-2 ${
                 isPortrait
-                  ? "min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
+                  ? "order-2 min-h-[55vh] max-h-[70vh] md:max-h-[85vh]"
                   : isWideLandscape
-                    ? "min-h-[50vh] max-h-[60vh] md:max-h-[78vh]"
-                    : "min-h-48 max-h-[55vh] md:max-h-[62vh]"
+                    ? "order-1 max-h-[45vh] md:order-2 md:min-h-[50vh] md:max-h-[78vh]"
+                    : "order-2 min-h-48 max-h-[55vh] md:max-h-[62vh]"
               }`}
             >
               {type === "image" ? (
@@ -241,7 +245,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                     isPortrait
                       ? "max-h-[70vh] min-h-[55vh] md:max-h-[80vh]"
                       : isWideLandscape
-                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        ? "max-h-[45vh] md:min-h-[50vh] md:max-h-[78vh]"
                         : "max-h-[55vh] min-h-48 md:max-h-[62vh]"
                   }`}
                   decoding="async"
@@ -263,7 +267,7 @@ export default function AnnouncementModal({ open, onOpenChange, data, items }: P
                     isPortrait
                       ? "max-h-[70vh] min-h-[55vh] md:max-h-[85vh]"
                       : isWideLandscape
-                        ? "max-h-[60vh] min-h-[50vh] md:max-h-[78vh]"
+                        ? "max-h-[45vh] md:min-h-[50vh] md:max-h-[78vh]"
                         : "max-h-[55vh] md:max-h-[62vh]"
                   }
                   onAspectRatio={handleAspectRatio}
