@@ -17,7 +17,7 @@ import PublicMenu from "./pages/PublicMenu";
 import Customers from "./pages/Customers";
 import Tables from "./pages/Tables";
 import MenuAdmin from "./pages/MenuAdmin";
-import Automations from "./pages/Automations";
+
 import Agenda from "./pages/Agenda";
 import Reviews from "./pages/Reviews";
 import NotFound from "./pages/NotFound";
