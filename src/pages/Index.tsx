@@ -80,7 +80,7 @@ const Index = () => {
   }, [location.state]);
 
   return (
-    <div className="dark min-h-screen bg-background overflow-x-hidden">
+    <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
       <SiteNav />
 
       <main>
