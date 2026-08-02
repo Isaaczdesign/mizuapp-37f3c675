@@ -233,22 +233,22 @@ const Index = () => {
             </p>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {["Restaurantes cadastrados", "Pedidos processados", "Cidades atendidas", "Avaliação média"].map((l) => (
-                <div key={l} className="rounded-2xl border border-dashed border-border p-6 text-center">
+                  <div key={l} className="rounded-2xl border border-dashed border-border p-6 text-center">
                   <p className="font-display text-2xl font-semibold text-muted-foreground">—</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{l}</p>
-                  <p className="mt-2 text-xs text-muted-foreground/70">Placeholder para dado real</p>
+                  <p className="mt-1 text-sm text-foreground/90">{l}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">Placeholder para dado real</p>
                 </div>
               ))}
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="rounded-2xl border border-dashed border-border p-6">
-                  <p className="text-sm text-muted-foreground">Depoimento de cliente (placeholder)</p>
-                  <p className="mt-3 text-xs text-muted-foreground/70">Nome · Restaurante · Cidade</p>
+                  <p className="text-sm text-foreground/90">Depoimento de cliente (placeholder)</p>
+                  <p className="mt-3 text-xs text-muted-foreground">Nome · Restaurante · Cidade</p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-center text-xs text-muted-foreground/70">
+            <p className="mt-4 text-center text-xs text-muted-foreground">
               Placeholders — substituir por depoimentos, logos e números reais antes da publicação.
             </p>
           </div>
