@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { openWhatsapp, couponMessage } from "@/lib/whatsappTemplates";
+import { menuUrl } from "@/lib/publicMenuUrl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +101,15 @@ const Customers = () => {
     },
   });
 
+  const { data: restaurantInfo = { name: "", slug: null as string | null } } = useQuery({
+    queryKey: ["crm-restaurant", rid],
+    enabled: !!rid,
+    queryFn: async () => {
+      const { data } = await supabase.from("restaurants").select("name, slug").eq("id", rid!).maybeSingle();
+      return { name: ((data as any)?.name ?? "") as string, slug: ((data as any)?.slug ?? null) as string | null };
+    },
+  });
+
   const { data: coupons = [] } = useQuery({
     queryKey: ["coupons", rid],
     enabled: !!rid,
@@ -139,29 +150,28 @@ const Customers = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const applyCoupon = useMutation({
-    mutationFn: async () => {
-      if (!selectedCouponId || !selectedCustomer?.id) throw new Error("Selecione um cupom");
-      const { error } = await supabase.from("coupon_usages").insert({
-        coupon_id: selectedCouponId,
-        customer_id: selectedCustomer.id,
-      } as any);
-      if (error) throw error;
-      // Increment uses_count
-      const coupon = coupons.find((c: any) => c.id === selectedCouponId);
-      if (coupon) {
-        await supabase.from("coupons").update({ uses_count: (coupon.uses_count ?? 0) + 1 } as any).eq("id", selectedCouponId);
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["coupon-usages", selectedCustomer?.id] });
-      qc.invalidateQueries({ queryKey: ["coupons", rid] });
-      setShowApplyCoupon(false);
-      setSelectedCouponId("");
-      toast.success("Cupom aplicado ao cliente!");
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  // Envia o cupom ao cliente pelo WhatsApp. IMPORTANTE: não registramos uso aqui —
+  // o uso só é contabilizado quando o cliente realmente aplica o código no cardápio.
+  function sendCouponToCustomer() {
+    const coupon = coupons.find((c: any) => c.id === selectedCouponId);
+    if (!coupon || !selectedCustomer) { toast.error("Selecione um cupom"); return; }
+    if (!coupon.is_active) { toast.error("Este cupom está inativo"); return; }
+    const discountLabel = coupon.discount_type === "percent"
+      ? `${coupon.discount_value}%`
+      : fmt(Number(coupon.discount_value));
+    openWhatsapp(selectedCustomer.whatsapp, couponMessage({
+      customerName: selectedCustomer.name,
+      restaurantName: restaurantInfo.name,
+      code: coupon.code,
+      discountLabel,
+      description: coupon.description,
+      expiresAt: coupon.expires_at,
+      menuUrl: restaurantInfo.slug ? menuUrl(restaurantInfo.slug) : null,
+    }));
+    setShowApplyCoupon(false);
+    setSelectedCouponId("");
+    toast.success("Cupom enviado ao cliente pelo WhatsApp!");
+  }
 
   const toggleCoupon = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
@@ -505,7 +515,7 @@ const Customers = () => {
                     <MessageSquare className="w-3.5 h-3.5 mr-1" /> Enviar WhatsApp
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setShowApplyCoupon(true)}>
-                    <Ticket className="w-3.5 h-3.5 mr-1" /> Aplicar Cupom
+                    <Ticket className="w-3.5 h-3.5 mr-1" /> Enviar Cupom
                   </Button>
                 </div>
 
@@ -513,6 +523,7 @@ const Customers = () => {
                 {showApplyCoupon && (
                   <div className="glass-card p-4 space-y-3">
                     <Label>Selecione o Cupom</Label>
+                    <p className="text-xs text-muted-foreground">O código é enviado ao cliente e continua válido no cardápio até ele finalizar um pedido com ele.</p>
                     <Select value={selectedCouponId} onValueChange={setSelectedCouponId}>
                       <SelectTrigger><SelectValue placeholder="Escolha um cupom..." /></SelectTrigger>
                       <SelectContent>
@@ -524,8 +535,8 @@ const Customers = () => {
                       </SelectContent>
                     </Select>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => applyCoupon.mutate()} disabled={applyCoupon.isPending || !selectedCouponId}>
-                        {applyCoupon.isPending ? "Aplicando..." : "Confirmar"}
+                      <Button size="sm" onClick={sendCouponToCustomer} disabled={!selectedCouponId}>
+                        Enviar no WhatsApp
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setShowApplyCoupon(false)}>Cancelar</Button>
                     </div>
