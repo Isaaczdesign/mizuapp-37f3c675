@@ -22,7 +22,7 @@ const allNavItems: NavItem[] = [
   { to: "/customers", icon: Users, label: "CRM", roles: ["owner", "manager", "staff"] },
   { to: "/avaliacoes", icon: Star, label: "Avaliações", roles: ["owner", "manager"] },
   { to: "/tables", icon: QrCode, label: "Mesas", roles: ["owner", "manager"] },
-  { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
+  // { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
   { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"] },
   { to: "/expediente", icon: Lock, label: "Expediente", roles: ["owner", "manager"] },
 ];
