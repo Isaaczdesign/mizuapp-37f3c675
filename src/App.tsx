@@ -17,7 +17,7 @@ import PublicMenu from "./pages/PublicMenu";
 import Customers from "./pages/Customers";
 import Tables from "./pages/Tables";
 import MenuAdmin from "./pages/MenuAdmin";
-import Automations from "./pages/Automations";
+
 import Agenda from "./pages/Agenda";
 import Reviews from "./pages/Reviews";
 import NotFound from "./pages/NotFound";
@@ -100,7 +100,7 @@ const App = () => (
             <Route path="/menu-admin" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><MenuAdmin /></ProtectedRoute>} />
             <Route path="/customers" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Customers /></ProtectedRoute>} />
             <Route path="/tables" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Tables /></ProtectedRoute>} />
-            <Route path="/automations" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Automations /></ProtectedRoute>} />
+            {/* <Route path="/automations" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Automations /></ProtectedRoute>} /> */}
             <Route path="/agenda" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Agenda /></ProtectedRoute>} />
             <Route path="/avaliacoes" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Reviews /></ProtectedRoute>} />
 
