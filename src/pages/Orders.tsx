@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock, BadgeDollarSign, Printer } from "lucide-react";
+import { MessageCircle, Eye, X as XIcon, FileText, UtensilsCrossed, ShoppingBag, Truck, MapPin, Volume2, VolumeX, Plus, Pencil, Clock, BadgeDollarSign, Printer } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReceiptPDF, printReceiptPDF } from "@/lib/receipt";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
@@ -12,6 +12,7 @@ import AdminLayout from "@/components/AdminLayout";
 import NewOrderModal from "@/components/NewOrderModal";
 import EditOrderModal from "@/components/EditOrderModal";
 import { paymentMethodLabel } from "@/lib/paymentMethods";
+import { openWhatsapp, orderConfirmedMessage, orderOutForDeliveryMessage } from "@/lib/whatsappTemplates";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -37,6 +38,7 @@ interface Order {
   order_items: { id: string; name: string; quantity: number; unit_price: number; notes: string | null }[];
   restaurant_tables: { number: number } | null;
   customers: { name: string; whatsapp: string } | null;
+  tracking_token?: string | null;
   shift_id: string | null;
 }
 
@@ -154,14 +156,18 @@ const Orders = () => {
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [restaurantAddress, setRestaurantAddress] = useState<string>("");
+  const [restaurantInfo, setRestaurantInfo] = useState<{ name: string; slug: string | null }>({ name: "", slug: null });
 
   const historyShiftId = searchParams.get("shift");
 
 
   useEffect(() => {
     if (!restaurantId) return;
-    supabase.from("restaurants").select("address").eq("id", restaurantId).maybeSingle()
-      .then(({ data }) => setRestaurantAddress(((data as any)?.address ?? "") as string));
+    supabase.from("restaurants").select("address, name, slug").eq("id", restaurantId).maybeSingle()
+      .then(({ data }) => {
+        setRestaurantAddress(((data as any)?.address ?? "") as string);
+        setRestaurantInfo({ name: ((data as any)?.name ?? "") as string, slug: ((data as any)?.slug ?? null) as string | null });
+      });
   }, [restaurantId]);
 
   function buildRouteUrl(destAddr: any): string {
@@ -208,7 +214,7 @@ const Orders = () => {
     if (!restaurantId) return;
     let q = supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, shift_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, tracking_token, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, shift_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
       .limit(200);
@@ -669,6 +675,38 @@ const Orders = () => {
             )}
 
 
+
+            {selectedOrder.customers?.whatsapp && (
+              <div className="mb-4 grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => openWhatsapp(selectedOrder.customers!.whatsapp, orderConfirmedMessage({
+                    customerName: selectedOrder.customers?.name,
+                    restaurantName: restaurantInfo.name,
+                    orderId: selectedOrder.id,
+                    trackingUrl: selectedOrder.tracking_token ? `${window.location.origin}/pedido/${selectedOrder.tracking_token}` : null,
+                  }))}
+                  className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-500 font-semibold text-sm hover:bg-emerald-500/25 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" /> Avisar cliente: pedido confirmado
+                </button>
+                {selectedOrder.order_type === "delivery" && (
+                  <button
+                    onClick={() => openWhatsapp(selectedOrder.customers!.whatsapp, orderOutForDeliveryMessage({
+                      customerName: selectedOrder.customers?.name,
+                      restaurantName: restaurantInfo.name,
+                      orderId: selectedOrder.id,
+                      eta: selectedOrder.delivery_eta
+                        ? new Date(selectedOrder.delivery_eta).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                        : null,
+                      trackingUrl: selectedOrder.tracking_token ? `${window.location.origin}/pedido/${selectedOrder.tracking_token}` : null,
+                    }))}
+                    className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-semibold text-sm hover:bg-emerald-500/20 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" /> Avisar cliente: saiu para entrega
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="mb-3 space-y-1 text-sm">
               <p><strong>Tipo:</strong> {TYPE_META[selectedOrder.order_type]?.label ?? selectedOrder.order_type}</p>
