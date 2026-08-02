@@ -156,6 +156,16 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
+        <a
+          href={supportWhatsappUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onNavigate}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5 transition-all duration-200"
+        >
+          <LifeBuoy className="w-4 h-4 shrink-0" />
+          <span className="truncate">Suporte</span>
+        </a>
         <button onClick={handleSignOut} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-full transition-colors">
           <LogOut className="w-4 h-4 shrink-0" />
           <span className="truncate">Sair</span>
