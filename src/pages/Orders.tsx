@@ -676,6 +676,38 @@ const Orders = () => {
 
 
 
+            {selectedOrder.customers?.whatsapp && (
+              <div className="mb-4 grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => openWhatsapp(selectedOrder.customers!.whatsapp, orderConfirmedMessage({
+                    customerName: selectedOrder.customers?.name,
+                    restaurantName: restaurantInfo.name,
+                    orderId: selectedOrder.id,
+                    trackingUrl: selectedOrder.tracking_token ? `${window.location.origin}/pedido/${selectedOrder.tracking_token}` : null,
+                  }))}
+                  className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-500 font-semibold text-sm hover:bg-emerald-500/25 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" /> Avisar cliente: pedido confirmado
+                </button>
+                {selectedOrder.order_type === "delivery" && (
+                  <button
+                    onClick={() => openWhatsapp(selectedOrder.customers!.whatsapp, orderOutForDeliveryMessage({
+                      customerName: selectedOrder.customers?.name,
+                      restaurantName: restaurantInfo.name,
+                      orderId: selectedOrder.id,
+                      eta: selectedOrder.delivery_eta
+                        ? new Date(selectedOrder.delivery_eta).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                        : null,
+                      trackingUrl: selectedOrder.tracking_token ? `${window.location.origin}/pedido/${selectedOrder.tracking_token}` : null,
+                    }))}
+                    className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-semibold text-sm hover:bg-emerald-500/20 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" /> Avisar cliente: saiu para entrega
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="mb-3 space-y-1 text-sm">
               <p><strong>Tipo:</strong> {TYPE_META[selectedOrder.order_type]?.label ?? selectedOrder.order_type}</p>
               {selectedOrder.customers && (
