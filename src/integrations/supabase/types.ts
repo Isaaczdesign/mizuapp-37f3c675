@@ -885,6 +885,7 @@ export type Database = {
           mp_qr_code_base64: string | null
           mp_ticket_url: string | null
           notes: string | null
+          order_number: number | null
           order_type: string
           payment_change_for: number | null
           payment_expires_at: string | null
@@ -914,6 +915,7 @@ export type Database = {
           mp_qr_code_base64?: string | null
           mp_ticket_url?: string | null
           notes?: string | null
+          order_number?: number | null
           order_type?: string
           payment_change_for?: number | null
           payment_expires_at?: string | null
@@ -943,6 +945,7 @@ export type Database = {
           mp_qr_code_base64?: string | null
           mp_ticket_url?: string | null
           notes?: string | null
+          order_number?: number | null
           order_type?: string
           payment_change_for?: number | null
           payment_expires_at?: string | null
@@ -2131,8 +2134,11 @@ export type Database = {
           id: string
           items: Json
           notes: string
+          order_number: number
           order_type: string
           restaurant_address: string
+          restaurant_name: string
+          restaurant_phone: string
           restaurant_slug: string
           status: string
           total: number

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -21,6 +22,8 @@ type ScopeFilter = "current" | "7d" | "all";
 
 interface Order {
   id: string;
+  order_number?: number | null;
+
   status: OrderStatus;
   notes: string | null;
   total: number;
@@ -214,7 +217,7 @@ const Orders = () => {
     if (!restaurantId) return;
     let q = supabase
       .from("orders")
-      .select("id, tracking_token, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, shift_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
+      .select("id, order_number, tracking_token, status, notes, total, created_at, updated_at, table_id, customer_id, order_type, payment_method, payment_change_for, payment_status, delivery_address, delivery_fee, delivery_eta, shift_id, order_items(id, name, quantity, unit_price, notes), restaurant_tables(number), customers(name, whatsapp)")
       .eq("restaurant_id", restaurantId)
       .order("created_at", { ascending: false })
       .limit(200);
@@ -347,7 +350,7 @@ const Orders = () => {
   const byType = typeFilter === "all" ? orders : orders.filter((o) => o.order_type === typeFilter);
   const q = searchQuery.trim().toLowerCase();
   const filtered = !q ? byType : byType.filter((o) => {
-    const idMatch = o.id.toLowerCase().includes(q) || o.id.slice(0, 6).toLowerCase().includes(q);
+    const idMatch = o.id.toLowerCase().includes(q) || orderRef(o).toLowerCase().includes(q) || String(o.order_number ?? "").includes(q.replace(/^#0*/, ""));
     const cust = o.customers?.name?.toLowerCase() ?? "";
     const phone = o.customers?.whatsapp?.toLowerCase() ?? "";
     const table = o.restaurant_tables?.number ? `mesa ${o.restaurant_tables.number}`.includes(q) || String(o.restaurant_tables.number).includes(q) : false;
@@ -543,7 +546,7 @@ const Orders = () => {
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
+                        <span className="font-mono text-xs text-muted-foreground">{orderRef(order)}</span>
                         {(() => {
                           const offline = isOfflinePayment(order);
                           const key = offline ? (isPaid(order) ? "approved" : "not_required") : (order.payment_status ?? "pending");
@@ -648,7 +651,7 @@ const Orders = () => {
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSelectedOrder(null)} />
           <div className="relative glass-card p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-lg font-bold">Pedido #{selectedOrder.id.slice(0, 8)}</h2>
+              <h2 className="font-display text-lg font-bold">Pedido {orderRef(selectedOrder)}</h2>
               <div className="flex items-center gap-2">
                 {selectedOrder.status !== "canceled" && (selectedOrder.status as string) !== "delivered" && selectedOrder.status !== "completed" && (
                   <button
@@ -683,6 +686,7 @@ const Orders = () => {
                     customerName: selectedOrder.customers?.name,
                     restaurantName: restaurantInfo.name,
                     orderId: selectedOrder.id,
+                    orderNumber: selectedOrder.order_number,
                     trackingUrl: selectedOrder.tracking_token ? `${window.location.origin}/pedido/${selectedOrder.tracking_token}` : null,
                   }))}
                   className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-500 font-semibold text-sm hover:bg-emerald-500/25 transition-colors"
@@ -695,6 +699,7 @@ const Orders = () => {
                       customerName: selectedOrder.customers?.name,
                       restaurantName: restaurantInfo.name,
                       orderId: selectedOrder.id,
+                    orderNumber: selectedOrder.order_number,
                       eta: selectedOrder.delivery_eta
                         ? new Date(selectedOrder.delivery_eta).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
                         : null,

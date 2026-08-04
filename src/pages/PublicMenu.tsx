@@ -1,3 +1,4 @@
+import { formatPhoneBR, validatePhoneBR, validateFullName } from "@/lib/phoneBr";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,6 +150,10 @@ const PublicMenu = () => {
 
   const [customerName, setCustomerName] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
+  const [showStepErrors, setShowStepErrors] = useState(false);
+  const [touchedContact, setTouchedContact] = useState<{ name?: boolean; phone?: boolean }>({});
+  const nameError = validateFullName(customerName);
+  const phoneError = validatePhoneBR(customerWhatsapp);
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
 
@@ -1182,13 +1187,28 @@ const PublicMenu = () => {
                   <div>
                     <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>Nome *</label>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
-                      required placeholder="Seu nome" className="mt-1.5 h-12" />
+                      onBlur={() => setTouchedContact((t) => ({ ...t, name: true }))}
+                      required placeholder="Seu nome" className="mt-1.5 h-12"
+                      aria-invalid={!!nameError && touchedContact.name} />
+                    {touchedContact.name && nameError && (
+                      <p className="mt-1 text-xs font-medium text-destructive">{nameError}</p>
+                    )}
                   </div>
                   <div>
                     <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>WhatsApp *</label>
-                    <Input value={customerWhatsapp} onChange={(e) => setCustomerWhatsapp(e.target.value)}
-                      required placeholder="(11) 99999-9999" className="mt-1.5 h-12" />
+                    <Input value={customerWhatsapp}
+                      onChange={(e) => setCustomerWhatsapp(formatPhoneBR(e.target.value))}
+                      onBlur={() => setTouchedContact((t) => ({ ...t, phone: true }))}
+                      inputMode="numeric" autoComplete="tel" maxLength={16}
+                      required placeholder="(11) 99999-9999" className="mt-1.5 h-12"
+                      aria-invalid={!!phoneError && touchedContact.phone} />
+                    {touchedContact.phone && phoneError ? (
+                      <p className="mt-1 text-xs font-medium text-destructive">{phoneError}</p>
+                    ) : (
+                      <p className="mt-1 text-xs text-muted-foreground">DDD + número. Usamos para avisar sobre o seu pedido.</p>
+                    )}
                   </div>
+
 
                   {orderType === "dine_in" && !tableId && (
                     <div>
@@ -1365,30 +1385,59 @@ const PublicMenu = () => {
                     Aceito receber promoções por WhatsApp
                   </label>
 
-                  <div className="flex gap-2.5 pt-2">
-                    <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-[hsl(var(--menu-ink)/0.12)] bg-[hsl(var(--menu-ink)/0.03)]" onClick={() => setCheckoutStep(1)}>
-                      Voltar
-                    </Button>
-                    <Button
-                      className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-on-accent))]"
-                      style={{ backgroundColor: accentColor }}
-                      disabled={
-                        !customerName.trim() || !customerWhatsapp.trim() ||
-                        (orderType === "dine_in" && !tableId && !selectedTableId) ||
-                        (orderType === "delivery" && (deliveryCep.replace(/\D/g,"").length !== 8 || !deliveryStreet.trim() || !deliveryNumber.trim() || !deliveryNeighborhood.trim() || !deliveryCity.trim()))
-                      }
-                      onClick={() => {
-                        if (orderType === "dine_in") {
-                          setPaymentMethod("pay_at_place");
-                          setCheckoutStep(4);
-                        } else {
-                          setCheckoutStep(3);
-                        }
-                      }}
-                    >
-                      Continuar
-                    </Button>
-                  </div>
+                  {(() => {
+                    const issues: string[] = [];
+                    if (nameError) issues.push(nameError);
+                    if (phoneError) issues.push(phoneError);
+                    if (orderType === "dine_in" && !tableId && !selectedTableId) issues.push("Escolha o número da mesa.");
+                    if (orderType === "delivery") {
+                      if (deliveryCep.replace(/\D/g, "").length !== 8) issues.push("CEP incompleto — informe os 8 dígitos.");
+                      if (!deliveryStreet.trim()) issues.push("Informe a rua da entrega.");
+                      if (!deliveryNumber.trim()) issues.push("Informe o número do endereço.");
+                      if (!deliveryNeighborhood.trim()) issues.push("Informe o bairro.");
+                      if (!deliveryCity.trim()) issues.push("Informe a cidade.");
+                    }
+                    const showIssues = issues.length > 0 && (touchedContact.name || touchedContact.phone || showStepErrors);
+                    return (
+                      <>
+                        {showIssues && (
+                          <div className="rounded-[14px] border border-destructive/40 bg-destructive/10 p-3">
+                            <p className="text-xs font-semibold text-destructive mb-1">Falta completar:</p>
+                            <ul className="list-disc pl-4 space-y-0.5 text-xs text-destructive">
+                              {issues.map((i) => <li key={i}>{i}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        <div className="flex gap-2.5 pt-2">
+                          <Button type="button" variant="outline" className="flex-1 min-h-[52px] rounded-[16px] border-[hsl(var(--menu-ink)/0.12)] bg-[hsl(var(--menu-ink)/0.03)]" onClick={() => setCheckoutStep(1)}>
+                            Voltar
+                          </Button>
+                          <Button
+                            className="flex-1 min-h-[52px] rounded-[16px] font-bold text-[hsl(var(--menu-on-accent))]"
+                            style={{ backgroundColor: accentColor }}
+                            onClick={() => {
+                              if (issues.length > 0) {
+                                setShowStepErrors(true);
+                                setTouchedContact({ name: true, phone: true });
+                                toast.error(issues[0]);
+                                return;
+                              }
+                              setShowStepErrors(false);
+                              if (orderType === "dine_in") {
+                                setPaymentMethod("pay_at_place");
+                                setCheckoutStep(4);
+                              } else {
+                                setCheckoutStep(3);
+                              }
+                            }}
+                          >
+                            Continuar
+                          </Button>
+                        </div>
+                      </>
+                    );
+                  })()}
+
                 </div>
               )}
 

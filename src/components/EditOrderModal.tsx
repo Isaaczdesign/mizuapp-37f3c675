@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { X, Plus, Minus, Search, UtensilsCrossed, ShoppingBag, Truck } from "lucide-react";
@@ -183,7 +184,7 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative glass-card w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="font-display text-lg font-bold">✏️ Editar pedido #{order.id.slice(0, 6)}</h2>
+          <h2 className="font-display text-lg font-bold">✏️ Editar pedido {orderRef(order)}</h2>
           <button onClick={onClose} className="p-1"><X className="w-5 h-5" /></button>
         </div>
 

@@ -1,17 +1,22 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, CreditCard, PartyPopper } from "lucide-react";
+import { orderRef } from "@/lib/orderNumber";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, MessageCircle, CreditCard, PartyPopper } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MpCardForm from "@/components/MpCardForm";
 import { saveRecentOrder } from "@/lib/publicMenuStorage";
 import { menuPath } from "@/lib/publicMenuUrl";
+import { waLink } from "@/lib/whatsappTemplates";
 import OrderReview from "@/components/public-menu/OrderReview";
 
 
 interface TrackingOrder {
   id: string;
+  order_number?: number | null;
+  restaurant_name?: string | null;
+  restaurant_phone?: string | null;
   status: string;
   order_type: string;
   total: number;
@@ -240,7 +245,7 @@ export default function OrderTracking() {
       <div className="text-center mb-6">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">Pedido</p>
         <h1 className="font-display text-3xl font-bold gradient-text">
-          #{order.id.slice(0, 8).toUpperCase()}
+          {orderRef(order)}
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
           {new Date(order.created_at).toLocaleString("pt-BR")}
@@ -677,6 +682,22 @@ export default function OrderTracking() {
           </Link>
         </div>
       )}
+
+      {order.restaurant_phone && (
+        <a
+          href={waLink(
+            order.restaurant_phone,
+            `Olá! Sou ${order.restaurant_name ? "cliente do " + order.restaurant_name : "cliente"} e queria falar sobre o meu pedido ${orderRef(order)}.`,
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Falar com {order.restaurant_name ?? "o estabelecimento"}
+        </a>
+      )}
+
 
       <p className="text-center text-xs text-muted-foreground mt-6">
         Atualiza automaticamente em tempo real.
