@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, CreditCard, PartyPopper } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -240,7 +241,7 @@ export default function OrderTracking() {
       <div className="text-center mb-6">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">Pedido</p>
         <h1 className="font-display text-3xl font-bold gradient-text">
-          #{order.id.slice(0, 8).toUpperCase()}
+          {orderRef(order)}
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
           {new Date(order.created_at).toLocaleString("pt-BR")}

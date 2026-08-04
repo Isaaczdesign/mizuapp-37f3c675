@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { openWhatsapp, couponMessage } from "@/lib/whatsappTemplates";
 import { menuUrl } from "@/lib/publicMenuUrl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -85,7 +86,7 @@ const Customers = () => {
     queryKey: ["customer-orders", selectedCustomer?.id],
     enabled: !!selectedCustomer?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("id, total, status, created_at, order_items(name, quantity)")
+      const { data } = await supabase.from("orders").select("id, order_number, total, status, created_at, order_items(name, quantity)")
         .eq("customer_id", selectedCustomer.id).order("created_at", { ascending: false }).limit(10);
       return data ?? [];
     },
@@ -571,7 +572,7 @@ const Customers = () => {
                       {(customerOrders ?? []).map((order: any) => (
                         <div key={order.id} className="flex items-center justify-between text-sm border-b border-border pb-2">
                           <div>
-                            <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 6)}</span>
+                            <span className="font-mono text-xs text-muted-foreground">{orderRef(order)}</span>
                             <span className="ml-2 text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString("pt-BR")}</span>
                             <div className="text-xs text-muted-foreground mt-0.5">
                               {(order.order_items ?? []).map((i: any) => `${i.quantity}x ${i.name}`).join(", ")}

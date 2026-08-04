@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -173,7 +174,7 @@ const KDS = () => {
     const w = window.open("", "_blank", `width=${widthPx + 60},height=600`);
     if (!w) { toast.error("Bloqueador de pop-up ativo. Libere para imprimir."); return; }
     const dt = new Date(order.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    const where = order.restaurant_tables ? `Mesa ${order.restaurant_tables.number}` : `#${order.id.slice(0, 6)}`;
+    const where = order.restaurant_tables ? `Mesa ${order.restaurant_tables.number}` : orderRef(order);
     const type = order.order_type ? `${ORDER_TYPE_EMOJI[order.order_type] ?? ""} ${orderTypeLabel(order.order_type)}` : "";
     const eta = estimatePrepMinutes(order);
     const items = order.order_items.map(i =>
@@ -233,7 +234,7 @@ const KDS = () => {
 
     const { data } = await supabase
       .from("orders")
-      .select("id, status, notes, total, created_at, preparing_started_at, ready_at, table_id, order_type, order_items(id, name, quantity, notes, menu_items(prep_time_minutes)), restaurant_tables(number)")
+      .select("id, order_number, status, notes, total, created_at, preparing_started_at, ready_at, table_id, order_type, order_items(id, name, quantity, notes, menu_items(prep_time_minutes)), restaurant_tables(number)")
       .eq("restaurant_id", restaurantId)
       .eq("shift_id", shiftId)
       .in("status", ["new", "preparing", "ready"])
@@ -361,7 +362,7 @@ const KDS = () => {
         <div className="flex items-center justify-between mb-2 gap-2">
           <span className={`font-display font-bold ${prefs.tvMode ? "text-2xl" : "text-lg"} flex items-center gap-2`}>
             {isPinned && <Pin className="w-4 h-4 text-primary fill-primary" />}
-            {order.restaurant_tables ? `Mesa ${order.restaurant_tables.number}` : `#${order.id.slice(0, 6)}`}
+            {order.restaurant_tables ? `Mesa ${order.restaurant_tables.number}` : orderRef(order)}
           </span>
           <button
             onClick={() => togglePin(order.id)}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/AdminLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { broadcastMenuUpdate } from "@/lib/menuRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -320,7 +321,7 @@ export default function Expediente() {
                     <div key={o.id} className="p-3 rounded-xl border border-border bg-secondary/30">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div className="min-w-0">
-                          <div className="font-medium">#{o.id.slice(0, 8)} — {orderTypeLabel(o.order_type)}</div>
+                          <div className="font-medium">{orderRef(o)} — {orderTypeLabel(o.order_type)}</div>
                           <div className="text-xs text-muted-foreground">
                             {format(new Date(o.created_at), "HH:mm", { locale: ptBR })} · {fmtBRL(Number(o.total))} · {STATUS_LABEL[o.status as string] ?? o.status}
                           </div>

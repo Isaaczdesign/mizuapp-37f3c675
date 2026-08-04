@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { orderRef } from "@/lib/orderNumber";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ const Dashboard = () => {
     setConfirmText("");
     setLoadingOpenOrders(true);
     let q = supabase.from("orders")
-      .select("id, status, order_type, total, created_at, table_id")
+      .select("id, order_number, status, order_type, total, created_at, table_id")
       .eq("restaurant_id", rid)
       .not("status", "in", "(delivered,completed,canceled)")
       .order("created_at", { ascending: true });
@@ -569,7 +570,7 @@ const Dashboard = () => {
                   {openOrders.map((o) => (
                     <div key={o.id} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded hover:bg-secondary">
                       <div className="flex flex-col min-w-0">
-                        <span className="font-mono truncate">#{o.id.slice(0, 8)}</span>
+                        <span className="font-mono truncate">{orderRef(o)}</span>
                         <span className="text-muted-foreground">
                           {format(new Date(o.created_at), "HH:mm")} · {o.order_type} · {o.status}
                         </span>
