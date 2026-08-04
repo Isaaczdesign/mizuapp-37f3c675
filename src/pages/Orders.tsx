@@ -22,6 +22,8 @@ type ScopeFilter = "current" | "7d" | "all";
 
 interface Order {
   id: string;
+  order_number?: number | null;
+
   status: OrderStatus;
   notes: string | null;
   total: number;
