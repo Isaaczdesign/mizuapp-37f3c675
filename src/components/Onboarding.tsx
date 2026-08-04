@@ -595,7 +595,7 @@ export default function Onboarding() {
 
       {/* Header */}
       <div className="border-b border-border/60 backdrop-blur-xl bg-background/70 px-4 py-5">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -632,7 +632,7 @@ export default function Onboarding() {
 
       {/* Step indicators */}
       <div className="border-b border-border/60 px-4 py-3 overflow-x-auto no-scrollbar">
-        <div className="max-w-2xl mx-auto flex gap-1.5">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto flex gap-1.5">
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             const isDone = i < step;
@@ -663,7 +663,7 @@ export default function Onboarding() {
 
       {/* Content */}
       <div className="flex-1 px-4 py-8 overflow-y-auto">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -1138,7 +1138,7 @@ export default function Onboarding() {
 
       {/* Footer Navigation */}
       <div className="sticky bottom-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto flex items-center justify-between gap-2">
 
           <div className="flex items-center gap-1">
             <Button
