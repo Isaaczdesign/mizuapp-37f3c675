@@ -1,8 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, PanelLeftClose, PanelLeftOpen, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
 import { supportWhatsappUrl } from "@/lib/whatsappTemplates";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
 import { Button } from "@/components/ui/button";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
