@@ -385,7 +385,7 @@ const Auth = () => {
       </div>
 
       {/* Coluna direita — fotografia */}
-      <div className="relative hidden lg:block lg:w-[65%] p-3">
+      <div className="relative hidden lg:block lg:flex-1 h-screen sticky top-0 p-3">
         <motion.div
           initial={{ opacity: 0, scale: 1.03 }}
           animate={{ opacity: 1, scale: 1 }}
