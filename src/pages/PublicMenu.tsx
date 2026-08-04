@@ -1182,13 +1182,28 @@ const PublicMenu = () => {
                   <div>
                     <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>Nome *</label>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
-                      required placeholder="Seu nome" className="mt-1.5 h-12" />
+                      onBlur={() => setTouchedContact((t) => ({ ...t, name: true }))}
+                      required placeholder="Seu nome" className="mt-1.5 h-12"
+                      aria-invalid={!!nameError && touchedContact.name} />
+                    {touchedContact.name && nameError && (
+                      <p className="mt-1 text-xs font-medium text-destructive">{nameError}</p>
+                    )}
                   </div>
                   <div>
                     <label className={`text-sm font-medium ${TEXT_SECONDARY}`}>WhatsApp *</label>
-                    <Input value={customerWhatsapp} onChange={(e) => setCustomerWhatsapp(e.target.value)}
-                      required placeholder="(11) 99999-9999" className="mt-1.5 h-12" />
+                    <Input value={customerWhatsapp}
+                      onChange={(e) => setCustomerWhatsapp(formatPhoneBR(e.target.value))}
+                      onBlur={() => setTouchedContact((t) => ({ ...t, phone: true }))}
+                      inputMode="numeric" autoComplete="tel" maxLength={16}
+                      required placeholder="(11) 99999-9999" className="mt-1.5 h-12"
+                      aria-invalid={!!phoneError && touchedContact.phone} />
+                    {touchedContact.phone && phoneError ? (
+                      <p className="mt-1 text-xs font-medium text-destructive">{phoneError}</p>
+                    ) : (
+                      <p className="mt-1 text-xs text-muted-foreground">DDD + número. Usamos para avisar sobre o seu pedido.</p>
+                    )}
                   </div>
+
 
                   {orderType === "dine_in" && !tableId && (
                     <div>
