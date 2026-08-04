@@ -521,6 +521,7 @@ const Orders = () => {
         </div>
       )}
 
+      <LayoutGroup>
       <div className="flex-1 min-h-0 flex gap-3 overflow-x-auto lg:overflow-x-visible pb-2">
         {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
           const colOrders = filtered.filter((o) => o.status === col.status);
