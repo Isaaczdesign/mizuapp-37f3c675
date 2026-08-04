@@ -4,7 +4,6 @@ import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, 
 import { supportWhatsappUrl } from "@/lib/whatsappTemplates";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
-import { Button } from "@/components/ui/button";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 import { Logo } from "@/components/Logo";
 import GuidedTour from "@/components/GuidedTour";
