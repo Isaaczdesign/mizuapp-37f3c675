@@ -521,17 +521,24 @@ const Settings = () => {
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="meta">Meta WhatsApp Cloud API</SelectItem>
+                  <SelectItem value="wapi">W-API</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Access Token</Label>
-              <Input type="password" value={whatsappApiKey} onChange={(e) => setWhatsappApiKey(e.target.value)} className="mt-1" placeholder="Token permanente da Meta" />
+              <Label>{whatsappProvider === "wapi" ? "Token da W-API" : "Access Token"}</Label>
+              <Input type="password" value={whatsappApiKey} onChange={(e) => setWhatsappApiKey(e.target.value)} className="mt-1" placeholder={whatsappProvider === "wapi" ? "Token gerado no painel da W-API" : "Token permanente da Meta"} />
             </div>
             <div>
-              <Label>Phone Number ID</Label>
-              <Input value={whatsappSenderId} onChange={(e) => setWhatsappSenderId(e.target.value)} className="mt-1" placeholder="Ex.: 123456789012345" />
+              <Label>{whatsappProvider === "wapi" ? "Instance ID" : "Phone Number ID"}</Label>
+              <Input value={whatsappSenderId} onChange={(e) => setWhatsappSenderId(e.target.value)} className="mt-1" placeholder={whatsappProvider === "wapi" ? "Ex.: 3G1A2B-XYZ" : "Ex.: 123456789012345"} />
             </div>
+            {whatsappProvider === "wapi" && (
+              <p className="text-xs text-muted-foreground">
+                Copie o <strong>Instance ID</strong> e o <strong>Token</strong> na área de instâncias do painel da W-API. As mensagens de pedido passam a ser enviadas automaticamente.
+              </p>
+            )}
+
 
           </div>
 
