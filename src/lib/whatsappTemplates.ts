@@ -1,4 +1,5 @@
 /** Utilitários para abrir o WhatsApp com mensagens prontas. */
+import { formatOrderNumber } from "@/lib/orderNumber";
 
 /** Número de suporte da Mizu (formato internacional, só dígitos). */
 export const SUPPORT_WHATSAPP = "5524988416887";
@@ -25,12 +26,13 @@ export function orderConfirmedMessage(opts: {
   customerName?: string | null;
   restaurantName?: string | null;
   orderId: string;
+  orderNumber?: number | null;
   trackingUrl?: string | null;
 }) {
   const name = opts.customerName ? `${opts.customerName}, ` : "";
   const rest = opts.restaurantName ? ` no *${opts.restaurantName}*` : "";
   return (
-    `👨‍🍳 Olá ${name}seu pedido #${opts.orderId.slice(0, 6).toUpperCase()}${rest} foi *confirmado* e já está sendo preparado!` +
+    `👨‍🍳 Olá ${name}seu pedido ${formatOrderNumber(opts.orderNumber, opts.orderId)}${rest} foi *confirmado* e já está sendo preparado!` +
     (opts.trackingUrl ? `\n\nAcompanhe em tempo real: ${opts.trackingUrl}` : "")
   );
 }
@@ -40,6 +42,7 @@ export function orderOutForDeliveryMessage(opts: {
   customerName?: string | null;
   restaurantName?: string | null;
   orderId: string;
+  orderNumber?: number | null;
   eta?: string | null;
   trackingUrl?: string | null;
 }) {
@@ -47,7 +50,7 @@ export function orderOutForDeliveryMessage(opts: {
   const rest = opts.restaurantName ? ` do *${opts.restaurantName}*` : "";
   const eta = opts.eta ? ` e chega por volta das ${opts.eta}` : "";
   return (
-    `🛵 ${name}seu pedido #${opts.orderId.slice(0, 6).toUpperCase()}${rest} *saiu para entrega*${eta}!` +
+    `🛵 ${name}seu pedido ${formatOrderNumber(opts.orderNumber, opts.orderId)}${rest} *saiu para entrega*${eta}!` +
     (opts.trackingUrl ? `\n\nAcompanhe em tempo real: ${opts.trackingUrl}` : "")
   );
 }

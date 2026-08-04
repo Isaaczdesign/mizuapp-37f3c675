@@ -1,8 +1,10 @@
 import { jsPDF } from "jspdf";
 import { paymentMethodLabel } from "@/lib/paymentMethods";
+import { orderRef } from "@/lib/orderNumber";
 
 export interface ReceiptOrder {
   id: string;
+  order_number?: number | null;
   total: number;
   created_at: string;
   notes: string | null;
@@ -139,7 +141,7 @@ function render(doc: jsPDF, order: ReceiptOrder, restaurant: ReceiptRestaurant, 
   sep();
 
   // ---------- Dados do pedido ----------
-  row("Pedido", `#${order.id.slice(0, 8).toUpperCase()}`, 8, "bold");
+  row("Pedido", orderRef(order), 8, "bold");
   row("Data", new Date(order.created_at).toLocaleString("pt-BR"));
   if (order.order_type) row("Modalidade", ORDER_TYPE_LABEL[order.order_type] ?? order.order_type);
   if (order.restaurant_tables) row("Mesa", String(order.restaurant_tables.number));
@@ -257,7 +259,7 @@ async function build(order: ReceiptOrder, restaurant: ReceiptRestaurant): Promis
 
 export async function generateReceiptPDF(order: ReceiptOrder, restaurant: ReceiptRestaurant) {
   const doc = await build(order, restaurant);
-  doc.save(`nota-${order.id.slice(0, 8)}.pdf`);
+  doc.save(`nota-${orderRef(order).replace("#", "")}.pdf`);
 }
 
 /** Abre a caixa de impressão do navegador com o cupom pronto. */

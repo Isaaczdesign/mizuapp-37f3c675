@@ -686,6 +686,7 @@ const Orders = () => {
                     customerName: selectedOrder.customers?.name,
                     restaurantName: restaurantInfo.name,
                     orderId: selectedOrder.id,
+                    orderNumber: selectedOrder.order_number,
                     trackingUrl: selectedOrder.tracking_token ? `${window.location.origin}/pedido/${selectedOrder.tracking_token}` : null,
                   }))}
                   className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-500 font-semibold text-sm hover:bg-emerald-500/25 transition-colors"
@@ -698,6 +699,7 @@ const Orders = () => {
                       customerName: selectedOrder.customers?.name,
                       restaurantName: restaurantInfo.name,
                       orderId: selectedOrder.id,
+                    orderNumber: selectedOrder.order_number,
                       eta: selectedOrder.delivery_eta
                         ? new Date(selectedOrder.delivery_eta).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
                         : null,
