@@ -1,10 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, PanelLeftClose, PanelLeftOpen, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
 import { supportWhatsappUrl } from "@/lib/whatsappTemplates";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
-import { Button } from "@/components/ui/button";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 import { Logo } from "@/components/Logo";
 import GuidedTour from "@/components/GuidedTour";
@@ -51,18 +50,24 @@ export default function AdminLayout({ children, collapsible = false }: { childre
   const navItems = filterByRole(allNavItems, userRoles);
   const bottomNav = filterByRole(bottomItems, userRoles);
 
-  // Desktop collapsed state (persists)
-  const [hidden, setHidden] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("koban:sidebar-hidden") === "1";
-  });
+  // Desktop hover-expand state
+  const [expanded, setExpanded] = useState(false);
+  const collapseTimer = useRef<number | null>(null);
+
+  const openSidebar = () => {
+    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+    setExpanded(true);
+  };
+  const closeSidebar = () => {
+    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+    collapseTimer.current = window.setTimeout(() => setExpanded(false), 150);
+  };
+  useEffect(() => () => {
+    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+  }, []);
 
   // Mobile drawer open state (session only)
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem("koban:sidebar-hidden", hidden ? "1" : "0");
-  }, [hidden]);
 
   // Lock scroll (html + body) when mobile drawer is open — avoids background scroll and layout jumps
   useEffect(() => {
@@ -91,12 +96,30 @@ export default function AdminLayout({ children, collapsible = false }: { childre
     navigate("/");
   };
 
-  const desktopVisible = !(collapsible && hidden);
+  const renderNav = (onNavigate?: () => void, isOpen = true) => {
+    const labelCls = `truncate transition-[opacity,transform] duration-300 ease-in-out motion-reduce:transition-none ${
+      isOpen ? "opacity-100 translate-x-0 delay-75" : "opacity-0 -translate-x-2"
+    }`;
+    const rowCls = `group relative flex items-center gap-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+      isOpen ? "px-3" : "px-0 justify-center"
+    }`;
+    const tooltip = (label: string) =>
+      !isOpen ? (
+        <span className="pointer-events-none absolute left-[72px] z-50 whitespace-nowrap rounded-lg border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+          {label}
+        </span>
+      ) : null;
 
-  const renderNav = (onNavigate?: () => void) => (
+    return (
     <>
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold">Operação</p>
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <p
+          className={`px-3 pb-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold transition-[opacity,transform] duration-300 ease-in-out motion-reduce:transition-none ${
+            isOpen ? "opacity-100 translate-x-0 delay-75" : "opacity-0 -translate-x-2"
+          }`}
+        >
+          Operação
+        </p>
         {navItems.map((item) => {
           const showBadge = item.to === "/orders" && pendingOrders > 0;
           return (
@@ -104,11 +127,12 @@ export default function AdminLayout({ children, collapsible = false }: { childre
               key={item.to}
               to={item.to}
               onClick={onNavigate}
+              title={!isOpen ? item.label : undefined}
               className={({ isActive }) =>
-                `group relative flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+                `${rowCls} ${
                   isActive
                     ? "bg-accent/10 text-foreground font-medium border border-accent/20 shadow-[0_8px_24px_-16px_hsl(var(--accent)/0.8)]"
-                    : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5"
+                    : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60"
                 }`
               }
             >
@@ -125,12 +149,13 @@ export default function AdminLayout({ children, collapsible = false }: { childre
                       </span>
                     )}
                   </span>
-                  <span className="truncate flex-1">{item.label}</span>
-                  {showBadge && (
+                  {isOpen && <span className={`${labelCls} flex-1`}>{item.label}</span>}
+                  {showBadge && isOpen && (
                     <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
                       {pendingOrders > 99 ? "99+" : pendingOrders}
                     </span>
                   )}
+                  {tooltip(item.label)}
                 </>
               )}
             </NavLink>
@@ -144,17 +169,18 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             to={item.to}
             end={item.end}
             onClick={onNavigate}
-
+            title={!isOpen ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+              `${rowCls} ${
                 isActive
                   ? "bg-accent/10 text-foreground font-medium border border-accent/20"
-                  : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5"
+                  : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60"
               }`
             }
           >
             <item.icon className="w-4 h-4 shrink-0" />
-            <span className="truncate">{item.label}</span>
+            {isOpen && <span className={labelCls}>{item.label}</span>}
+            {tooltip(item.label)}
           </NavLink>
         ))}
         <a
@@ -162,66 +188,64 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           target="_blank"
           rel="noopener noreferrer"
           onClick={onNavigate}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5 transition-all duration-200"
+          title={!isOpen ? "Suporte" : undefined}
+          className={`${rowCls} text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60`}
         >
           <LifeBuoy className="w-4 h-4 shrink-0" />
-          <span className="truncate">Suporte</span>
+          {isOpen && <span className={labelCls}>Suporte</span>}
+          {tooltip("Suporte")}
         </a>
-        <button onClick={handleSignOut} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-full transition-colors">
+        <button
+          onClick={handleSignOut}
+          title={!isOpen ? "Sair" : undefined}
+          className={`${rowCls} w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10`}
+        >
           <LogOut className="w-4 h-4 shrink-0" />
-          <span className="truncate">Sair</span>
+          {isOpen && <span className={labelCls}>Sair</span>}
+          {tooltip("Sair")}
         </button>
       </div>
     </>
-  );
+    );
+  };
+
 
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Desktop sidebar — animated width */}
+      {/* Desktop hover-expand sidebar — overlays content, never pushes it */}
+      <div className="hidden md:block shrink-0 w-[76px]" aria-hidden="true" />
       <aside
-        aria-hidden={!desktopVisible}
-        className={`hidden md:flex sticky top-0 h-screen shrink-0 flex-col border-r border-border/60 bg-card/50 backdrop-blur-2xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
-          desktopVisible ? "w-64 opacity-100" : "w-0 opacity-0 border-r-0"
+        onMouseEnter={openSidebar}
+        onMouseLeave={closeSidebar}
+        onFocusCapture={openSidebar}
+        onBlurCapture={closeSidebar}
+        className={`hidden md:flex fixed top-0 left-0 z-40 h-screen flex-col border-r border-border/60 bg-card/80 backdrop-blur-2xl overflow-hidden transition-[width,box-shadow] duration-300 ease-in-out motion-reduce:transition-none ${
+          expanded ? "w-64 shadow-[8px_0_32px_-12px_hsl(0_0%_0%/0.45)]" : "w-[76px]"
         }`}
-
       >
-        <div className="relative p-5 border-b border-border/60 flex items-center justify-between gap-2 min-w-[16rem]">
+        <div className="relative h-[76px] shrink-0 px-4 border-b border-border/60 flex items-center gap-2">
           <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
-          <a href="/" aria-label="Mizu" className="relative transition-transform duration-200 hover:scale-[1.03]"><Logo className="h-9" /></a>
-          <div className="relative flex items-center gap-1">
-          <ThemeToggle />
-          {collapsible && (
-            <button
-              onClick={() => setHidden(true)}
-              className="relative text-muted-foreground hover:text-foreground p-1.5 rounded-xl hover:bg-secondary transition-colors"
-              aria-label="Ocultar menu lateral"
-              title="Ocultar menu lateral"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          )}
+          <a
+            href="/"
+            aria-label="Mizu"
+            className={`relative transition-transform duration-200 hover:scale-[1.03] ${expanded ? "" : "mx-auto"}`}
+          >
+            <Logo variant={expanded ? "full" : "mark"} className={expanded ? "h-9" : "h-8"} />
+          </a>
+          <div
+            className={`relative ml-auto flex items-center gap-1 transition-opacity duration-200 motion-reduce:transition-none ${
+              expanded ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <ThemeToggle />
           </div>
         </div>
-        <div className="flex-1 flex flex-col min-w-[16rem]">
-          {renderNav()}
+        <div className="flex-1 flex flex-col min-h-0">
+          {renderNav(undefined, expanded)}
         </div>
       </aside>
 
-
-      {/* Desktop floating "show" button when sidebar is hidden */}
-      {collapsible && hidden && (
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setHidden(false)}
-          className="hidden md:flex fixed top-3 left-3 z-50 h-9 w-9 rounded-full shadow-lg opacity-80 hover:opacity-100 animate-fade-in"
-          aria-label="Mostrar menu lateral"
-          title="Mostrar menu lateral"
-        >
-          <PanelLeftOpen className="w-4 h-4" />
-        </Button>
-      )}
 
       {/* Mobile top bar with menu button (only when collapsible) */}
       {collapsible && (
