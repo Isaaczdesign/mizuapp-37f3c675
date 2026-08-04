@@ -97,11 +97,30 @@ export default function AdminLayout({ children, collapsible = false }: { childre
     navigate("/");
   };
 
-  const renderNav = (onNavigate?: () => void, isOpen = true) => (
+  const renderNav = (onNavigate?: () => void, isOpen = true) => {
+    const labelCls = `truncate transition-[opacity,transform] duration-300 ease-in-out motion-reduce:transition-none ${
+      isOpen ? "opacity-100 translate-x-0 delay-75" : "opacity-0 -translate-x-2"
+    }`;
+    const rowCls = `group relative flex items-center gap-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+      isOpen ? "px-3" : "px-0 justify-center"
+    }`;
+    const tooltip = (label: string) =>
+      !isOpen ? (
+        <span className="pointer-events-none absolute left-[72px] z-50 whitespace-nowrap rounded-lg border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+          {label}
+        </span>
+      ) : null;
 
+    return (
     <>
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold">Operação</p>
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <p
+          className={`px-3 pb-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold transition-[opacity,transform] duration-300 ease-in-out motion-reduce:transition-none ${
+            isOpen ? "opacity-100 translate-x-0 delay-75" : "opacity-0 -translate-x-2"
+          }`}
+        >
+          Operação
+        </p>
         {navItems.map((item) => {
           const showBadge = item.to === "/orders" && pendingOrders > 0;
           return (
@@ -109,11 +128,12 @@ export default function AdminLayout({ children, collapsible = false }: { childre
               key={item.to}
               to={item.to}
               onClick={onNavigate}
+              title={!isOpen ? item.label : undefined}
               className={({ isActive }) =>
-                `group relative flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+                `${rowCls} ${
                   isActive
                     ? "bg-accent/10 text-foreground font-medium border border-accent/20 shadow-[0_8px_24px_-16px_hsl(var(--accent)/0.8)]"
-                    : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5"
+                    : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60"
                 }`
               }
             >
@@ -130,12 +150,13 @@ export default function AdminLayout({ children, collapsible = false }: { childre
                       </span>
                     )}
                   </span>
-                  <span className="truncate flex-1">{item.label}</span>
-                  {showBadge && (
+                  {isOpen && <span className={`${labelCls} flex-1`}>{item.label}</span>}
+                  {showBadge && isOpen && (
                     <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
                       {pendingOrders > 99 ? "99+" : pendingOrders}
                     </span>
                   )}
+                  {tooltip(item.label)}
                 </>
               )}
             </NavLink>
@@ -149,17 +170,18 @@ export default function AdminLayout({ children, collapsible = false }: { childre
             to={item.to}
             end={item.end}
             onClick={onNavigate}
-
+            title={!isOpen ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
+              `${rowCls} ${
                 isActive
                   ? "bg-accent/10 text-foreground font-medium border border-accent/20"
-                  : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5"
+                  : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60"
               }`
             }
           >
             <item.icon className="w-4 h-4 shrink-0" />
-            <span className="truncate">{item.label}</span>
+            {isOpen && <span className={labelCls}>{item.label}</span>}
+            {tooltip(item.label)}
           </NavLink>
         ))}
         <a
@@ -167,18 +189,27 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           target="_blank"
           rel="noopener noreferrer"
           onClick={onNavigate}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 hover:translate-x-0.5 transition-all duration-200"
+          title={!isOpen ? "Suporte" : undefined}
+          className={`${rowCls} text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60`}
         >
           <LifeBuoy className="w-4 h-4 shrink-0" />
-          <span className="truncate">Suporte</span>
+          {isOpen && <span className={labelCls}>Suporte</span>}
+          {tooltip("Suporte")}
         </a>
-        <button onClick={handleSignOut} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-full transition-colors">
+        <button
+          onClick={handleSignOut}
+          title={!isOpen ? "Sair" : undefined}
+          className={`${rowCls} w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10`}
+        >
           <LogOut className="w-4 h-4 shrink-0" />
-          <span className="truncate">Sair</span>
+          {isOpen && <span className={labelCls}>Sair</span>}
+          {tooltip("Sair")}
         </button>
       </div>
     </>
-  );
+    );
+  };
+
 
 
   return (
