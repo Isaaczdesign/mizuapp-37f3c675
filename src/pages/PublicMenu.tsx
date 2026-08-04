@@ -1,3 +1,4 @@
+import { formatPhoneBR, validatePhoneBR, validateFullName } from "@/lib/phoneBr";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,6 +150,9 @@ const PublicMenu = () => {
 
   const [customerName, setCustomerName] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
+  const [touchedContact, setTouchedContact] = useState<{ name?: boolean; phone?: boolean }>({});
+  const nameError = validateFullName(customerName);
+  const phoneError = validatePhoneBR(customerWhatsapp);
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
 
