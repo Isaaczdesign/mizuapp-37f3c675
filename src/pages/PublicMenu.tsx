@@ -150,6 +150,7 @@ const PublicMenu = () => {
 
   const [customerName, setCustomerName] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
+  const [showStepErrors, setShowStepErrors] = useState(false);
   const [touchedContact, setTouchedContact] = useState<{ name?: boolean; phone?: boolean }>({});
   const nameError = validateFullName(customerName);
   const phoneError = validatePhoneBR(customerWhatsapp);
