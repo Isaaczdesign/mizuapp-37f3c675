@@ -157,11 +157,44 @@ Deno.serve(async (req) => {
         console.error("meta whatsapp send error", e);
         status = "failed";
       }
+    } else if (
+      settings?.whatsapp_provider === "wapi" &&
+      settings?.whatsapp_api_key &&
+      (settings as any)?.whatsapp_sender_id
+    ) {
+      try {
+        const res = await fetch(
+          `https://api.w-api.app/v1/message/send-text?instanceId=${encodeURIComponent((settings as any).whatsapp_sender_id)}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${settings.whatsapp_api_key}`,
+            },
+            body: JSON.stringify({
+              phone: phone.startsWith("55") ? phone : `55${phone}`,
+              message,
+            }),
+          },
+        );
+        if (!res.ok) {
+          const errorBody = await res.text();
+          console.error(`W-API send failed [${res.status}]: ${errorBody}`);
+          status = "failed";
+        } else {
+          const j = await res.json().catch(() => ({}));
+          providerMessageId = j?.messageId ?? j?.id ?? null;
+        }
+      } catch (e) {
+        console.error("wapi whatsapp send error", e);
+        status = "failed";
+      }
     } else {
       // No provider configured — log as skipped but still record intent
       status = "skipped_no_provider";
       console.log(`[whatsapp:${event}] would send to ${phone}: ${message}`);
     }
+
 
 
     await supabase.from("message_logs").insert({
