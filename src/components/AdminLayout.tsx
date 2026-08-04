@@ -224,23 +224,38 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           expanded ? "w-64 shadow-[8px_0_32px_-12px_hsl(0_0%_0%/0.45)]" : "w-[76px]"
         }`}
       >
-        <div className="relative h-[76px] shrink-0 px-4 border-b border-border/60 flex items-center gap-2">
+        <div className="relative h-[76px] shrink-0 border-b border-border/60 flex items-center">
           <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
+          {/* Símbolo — sempre centralizado nos 76px da faixa recolhida */}
           <a
             href="/"
             aria-label="Mizu"
-            className={`relative flex shrink-0 items-center transition-transform duration-200 hover:scale-[1.03] ${expanded ? "" : "mx-auto"}`}
+            className="relative z-10 shrink-0 w-[76px] h-full flex items-center justify-center transition-transform duration-200 hover:scale-[1.03]"
           >
-            <Logo variant={expanded ? "full" : "mark"} className={expanded ? "h-9 shrink-0" : "h-8 w-8 shrink-0"} />
+            <span className="relative block h-9 w-9">
+              <Logo
+                variant="mark"
+                className={`absolute inset-0 h-9 w-9 transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+                  expanded ? "opacity-0" : "opacity-100 delay-100"
+                }`}
+              />
+              <Logo
+                variant="full"
+                className={`absolute left-0 top-1/2 -translate-y-1/2 h-9 max-w-none transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+                  expanded ? "opacity-100 delay-100" : "opacity-0"
+                }`}
+              />
+            </span>
           </a>
           <div
-            className={`relative ml-auto flex items-center gap-1 transition-opacity duration-200 motion-reduce:transition-none ${
+            className={`relative z-10 ml-auto pr-4 flex items-center gap-1 transition-opacity duration-200 motion-reduce:transition-none ${
               expanded ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"
             }`}
           >
             <ThemeToggle />
           </div>
         </div>
+
         <div className="flex-1 flex flex-col min-h-0">
           {renderNav(undefined, expanded)}
         </div>
