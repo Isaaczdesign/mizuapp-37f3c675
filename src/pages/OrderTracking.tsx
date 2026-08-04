@@ -2,17 +2,21 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { orderRef } from "@/lib/orderNumber";
-import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, CreditCard, PartyPopper } from "lucide-react";
+import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, MessageCircle, CreditCard, PartyPopper } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MpCardForm from "@/components/MpCardForm";
 import { saveRecentOrder } from "@/lib/publicMenuStorage";
 import { menuPath } from "@/lib/publicMenuUrl";
+import { waLink } from "@/lib/whatsappTemplates";
 import OrderReview from "@/components/public-menu/OrderReview";
 
 
 interface TrackingOrder {
   id: string;
+  order_number?: number | null;
+  restaurant_name?: string | null;
+  restaurant_phone?: string | null;
   status: string;
   order_type: string;
   total: number;
