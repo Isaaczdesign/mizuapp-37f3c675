@@ -221,16 +221,17 @@ const Auth = () => {
   };
 
   return (
-    <div className="h-screen w-full overflow-x-hidden bg-[#0B0B0B] flex">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#0B0B0B] flex">
       {/* Coluna esquerda — formulário */}
-      <div className="relative flex h-full w-full lg:w-[35%] items-center justify-center px-6 py-8 sm:px-10 lg:py-6 overflow-y-auto">
+      <div className="relative flex min-h-screen w-full lg:w-[42%] xl:w-[38%] 2xl:w-[35%] items-center justify-center px-6 py-8 sm:px-10 lg:px-12 lg:py-8 overflow-y-auto">
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[380px]"
+          className="w-full max-w-[380px] xl:max-w-[400px]"
         >
+
           <div className="text-center lg:text-left">
             <a href="/" aria-label="Mizu" className="inline-block">
               <Logo className="h-8 lg:h-9" />
