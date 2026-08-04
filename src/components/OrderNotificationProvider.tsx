@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { useNotificationPrefs, PopupPosition } from "@/hooks/useNotificationPrefs";
 import { orderTypeLabel, ORDER_TYPE_EMOJI } from "@/lib/orderTypes";
 import { NOTIFICATION_ICON, NOTIFICATION_BADGE } from "@/lib/notificationAssets";
+import { orderRef } from "@/lib/orderNumber";
 
 
 interface NewOrderPayload {
   id: string;
+  order_number?: number | null;
   total: number;
   status: string;
   created_at: string;
@@ -94,10 +96,10 @@ export default function OrderNotificationProvider() {
         order.customerName && `Cliente: ${order.customerName}`,
         order.tableNumber && `Mesa ${order.tableNumber}`,
         isCanceled && order.cancelReason && `Motivo: ${order.cancelReason}`,
-        `Total: R$${Number(order.total).toFixed(2)}`,
+        `Total: ${Number(order.total ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
       ].filter(Boolean).join(" · ");
 
-      const notif = new Notification(isCanceled ? "❌ Pedido cancelado" : "🔔 Novo Pedido!", {
+      const notif = new Notification(isCanceled ? `❌ Pedido cancelado ${orderRef(order)}` : `🔔 Novo Pedido ${orderRef(order)}!`, {
         body,
         icon: NOTIFICATION_ICON,
         badge: NOTIFICATION_BADGE,
@@ -117,6 +119,18 @@ export default function OrderNotificationProvider() {
   const enrichOrder = useCallback(async (payload: NewOrderPayload): Promise<OrderPopup> => {
     const enriched: OrderPopup = { ...payload };
     try {
+      // O pedido é criado com total 0 e só depois recebe o valor final (itens,
+      // taxa e cupom). O payload de INSERT do realtime chega antes disso, então
+      // relemos o pedido para exibir o valor correto.
+      const { data: fresh } = await supabase
+        .from("orders")
+        .select("total, order_number, payment_status, status")
+        .eq("id", payload.id)
+        .maybeSingle();
+      if (fresh) {
+        enriched.total = Number(fresh.total ?? payload.total ?? 0);
+        enriched.order_number = (fresh as any).order_number ?? payload.order_number;
+      }
       if (payload.customer_id) {
         const { data } = await supabase.from("customers").select("name").eq("id", payload.customer_id).single();
         if (data) enriched.customerName = data.name;
@@ -213,7 +227,7 @@ export default function OrderNotificationProvider() {
     const poll = setInterval(async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, total, status, created_at, table_id, customer_id, notes, payment_status, order_type")
+        .select("id, order_number, total, status, created_at, table_id, customer_id, notes, payment_status, order_type")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -274,7 +288,7 @@ export default function OrderNotificationProvider() {
                   <p className="font-display font-bold text-sm">
                     {isCanceled ? "Pedido cancelado" : "Novo Pedido!"}
                   </p>
-                  <p className="text-xs text-muted-foreground font-mono">#{popup.id.slice(0, 8)}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{orderRef(popup)}</p>
                 </div>
               </div>
               <button
