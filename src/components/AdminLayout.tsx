@@ -183,50 +183,39 @@ export default function AdminLayout({ children, collapsible = false }: { childre
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Desktop sidebar — animated width */}
+      {/* Desktop hover-expand sidebar — overlays content, never pushes it */}
+      <div className="hidden md:block shrink-0 w-[76px]" aria-hidden="true" />
       <aside
-        aria-hidden={!desktopVisible}
-        className={`hidden md:flex sticky top-0 h-screen shrink-0 flex-col border-r border-border/60 bg-card/50 backdrop-blur-2xl overflow-hidden transition-[width,opacity] duration-300 ease-in-out ${
-          desktopVisible ? "w-64 opacity-100" : "w-0 opacity-0 border-r-0"
+        onMouseEnter={openSidebar}
+        onMouseLeave={closeSidebar}
+        onFocusCapture={openSidebar}
+        onBlurCapture={closeSidebar}
+        className={`hidden md:flex fixed top-0 left-0 z-40 h-screen flex-col border-r border-border/60 bg-card/80 backdrop-blur-2xl overflow-hidden transition-[width,box-shadow] duration-300 ease-in-out motion-reduce:transition-none ${
+          expanded ? "w-64 shadow-[8px_0_32px_-12px_hsl(0_0%_0%/0.45)]" : "w-[76px]"
         }`}
-
       >
-        <div className="relative p-5 border-b border-border/60 flex items-center justify-between gap-2 min-w-[16rem]">
+        <div className="relative h-[76px] shrink-0 px-4 border-b border-border/60 flex items-center gap-2">
           <div className="pointer-events-none absolute -top-16 left-0 w-40 h-40 rounded-full bg-accent/10 blur-3xl" />
-          <a href="/" aria-label="Mizu" className="relative transition-transform duration-200 hover:scale-[1.03]"><Logo className="h-9" /></a>
-          <div className="relative flex items-center gap-1">
-          <ThemeToggle />
-          {collapsible && (
-            <button
-              onClick={() => setHidden(true)}
-              className="relative text-muted-foreground hover:text-foreground p-1.5 rounded-xl hover:bg-secondary transition-colors"
-              aria-label="Ocultar menu lateral"
-              title="Ocultar menu lateral"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          )}
+          <a
+            href="/"
+            aria-label="Mizu"
+            className={`relative transition-transform duration-200 hover:scale-[1.03] ${expanded ? "" : "mx-auto"}`}
+          >
+            <Logo variant={expanded ? "full" : "mark"} className={expanded ? "h-9" : "h-8"} />
+          </a>
+          <div
+            className={`relative ml-auto flex items-center gap-1 transition-opacity duration-200 motion-reduce:transition-none ${
+              expanded ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <ThemeToggle />
           </div>
         </div>
-        <div className="flex-1 flex flex-col min-w-[16rem]">
-          {renderNav()}
+        <div className="flex-1 flex flex-col min-h-0">
+          {renderNav(undefined, expanded)}
         </div>
       </aside>
 
-
-      {/* Desktop floating "show" button when sidebar is hidden */}
-      {collapsible && hidden && (
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setHidden(false)}
-          className="hidden md:flex fixed top-3 left-3 z-50 h-9 w-9 rounded-full shadow-lg opacity-80 hover:opacity-100 animate-fade-in"
-          aria-label="Mostrar menu lateral"
-          title="Mostrar menu lateral"
-        >
-          <PanelLeftOpen className="w-4 h-4" />
-        </Button>
-      )}
 
       {/* Mobile top bar with menu button (only when collapsible) */}
       {collapsible && (
