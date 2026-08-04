@@ -229,7 +229,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
           <a
             href="/"
             aria-label="Mizu"
-            className={`relative transition-transform duration-200 hover:scale-[1.03] ${expanded ? "" : "mx-auto"}`}
+            className={`relative flex shrink-0 items-center transition-transform duration-200 hover:scale-[1.03] ${expanded ? "" : "mx-auto"}`}
           >
             <Logo variant={expanded ? "full" : "mark"} className={expanded ? "h-9 shrink-0" : "h-8 w-8 shrink-0"} />
           </a>
