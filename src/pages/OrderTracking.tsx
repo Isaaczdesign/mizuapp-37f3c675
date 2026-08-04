@@ -679,6 +679,22 @@ export default function OrderTracking() {
         </div>
       )}
 
+      {order.restaurant_phone && (
+        <a
+          href={waLink(
+            order.restaurant_phone,
+            `Olá! Sou ${order.restaurant_name ? "cliente do " + order.restaurant_name : "cliente"} e queria falar sobre o meu pedido ${orderRef(order)}.`,
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Falar com {order.restaurant_name ?? "o estabelecimento"}
+        </a>
+      )}
+
+
       <p className="text-center text-xs text-muted-foreground mt-6">
         Atualiza automaticamente em tempo real.
       </p>
