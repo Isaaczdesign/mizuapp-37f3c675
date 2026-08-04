@@ -520,11 +520,11 @@ const Orders = () => {
         </div>
       )}
 
-      <div className="flex-1 min-h-0 flex gap-3 overflow-x-auto xl:overflow-x-visible pb-2">
+      <div className="flex-1 min-h-0 flex gap-3 overflow-x-auto lg:overflow-x-visible pb-2">
         {columns.filter((c) => !c.deliveryOnly || typeFilter === "all" || typeFilter === "delivery").map((col) => {
           const colOrders = filtered.filter((o) => o.status === col.status);
           return (
-            <div key={col.status} className="min-w-[260px] w-[260px] flex-shrink-0 xl:w-auto xl:min-w-0 xl:flex-1 flex flex-col min-h-0 max-h-full">
+            <div key={col.status} className="min-w-[260px] w-[260px] flex-shrink-0 lg:w-auto lg:min-w-0 lg:flex-1 flex flex-col min-h-0 max-h-full">
 
               <div className={`${col.color} text-primary-foreground rounded-t-[20px] px-3 py-2 font-display font-semibold text-sm flex items-center justify-between`}>
                 <span>{col.label}</span>
