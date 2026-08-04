@@ -51,18 +51,24 @@ export default function AdminLayout({ children, collapsible = false }: { childre
   const navItems = filterByRole(allNavItems, userRoles);
   const bottomNav = filterByRole(bottomItems, userRoles);
 
-  // Desktop collapsed state (persists)
-  const [hidden, setHidden] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("koban:sidebar-hidden") === "1";
-  });
+  // Desktop hover-expand state
+  const [expanded, setExpanded] = useState(false);
+  const collapseTimer = useRef<number | null>(null);
+
+  const openSidebar = () => {
+    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+    setExpanded(true);
+  };
+  const closeSidebar = () => {
+    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+    collapseTimer.current = window.setTimeout(() => setExpanded(false), 150);
+  };
+  useEffect(() => () => {
+    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+  }, []);
 
   // Mobile drawer open state (session only)
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem("koban:sidebar-hidden", hidden ? "1" : "0");
-  }, [hidden]);
 
   // Lock scroll (html + body) when mobile drawer is open — avoids background scroll and layout jumps
   useEffect(() => {
@@ -91,9 +97,8 @@ export default function AdminLayout({ children, collapsible = false }: { childre
     navigate("/");
   };
 
-  const desktopVisible = !(collapsible && hidden);
+  const renderNav = (onNavigate?: () => void, isOpen = true) => (
 
-  const renderNav = (onNavigate?: () => void) => (
     <>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold">Operação</p>
