@@ -658,6 +658,7 @@ const Orders = () => {
           );
         })}
       </div>
+      </LayoutGroup>
 
       {/* Order detail modal */}
       {selectedOrder && (
