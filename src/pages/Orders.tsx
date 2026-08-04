@@ -531,12 +531,22 @@ const Orders = () => {
                 <span className="bg-background/20 rounded-full px-2 py-0.5 text-xs">{colOrders.length}</span>
               </div>
               <div className="flex-1 min-h-0 bg-card/20 rounded-b-[20px] border border-border/70 border-t-0 p-2 space-y-2 overflow-y-auto">
+                <AnimatePresence initial={false} mode="popLayout">
                 {colOrders.map((order) => {
                   const next = getNextStatus(order.status, order.order_type);
                   const meta = TYPE_META[order.order_type] ?? TYPE_META.dine_in;
                   const TypeIcon = meta.icon;
                   return (
-                    <div key={order.id} className="glass-card-hover overflow-hidden p-3 space-y-2 min-w-0">
+                    <motion.div
+                      key={order.id}
+                      layout
+                      layoutId={`order-card-${order.id}`}
+                      initial={{ opacity: 0, scale: 0.94, y: 8 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, filter: "blur(2px)" }}
+                      transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.7 }}
+                      className="glass-card-hover overflow-hidden p-3 space-y-2 min-w-0"
+                    >
                       <div className="flex items-center justify-between">
                         <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${meta.color}`}>
                           <TypeIcon className="w-3 h-3" />
