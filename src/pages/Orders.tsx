@@ -646,9 +646,10 @@ const Orders = () => {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
+                </AnimatePresence>
                 {colOrders.length === 0 && <p className="text-center text-muted-foreground py-6 text-xs">Vazio</p>}
               </div>
             </div>
