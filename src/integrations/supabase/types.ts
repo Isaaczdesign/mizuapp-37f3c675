@@ -2126,6 +2126,17 @@ export type Database = {
           total: number
         }[]
       }
+      get_public_coupons: {
+        Args: { _restaurant_id: string }
+        Returns: {
+          code: string
+          description: string
+          discount_type: string
+          discount_value: number
+          expires_at: string
+          id: string
+        }[]
+      }
       get_public_order: {
         Args: { _token: string }
         Returns: {
