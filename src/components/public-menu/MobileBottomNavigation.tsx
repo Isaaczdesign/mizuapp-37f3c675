@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -48,6 +48,98 @@ function fmtDiscount(c: PublicCoupon) {
     ? `${Number(c.discount_value)}% OFF`
     : `R$ ${Number(c.discount_value).toFixed(2).replace(".", ",")} OFF`;
 }
+
+/** Botão de aba isolado e memoizado: só re-renderiza quando suas props mudam. */
+const NavButton = memo(function NavButton({
+  tab,
+  isActive,
+  accent,
+  activeInk,
+  reduceMotion,
+  cartItemCount,
+  cartLoading,
+  onSelect,
+}: {
+  tab: (typeof TABS)[number];
+  isActive: boolean;
+  accent: string;
+  activeInk: string;
+  reduceMotion: boolean;
+  cartItemCount: number;
+  cartLoading: boolean;
+  onSelect: (key: BottomNavTab) => void;
+}) {
+  const Icon = tab.icon;
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      // resposta imediata ao toque (sem esperar o clique sintético)
+      if (e.pointerType === "touch") onSelect(tab.key);
+    },
+    [onSelect, tab.key],
+  );
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
+      onSelect(tab.key);
+    },
+    [onSelect, tab.key],
+  );
+
+  return (
+    <button
+      type="button"
+      onPointerDown={handlePointerDown}
+      onClick={handleClick}
+      aria-label={tab.aria}
+      aria-current={isActive ? "page" : undefined}
+      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+      className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-150"
+    >
+      {isActive && (
+        <motion.span
+          layoutId="mizu-bottomnav-pill"
+          aria-hidden
+          className="absolute inset-0 rounded-full"
+          style={{ background: accent }}
+          transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
+        />
+      )}
+      <span
+        className="relative flex items-center justify-center"
+        style={{ color: isActive ? activeInk : "rgba(255,255,255,0.78)" }}
+      >
+        <Icon className="w-5 h-5" strokeWidth={isActive ? 2.4 : 2} />
+        {tab.key === "cart" && cartLoading && (
+          <span
+            aria-hidden
+            className="absolute -top-2 -right-3 w-[18px] h-[18px] rounded-full bg-white/25 animate-pulse motion-reduce:animate-none ring-2 ring-[rgba(14,17,20,0.9)]"
+          />
+        )}
+        {tab.key === "cart" && !cartLoading && cartItemCount > 0 && (
+          <AnimatePresence mode="popLayout">
+            <motion.span
+              key={cartItemCount}
+              initial={reduceMotion ? false : { scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center bg-[#e84310] text-white ring-2 ring-[rgba(14,17,20,0.9)]"
+            >
+              {cartItemCount > 99 ? "99+" : cartItemCount}
+            </motion.span>
+          </AnimatePresence>
+        )}
+      </span>
+
+      <span
+        className="relative text-[10.5px] font-semibold tracking-tight"
+        style={{ color: isActive ? activeInk : "rgba(255,255,255,0.72)" }}
+      >
+        {tab.label}
+      </span>
+    </button>
+  );
+});
 
 export default function MobileBottomNavigation({
   restaurantId,
@@ -165,8 +257,9 @@ export default function MobileBottomNavigation({
     [onOpenCart],
   );
 
+  const closeSheet = useCallback(() => setSheet(null), []);
 
-  async function copyCode(code: string) {
+  const copyCode = useCallback(async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(code);
@@ -175,17 +268,20 @@ export default function MobileBottomNavigation({
     } catch {
       toast.error("Não foi possível copiar o cupom");
     }
-  }
+  }, []);
 
-  const rowSkeletons = (
-    <ul className="space-y-2 pb-2" aria-hidden>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <li
-          key={i}
-          className="h-[62px] rounded-2xl bg-[hsl(var(--menu-ink)/0.06)] animate-pulse motion-reduce:animate-none"
-        />
-      ))}
-    </ul>
+  const rowSkeletons = useMemo(
+    () => (
+      <ul className="space-y-2 pb-2" aria-hidden>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <li
+            key={i}
+            className="h-[62px] rounded-2xl bg-[hsl(var(--menu-ink)/0.06)] animate-pulse motion-reduce:animate-none"
+          />
+        ))}
+      </ul>
+    ),
+    [],
   );
 
 
@@ -220,69 +316,19 @@ export default function MobileBottomNavigation({
             className="pointer-events-none absolute inset-x-6 top-0 h-1/2 rounded-b-[9999px]"
             style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.07), transparent)" }}
           />
-          {TABS.map((tab) => {
-            const isActive = active === tab.key;
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onPointerDown={(e) => {
-                  // resposta imediata ao toque (sem esperar o clique sintético)
-                  if (e.pointerType === "touch") handleTab(tab.key);
-                }}
-                onClick={(e) => {
-                  if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
-                  handleTab(tab.key);
-                }}
-                aria-label={tab.aria}
-                aria-current={isActive ? "page" : undefined}
-                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
-                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-150"
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="mizu-bottomnav-pill"
-                    aria-hidden
-                    className="absolute inset-0 rounded-full"
-                    style={{ background: accent }}
-                    transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
-                  />
-                )}
-                <span
-                  className="relative flex items-center justify-center"
-                  style={{ color: isActive ? activeInk : "rgba(255,255,255,0.78)" }}
-                >
-                  <Icon className="w-5 h-5" strokeWidth={isActive ? 2.4 : 2} />
-                  {tab.key === "cart" && cartLoading && (
-                    <span
-                      aria-hidden
-                      className="absolute -top-2 -right-3 w-[18px] h-[18px] rounded-full bg-white/25 animate-pulse motion-reduce:animate-none ring-2 ring-[rgba(14,17,20,0.9)]"
-                    />
-                  )}
-                  {tab.key === "cart" && !cartLoading && cartItemCount > 0 && (
-                    <AnimatePresence mode="popLayout">
-                      <motion.span
-                        key={cartItemCount}
-                        initial={reduceMotion ? false : { scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center bg-[#e84310] text-white ring-2 ring-[rgba(14,17,20,0.9)]"
-                      >
-                        {cartItemCount > 99 ? "99+" : cartItemCount}
-                      </motion.span>
-                    </AnimatePresence>
-                  )}
-                </span>
-
-                <span
-                  className="relative text-[10.5px] font-semibold tracking-tight"
-                  style={{ color: isActive ? activeInk : "rgba(255,255,255,0.72)" }}
-                >
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
+          {TABS.map((tab) => (
+            <NavButton
+              key={tab.key}
+              tab={tab}
+              isActive={active === tab.key}
+              accent={accent}
+              activeInk={activeInk}
+              reduceMotion={!!reduceMotion}
+              cartItemCount={cartItemCount}
+              cartLoading={cartLoading}
+              onSelect={handleTab}
+            />
+          ))}
         </div>
       </nav>
 
@@ -297,7 +343,7 @@ export default function MobileBottomNavigation({
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setSheet(null)}
+              onClick={closeSheet}
             />
             <motion.div
               initial={reduceMotion ? false : { y: "100%" }}
@@ -317,7 +363,7 @@ export default function MobileBottomNavigation({
                   {sheet === "orders" ? "Seus pedidos" : "Cupons disponíveis"}
                 </h2>
                 <button
-                  type="button" onClick={() => setSheet(null)} aria-label="Fechar"
+                  type="button" onClick={closeSheet} aria-label="Fechar"
                   style={{ touchAction: "manipulation" }}
                   className="w-9 h-9 rounded-xl flex items-center justify-center bg-[hsl(var(--menu-ink)/0.06)] border border-[hsl(var(--menu-ink)/0.08)]"
                 >
