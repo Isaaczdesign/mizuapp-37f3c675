@@ -1,4 +1,4 @@
-import { jsPDF } from "jspdf";
+import type { jsPDF } from "jspdf";
 import { paymentMethodLabel } from "@/lib/paymentMethods";
 import { orderRef } from "@/lib/orderNumber";
 
@@ -245,6 +245,7 @@ function render(doc: jsPDF, order: ReceiptOrder, restaurant: ReceiptRestaurant, 
 }
 
 async function build(order: ReceiptOrder, restaurant: ReceiptRestaurant): Promise<jsPDF> {
+  const { jsPDF } = await import("jspdf");
   const logo = restaurant.logoUrl ? await loadImage(restaurant.logoUrl) : null;
 
   // 1ª passada: medir a altura necessária

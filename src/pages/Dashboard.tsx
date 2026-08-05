@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense, lazy } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { orderRef } from "@/lib/orderNumber";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+const RevenueChart = lazy(() => import("@/components/dashboard/DashboardCharts").then((m) => ({ default: m.RevenueChart })));
+const PeakHoursChart = lazy(() => import("@/components/dashboard/DashboardCharts").then((m) => ({ default: m.PeakHoursChart })));
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -437,22 +438,9 @@ const Dashboard = () => {
               />
               <div className="flex-1 min-h-0">
                 {(stats?.evolution?.some((d) => d.revenue > 0) ?? false) ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={stats?.evolution ?? []} margin={{ left: -12, right: 8, top: 6, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="hsl(var(--primary))" />
-                          <stop offset="100%" stopColor="hsl(var(--accent))" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis tickLine={false} axisLine={false} width={54} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                      <Tooltip cursor={{ stroke: "hsl(var(--accent))", strokeOpacity: 0.25 }} content={<ChartTooltip formatter={fmt} />} />
-                      <Line type="monotone" dataKey="revenue" stroke="url(#revLine)" strokeWidth={2.5} dot={false}
-                        activeDot={{ r: 4, fill: "hsl(var(--accent))" }} animationDuration={700} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-secondary/40" />}>
+                    <RevenueChart data={stats?.evolution ?? []} formatter={fmt} />
+                  </Suspense>
                 ) : (
                   <EmptyState className="h-full" icon={TrendingUp} title="Sem receita registrada" description="Assim que os primeiros pedidos forem concluídos, a evolução aparecerá aqui." />
                 )}
@@ -508,21 +496,9 @@ const Dashboard = () => {
               <SectionHeader title="Horários de pico" subtitle="Distribuição de pedidos por hora" icon={CalendarIcon} />
               <div className="flex-1 min-h-0">
                 {(stats?.peakHours?.some((h) => h.pedidos > 0) ?? false) ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stats?.peakHours ?? []} margin={{ left: -18, right: 8, top: 6, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="peakBar" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--accent))" />
-                          <stop offset="100%" stopColor="hsl(var(--primary))" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis dataKey="hour" tickLine={false} axisLine={false} interval={2} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={40} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                      <Tooltip cursor={{ fill: "hsl(var(--accent)/0.06)" }} content={<ChartTooltip />} />
-                      <Bar dataKey="pedidos" fill="url(#peakBar)" radius={[6, 6, 2, 2]} animationDuration={700} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-secondary/40" />}>
+                    <PeakHoursChart data={stats?.peakHours ?? []} />
+                  </Suspense>
                 ) : (
                   <EmptyState className="h-full" icon={CalendarIcon} title="Nenhum pedido no período" description="Os horários com maior movimento aparecerão aqui." />
                 )}
