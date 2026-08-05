@@ -43,7 +43,7 @@ import AdminLogs from "./pages/admin-mizu/Logs";
 import AdminDeletedNotes from "./pages/admin-mizu/DeletedNotes";
 import AdminPlatformSettings from "./pages/admin-mizu/PlatformSettings";
 import { AdminCoupons, AdminNotifications } from "./pages/admin-mizu/Placeholders";
-import { isReservedSlug } from "@/lib/publicMenuUrl";
+import { isReservedSlug, slugFromHost } from "@/lib/publicMenuUrl";
 
 /** Root-level restaurant menu: `/meu-restaurante`. Falls back to 404 for reserved paths. */
 function RootSlugMenu() {
@@ -51,6 +51,9 @@ function RootSlugMenu() {
   if (!slug || isReservedSlug(slug)) return <NotFound />;
   return <PublicMenu />;
 }
+
+/** Em `restaurantex.mizuapp.com.br` a home já é o cardápio do restaurante. */
+const restaurantHostSlug = slugFromHost();
 
 const queryClient = new QueryClient();
 
