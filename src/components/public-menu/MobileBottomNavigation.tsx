@@ -202,15 +202,16 @@ export default function MobileBottomNavigation({
             width: "calc(100% - 32px)",
             maxWidth: 420,
             borderRadius: 9999,
-            background: "rgba(14, 17, 20, 0.72)",
-            backdropFilter: "blur(22px) saturate(160%)",
-            WebkitBackdropFilter: "blur(22px) saturate(160%)",
+            background: "rgba(14, 17, 20, 0.82)",
+            backdropFilter: "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
             border: "1px solid rgba(255,255,255,0.10)",
             boxShadow: "0 12px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
             opacity: hidden ? 0 : 1,
-            transform: hidden ? "translateY(16px)" : "none",
+            transform: hidden ? "translate3d(0,16px,0)" : "translateZ(0)",
             transition: reduceMotion ? "none" : "opacity 240ms ease, transform 240ms ease",
             visibility: hidden ? "hidden" : "visible",
+            contain: "layout paint",
           }}
         >
           {/* reflexo interno superior */}
