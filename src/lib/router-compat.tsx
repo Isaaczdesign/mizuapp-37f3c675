@@ -13,7 +13,7 @@ import {
   Navigate as TSNavigate,
   Outlet as TSOutlet,
 } from "@tanstack/react-router";
-import { useMemo, useCallback, forwardRef, type ComponentProps, type ReactNode } from "react";
+import { useMemo, useCallback, forwardRef, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 
 // ---------- shared URL parsing ----------
 
@@ -153,6 +153,46 @@ export function Navigate({ to, replace, state }: { to: string; replace?: boolean
 
 export const Outlet = TSOutlet;
 
-// ---------- NavLink (minimal) ----------
+// ---------- NavLink (react-router-dom compat: isActive render props) ----------
 
-export const NavLink = Link;
+type NavLinkRenderProps = { isActive: boolean; isPending: boolean };
+
+export type NavLinkProps = Omit<ComponentProps<typeof TSLink>, "to" | "className" | "style" | "children"> & {
+  to: string;
+  end?: boolean;
+  replace?: boolean;
+  state?: unknown;
+  className?: string | ((props: NavLinkRenderProps) => string);
+  style?: CSSProperties | ((props: NavLinkRenderProps) => CSSProperties);
+  children?: ReactNode | ((props: NavLinkRenderProps) => ReactNode);
+};
+
+export const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(function NavLink(
+  { to, end, replace, state, className, style, children, ...rest },
+  ref,
+) {
+  const loc = tsLocation();
+  const { pathname: target, search, hash } = parseTo(to);
+  const current = loc.pathname.replace(/\/+$/, "") || "/";
+  const normTarget = target.replace(/\/+$/, "") || "/";
+  const isActive = end
+    ? current === normTarget
+    : current === normTarget || current.startsWith(normTarget === "/" ? "/" : `${normTarget}/`);
+  const renderProps: NavLinkRenderProps = { isActive, isPending: false };
+  return (
+    <TSLink
+      ref={ref as never}
+      to={target as never}
+      search={search as never}
+      hash={hash}
+      replace={replace}
+      state={state as never}
+      className={typeof className === "function" ? className(renderProps) : className}
+      style={typeof style === "function" ? style(renderProps) : style}
+      aria-current={isActive ? "page" : undefined}
+      {...((rest ?? {}) as Record<string, unknown>)}
+    >
+      {typeof children === "function" ? children(renderProps) : children}
+    </TSLink>
+  );
+});
