@@ -13,7 +13,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Store, ShoppingBag, UtensilsCrossed, Users, CreditCard, ExternalLink } from "lucide-react";
+import { ArrowLeft, Store, ShoppingBag, UtensilsCrossed, Users, CreditCard, ExternalLink, Ban, Trash2 } from "lucide-react";
 import { SectionCard, StatCard, StatusPill, EmptyState, Notice } from "@/components/admin-mizu/ui";
 import { usePlatformRole, logPlatformAction } from "@/hooks/usePlatformRole";
 import { menuPath } from "@/lib/publicMenuUrl";
