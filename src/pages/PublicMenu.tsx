@@ -21,6 +21,8 @@ import { useMenuDevice } from "@/hooks/useMenuDevice";
 
 import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
 import { ClosedNotice } from "@/components/public-menu/ClosedNotice";
+import MobileBottomNavigation from "@/components/public-menu/MobileBottomNavigation";
+
 import { subscribeMenuUpdates } from "@/lib/menuRealtime";
 import MenuSidebar from "@/components/public-menu/MenuSidebar";
 import ProductDetailSheet from "@/components/public-menu/ProductDetailSheet";
