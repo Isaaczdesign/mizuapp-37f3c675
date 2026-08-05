@@ -1729,7 +1729,18 @@ const PublicMenu = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Bottom navigation (somente mobile) ── */}
+      <MobileBottomNavigation
+        restaurantId={restaurant.id}
+        restaurantSlug={(restaurant as any).slug ?? slug ?? null}
+        accentColor={accentColor}
+        cartItemCount={cartCount}
+        onOpenCart={() => setShowCart(true)}
+        hidden={showCart || checkoutStep > 0 || !!showItemDetail}
+      />
     </div>
+
   );
 };
 
