@@ -102,10 +102,14 @@ export default function AdminRestaurants() {
                 </Cell>
                 <Cell muted className="tabular-nums">{new Date(r.created_at).toLocaleDateString("pt-BR")}</Cell>
                 <Cell className="text-right">
-                  <Button size="sm" variant="glass" asChild>
-                    <Link to={`/admin-mizu/restaurantes/${r.id}`}>Abrir <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
-                  </Button>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <Button size="sm" variant="glass" asChild>
+                      <Link to={`/admin-mizu/restaurantes/${r.id}`}>Abrir <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
+                    </Button>
+                    <ModerationMenu restaurant={r} onDone={() => setRefresh((n) => n + 1)} />
+                  </div>
                 </Cell>
+
               </Row>
             ))}
           </DataTable>
