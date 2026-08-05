@@ -1613,7 +1613,7 @@ const PublicMenu = () => {
                     </p>
                     <p className="flex items-center gap-2">
                       <CreditCard className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
-                      <span className="truncate">{orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod ?? "", orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</span>
+                      <span className="truncate">{orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod ? resolveStoredPaymentMethod(paymentMethod, orderType ?? "") : "", orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</span>
                     </p>
                   </div>
 
