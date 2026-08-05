@@ -13,8 +13,7 @@ import { toast } from "sonner";
 const CONFIRM_WORD = "EXCLUIR";
 
 export default function DangerZone() {
-  const { roles, signOut } = useAuth();
-  const isOwner = roles.includes("owner");
+  const { signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
