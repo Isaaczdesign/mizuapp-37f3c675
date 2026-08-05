@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, useParams } from "@/lib/router-compat";
+import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
 import NoteActions from "@/components/admin-mizu/NoteActions";

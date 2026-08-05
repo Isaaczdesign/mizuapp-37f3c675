@@ -32,7 +32,7 @@ export type MenuTheme = {
 
 /** Base compartilhada: mesmas bordas, sombras e vidro em todos os templates */
 const SURFACE =
-  "bg-[hsl(var(--menu-card))] border border-[hsl(var(--menu-ink)/0.07)] shadow-[0_16px_40px_rgba(0,0,0,0.32),inset_0_1px_0_hsl(var(--menu-ink)/0.04)] transition-[transform,border-color,background-color] duration-200 ease-out hover:border-[hsl(var(--menu-ink)/0.14)] hover:bg-[hsl(var(--menu-raised))] lg:hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[hsl(var(--menu-ink)/0.25)]";
+  "bg-[hsl(var(--menu-card))] border border-[hsl(var(--menu-ink)/0.07)] shadow-[0_16px_40px_rgba(0,0,0,0.32),inset_0_1px_0_hsl(var(--menu-ink)/0.04)] transition-[transform,border-color,background-color] duration-200 ease-out hover:border-[hsl(var(--menu-ink)/0.14)] hover:bg-[hsl(var(--menu-raised))] lg:hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--menu-ink)/0.25)]";
 
 export const MENU_THEMES: MenuTheme[] = [
   {

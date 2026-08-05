@@ -59,7 +59,7 @@ export default function AdminOverview() {
     let active = true;
     setLoading(true);
     setError(null);
-    supabase.rpc("platform_overview_stats", { _since: sinceFor(range) ?? undefined }).then(({ data, error }) => {
+    supabase.rpc("platform_overview_stats", { _since: sinceFor(range) }).then(({ data, error }) => {
       if (!active) return;
       if (error) setError(error.message);
       else setStats(data as Stats);

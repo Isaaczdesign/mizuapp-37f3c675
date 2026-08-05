@@ -133,7 +133,7 @@ export default function MenuSidebar({
             onBlur={() => setFocused(false)}
             placeholder="Buscar prato..."
             aria-label="Buscar no cardápio"
-            className="w-full bg-transparent rounded-[14px] pl-9 pr-9 min-h-[44px] text-[13.5px] outline-hidden placeholder:text-[hsl(var(--menu-ink-3))]"
+            className="w-full bg-transparent rounded-[14px] pl-9 pr-9 min-h-[44px] text-[13.5px] outline-none placeholder:text-[hsl(var(--menu-ink-3))]"
           />
           {search && (
             <button

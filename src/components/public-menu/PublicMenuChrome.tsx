@@ -281,7 +281,7 @@ export function MenuStickyBar({
             onBlur={() => setFocused(false)}
             placeholder="Buscar no cardápio..."
             aria-label="Buscar no cardápio"
-            className="w-full bg-transparent rounded-[14px] pl-10 pr-11 min-h-[48px] text-[14px] outline-hidden placeholder:text-[hsl(var(--menu-ink-3))]"
+            className="w-full bg-transparent rounded-[14px] pl-10 pr-11 min-h-[48px] text-[14px] outline-none placeholder:text-[hsl(var(--menu-ink-3))]"
           />
           <AnimatePresence>
             {search && (

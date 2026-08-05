@@ -30,18 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<string[]>([]);
 
   useEffect(() => {
-    let fetchedFor: string | null = null;
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        if (fetchedFor !== session.user.id) {
-          fetchedFor = session.user.id;
-          setTimeout(() => fetchProfile(session.user.id), 0);
-        }
+        setTimeout(() => fetchProfile(session.user.id), 0);
       } else {
-        fetchedFor = null;
         setProfile(null);
         setRoles([]);
         setLoading(false);
@@ -52,10 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        if (fetchedFor !== session.user.id) {
-          fetchedFor = session.user.id;
-          fetchProfile(session.user.id);
-        }
+        fetchProfile(session.user.id);
       } else {
         setLoading(false);
       }
@@ -66,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function fetchProfile(userId: string) {
     const [profileRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("restaurant_id, display_name, onboarding_complete").eq("user_id", userId).maybeSingle(),
+      supabase.from("profiles").select("restaurant_id, display_name, onboarding_complete").eq("user_id", userId).single(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
     setProfile(profileRes.data ?? null);

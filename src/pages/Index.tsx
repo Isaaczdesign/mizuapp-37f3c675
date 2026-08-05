@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useLocation } from "@/lib/router-compat";
+import { Link, useLocation } from "react-router-dom";
 import { motion, type Variants } from "framer-motion";
 import {
   ArrowRight, QrCode, ChefHat, BarChart3, MessageSquare, Bike, Printer,

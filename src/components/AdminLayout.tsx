@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { NavLink, useNavigate } from "@/lib/router-compat";
+import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
 import { supportWhatsappUrl } from "@/lib/whatsappTemplates";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -282,7 +282,7 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         {/* Backdrop */}
         <div
           onClick={() => setMobileOpen(false)}
-          className={`md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 ${
+          className={`md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
             mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           }`}
           aria-hidden="true"

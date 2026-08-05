@@ -181,7 +181,7 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-xs" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative glass-card w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="font-display text-lg font-bold">✏️ Editar pedido {orderRef(order)}</h2>
@@ -234,10 +234,10 @@ export default function EditOrderModal({ restaurantId, order, onClose, onSaved }
                       <p className="text-xs font-medium truncate">{line.name}</p>
                       <p className="text-[10px] text-muted-foreground">R${Number(line.unit_price).toFixed(2)} · {line.quantity}x</p>
                     </div>
-                    <button onClick={() => changeQty(i, -1)} className="p-1 rounded-[4px] bg-background"><Minus className="w-3 h-3" /></button>
+                    <button onClick={() => changeQty(i, -1)} className="p-1 rounded bg-background"><Minus className="w-3 h-3" /></button>
                     <span className="text-xs w-5 text-center">{line.quantity}</span>
-                    <button onClick={() => changeQty(i, +1)} className="p-1 rounded-[4px] bg-primary text-primary-foreground"><Plus className="w-3 h-3" /></button>
-                    <button onClick={() => removeLine(i)} className="p-1 rounded-[4px] bg-destructive/20 text-destructive"><X className="w-3 h-3" /></button>
+                    <button onClick={() => changeQty(i, +1)} className="p-1 rounded bg-primary text-primary-foreground"><Plus className="w-3 h-3" /></button>
+                    <button onClick={() => removeLine(i)} className="p-1 rounded bg-destructive/20 text-destructive"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
               </div>

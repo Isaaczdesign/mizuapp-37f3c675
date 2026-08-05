@@ -17,7 +17,7 @@ export function usePendingOrdersCount() {
       const { count: c } = await supabase
         .from("orders")
         .select("id", { count: "exact", head: true })
-        .eq("restaurant_id", restaurantId as string)
+        .eq("restaurant_id", restaurantId)
         .eq("status", "new")
         .or("payment_status.is.null,payment_status.eq.paid,payment_status.eq.approved");
       if (!cancelled) setCount(c ?? 0);

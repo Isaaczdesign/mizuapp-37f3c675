@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, Link } from "@/lib/router-compat";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { orderRef } from "@/lib/orderNumber";
 import { Check, Clock, ChefHat, PackageCheck, XCircle, UtensilsCrossed, Bike, Home, MapPin, ExternalLink, Copy, QrCode, CheckCircle2, Loader2, ArrowLeft, RotateCcw, MessageCircle, CreditCard, PartyPopper } from "lucide-react";
@@ -638,7 +638,7 @@ export default function OrderTracking() {
                   placeholder={cancelReasonType === "Outro" ? "Conte para o restaurante o que aconteceu…" : "Detalhes adicionais (opcional)"}
                   rows={2}
                   maxLength={280}
-                  className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-hidden focus:border-primary"
+                  className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </div>
 

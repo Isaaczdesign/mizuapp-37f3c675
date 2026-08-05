@@ -1,4 +1,4 @@
-
+import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fmtBRL, PAYMENT_LABEL, type ShiftRow } from "./shiftUtils";
@@ -10,8 +10,7 @@ interface ReportData {
   restaurant?: { name?: string; address?: string | null; slug?: string | null } | null;
 }
 
-export async function generateShiftReportPDF(data: ReportData) {
-  const { jsPDF } = await import("jspdf");
+export function generateShiftReportPDF(data: ReportData) {
   const s = data.shift;
   const t = (s.totals as any) || {};
   const doc = new jsPDF({ unit: "mm", format: "a4" });

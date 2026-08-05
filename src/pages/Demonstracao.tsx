@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "@/lib/router-compat";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, UserPlus, Paintbrush, QrCode, ShoppingBag, ListChecks, BellRing,

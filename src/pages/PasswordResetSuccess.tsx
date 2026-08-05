@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@/lib/router-compat";
+import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle2, LayoutDashboard, LogIn, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";

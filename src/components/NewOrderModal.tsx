@@ -140,7 +140,7 @@ export default function NewOrderModal({ restaurantId, onClose, onCreated }: Prop
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-xs" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative glass-card w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="font-display text-lg font-bold">➕ Novo pedido (balcão)</h2>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useLocation, useNavigate } from "@/lib/router-compat";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClipboardList, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

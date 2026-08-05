@@ -255,7 +255,7 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-bold text-sm flex items-center gap-2">
                 <Tag className="w-4 h-4 text-primary" /> Cupons
-                <span className="text-[10px] font-mono text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded-[4px]">
+                <span className="text-[10px] font-mono text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">
                   {coupons.filter((c: any) => c.is_active).length}/{coupons.length} ativos
                 </span>
               </h3>
@@ -352,7 +352,7 @@ const Customers = () => {
                             }`}
                           >
                             <span
-                              className={`absolute top-0.5 w-3 h-3 rounded-full bg-background shadow-sm transition-all duration-300 ${
+                              className={`absolute top-0.5 w-3 h-3 rounded-full bg-background shadow transition-all duration-300 ${
                                 c.is_active ? "left-[18px]" : "left-0.5"
                               }`}
                             />
@@ -414,7 +414,7 @@ const Customers = () => {
                         {c.last_order_at ? new Date(c.last_order_at).toLocaleDateString("pt-BR") : "—"}
                       </TableCell>
                       <TableCell>
-                        <span className={`px-2 py-0.5 rounded-[4px] text-xs font-medium ${segmentColors[seg]}`}>
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${segmentColors[seg]}`}>
                           {segmentLabels[seg]}
                         </span>
                       </TableCell>
@@ -500,7 +500,7 @@ const Customers = () => {
                       <p className="text-xs text-muted-foreground">Total</p>
                     </div>
                     <div className="text-center">
-                      <span className={`px-2 py-1 rounded-[4px] text-xs font-medium ${segmentColors[getSegment(selectedCustomer)]}`}>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${segmentColors[getSegment(selectedCustomer)]}`}>
                         {segmentLabels[getSegment(selectedCustomer)]}
                       </span>
                     </div>

@@ -161,7 +161,7 @@ function MockCard({
     default:
       return (
         <Surface className={thumb ? "flex items-center gap-1.5 px-1.5 py-1 rounded-md" : "flex items-center gap-3 px-3 py-2.5 rounded-xl"}>
-          <Photo color={color} className={thumb ? "w-4 h-4 rounded-[4px]" : "w-10 h-10 rounded-lg"} />
+          <Photo color={color} className={thumb ? "w-4 h-4 rounded" : "w-10 h-10 rounded-lg"} />
           <div className="min-w-0 flex-1">{title}</div>
           {price}
           <AddButton color={color} size={thumb ? 8 : 22} />
