@@ -243,15 +243,17 @@
 }
 
 @media (max-width: 1023px) {
-  /* Só pinta o que está (quase) na tela — listas longas ficam bem mais leves */
-  .menu-perf [data-menu-section] {
-    content-visibility: auto;
-    contain-intrinsic-size: 640px;
+  /* Composição mais barata: imagens e cards não repintam a árvore inteira */
+  .menu-perf img {
+    contain: paint;
+    backface-visibility: hidden;
   }
 
-  /* Imagens do cardápio: decodificação/composição mais barata */
-  .menu-perf img {
-    content-visibility: auto;
+  /* Blur pesado custa caro em GPU mobile — versão mais leve */
+  .menu-perf .backdrop-blur-xl,
+  .menu-perf .backdrop-blur-2xl {
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
   }
 }
 
