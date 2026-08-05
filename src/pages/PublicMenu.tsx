@@ -102,7 +102,9 @@ function getOpenStatus(hours: any): { isOpen: boolean; label: string } {
 
 // ── Main Component ──
 const PublicMenu = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug: slugParam } = useParams<{ slug: string }>();
+  // Em `restaurantex.mizuapp.com.br` o slug vem do subdomínio, não da rota.
+  const slug = slugParam ?? slugFromHost() ?? undefined;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   // `t` is the canonical param; `table` kept for QR codes printed before the URL change.
