@@ -1,6 +1,5 @@
 import { formatPhoneBR, validatePhoneBR, validateFullName } from "@/lib/phoneBr";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { slugFromHost } from "@/lib/publicMenuUrl";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -104,8 +103,7 @@ function getOpenStatus(hours: any): { isOpen: boolean; label: string } {
 // ── Main Component ──
 const PublicMenu = () => {
   const { slug: slugParam } = useParams<{ slug: string }>();
-  // Em `restaurantex.mizuapp.com.br` o slug vem do subdomínio, não da rota.
-  const slug = slugParam ?? slugFromHost() ?? undefined;
+  const slug = slugParam ?? undefined;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   // `t` is the canonical param; `table` kept for QR codes printed before the URL change.
