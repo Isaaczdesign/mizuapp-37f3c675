@@ -603,7 +603,7 @@ const PublicMenu = () => {
       }));
 
       const orderTotal = roundCurrency(grandTotal);
-      if (["pix", "credit_card_online"].includes(paymentMethod) && orderTotal < onlinePaymentMinAmount) {
+      if (["pix", "credit_card_online"].includes(paymentMethod ?? "") && orderTotal < onlinePaymentMinAmount) {
         toast.error("Pagamento online exige pedido mínimo de R$ 1,00. Adicione mais itens ou escolha outra forma de pagamento.");
         return;
       }
@@ -614,7 +614,7 @@ const PublicMenu = () => {
         _total: orderTotal,
         _notes: orderNotes || null,
         _order_type: orderType,
-        _payment_method: resolveStoredPaymentMethod(paymentMethod, orderType),
+        _payment_method: resolveStoredPaymentMethod(paymentMethod ?? "", orderType),
         _payment_change_for: paymentMethod === "cash" && changeFor ? Number(changeFor) : null,
         _table_id: orderType === "dine_in" ? (tableId ?? selectedTableId) : null,
         _delivery_fee: deliveryFeeApplied,
@@ -1613,7 +1613,7 @@ const PublicMenu = () => {
                     </p>
                     <p className="flex items-center gap-2">
                       <CreditCard className={`${ICON_SM} shrink-0`} strokeWidth={ICON_STROKE} style={{ color: accentColor }} />
-                      <span className="truncate">{orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod, orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</span>
+                      <span className="truncate">{orderType === "dine_in" ? "Pagamento no local (mesa)" : paymentMethodLabel(paymentMethod && resolveStoredPaymentMethod(paymentMethod ?? "", orderType), orderType)}{paymentMethod === "cash" && changeFor ? ` · troco p/ ${fmt(Number(changeFor))}` : ""}</span>
                     </p>
                   </div>
 

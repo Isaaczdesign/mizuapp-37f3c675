@@ -44,9 +44,9 @@ export async function logPlatformAction(params: {
   await supabase.rpc("log_platform_action", {
     _action: params.action,
     _entity_type: params.entityType,
-    _entity_id: params.entityId ?? null,
+    _entity_id: params.entityId ?? undefined,
     _old: (params.oldValue ?? null) as never,
     _new: (params.newValue ?? null) as never,
-    _reason: params.reason ?? null,
+    _reason: params.reason ?? undefined,
   });
 }
