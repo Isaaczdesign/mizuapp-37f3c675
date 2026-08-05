@@ -729,7 +729,10 @@ const PublicMenu = () => {
         onOpenCart={() => setShowCart(true)}
       />
 
-      <main className="flex-1 min-w-0 pb-32 lg:pb-16">
+      <main
+        className="flex-1 min-w-0 pb-[calc(120px+env(safe-area-inset-bottom,0px))] md:pb-32 lg:pb-16"
+      >
+
       {/* ── Hero (mobile e tablet) ── */}
       <div className="lg:hidden">
       <RestaurantHero
