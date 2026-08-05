@@ -343,7 +343,7 @@ export default function MobileBottomNavigation({
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setSheet(null)}
+              onClick={closeSheet}
             />
             <motion.div
               initial={reduceMotion ? false : { y: "100%" }}
@@ -363,7 +363,7 @@ export default function MobileBottomNavigation({
                   {sheet === "orders" ? "Seus pedidos" : "Cupons disponíveis"}
                 </h2>
                 <button
-                  type="button" onClick={() => setSheet(null)} aria-label="Fechar"
+                  type="button" onClick={closeSheet} aria-label="Fechar"
                   style={{ touchAction: "manipulation" }}
                   className="w-9 h-9 rounded-xl flex items-center justify-center bg-[hsl(var(--menu-ink)/0.06)] border border-[hsl(var(--menu-ink)/0.08)]"
                 >
