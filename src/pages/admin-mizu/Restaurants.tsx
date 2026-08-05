@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, ChevronLeft, ChevronRight, ArrowRight, Store } from "lucide-react";
 import { DataTable, Row, Cell, StatusPill, EmptyState, Toolbar, SegmentedControl, Notice } from "@/components/admin-mizu/ui";
+import ModerationMenu from "@/components/admin-mizu/ModerationMenu";
+
 
 const PAGE_SIZE = 20;
 
@@ -23,8 +25,10 @@ export default function AdminRestaurants() {
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => { setPage(0); }, [query, status]);
+
 
   useEffect(() => {
     let active = true;
@@ -50,7 +54,7 @@ export default function AdminRestaurants() {
       setLoading(false);
     });
     return () => { active = false; };
-  }, [page, query, status]);
+  }, [page, query, status, refresh]);
 
   const pages = useMemo(() => Math.max(1, Math.ceil(count / PAGE_SIZE)), [count]);
 
@@ -102,10 +106,14 @@ export default function AdminRestaurants() {
                 </Cell>
                 <Cell muted className="tabular-nums">{new Date(r.created_at).toLocaleDateString("pt-BR")}</Cell>
                 <Cell className="text-right">
-                  <Button size="sm" variant="glass" asChild>
-                    <Link to={`/admin-mizu/restaurantes/${r.id}`}>Abrir <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
-                  </Button>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <Button size="sm" variant="glass" asChild>
+                      <Link to={`/admin-mizu/restaurantes/${r.id}`}>Abrir <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
+                    </Button>
+                    <ModerationMenu restaurant={r} onDone={() => setRefresh((n) => n + 1)} />
+                  </div>
                 </Cell>
+
               </Row>
             ))}
           </DataTable>
@@ -113,24 +121,24 @@ export default function AdminRestaurants() {
           {/* Mobile */}
           <div className="space-y-2 md:hidden">
             {rows.map((r) => (
-              <Link
-                key={r.id}
-                to={`/admin-mizu/restaurantes/${r.id}`}
-                className="block rounded-2xl border border-border bg-card/40 p-3.5 transition-colors active:bg-muted/40"
-              >
+              <div key={r.id} className="rounded-2xl border border-border bg-card/40 p-3.5">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
+                  <Link to={`/admin-mizu/restaurantes/${r.id}`} className="min-w-0 flex-1">
                     <p className="truncate font-medium">{r.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{r.owner_email || r.owner_name || `/${r.slug}`}</p>
+                  </Link>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <StatusPill tone={r.is_active ? "success" : "neutral"}>{r.is_active ? "Ativo" : "Suspenso"}</StatusPill>
+                    <ModerationMenu restaurant={r} onDone={() => setRefresh((n) => n + 1)} />
                   </div>
-                  <StatusPill tone={r.is_active ? "success" : "neutral"}>{r.is_active ? "Ativo" : "Suspenso"}</StatusPill>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">
                   Desde {new Date(r.created_at).toLocaleDateString("pt-BR")}
                 </p>
-              </Link>
+              </div>
             ))}
           </div>
+
 
           <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
             <span>
