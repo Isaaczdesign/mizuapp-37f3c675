@@ -2010,6 +2010,7 @@ export type Database = {
         Args: { _note_id: string; _reason?: string }
         Returns: undefined
       }
+      can_view_announcement_media: { Args: { _name: string }; Returns: boolean }
       cancel_expired_pending_payments: { Args: never; Returns: number }
       cancel_public_order: {
         Args: { _reason?: string; _token: string }
