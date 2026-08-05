@@ -1,5 +1,6 @@
 import { formatPhoneBR, validatePhoneBR, validateFullName } from "@/lib/phoneBr";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { slugFromHost } from "@/lib/publicMenuUrl";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
