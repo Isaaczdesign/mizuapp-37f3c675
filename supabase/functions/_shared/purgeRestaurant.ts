@@ -9,8 +9,8 @@ export async function purgeRestaurantData(
   const { data: orders } = await admin.from("orders").select("id").eq("restaurant_id", restaurantId);
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id);
   if (orderIds.length) {
-    await admin.from("order_item_reviews").delete().in("order_item_id", []);
     const { data: oitems } = await admin.from("order_items").select("id").in("order_id", orderIds);
+
     const itemRowIds = (oitems ?? []).map((i: { id: string }) => i.id);
     if (itemRowIds.length) await admin.from("order_item_reviews").delete().in("order_item_id", itemRowIds);
     await admin.from("order_reviews").delete().in("order_id", orderIds);
