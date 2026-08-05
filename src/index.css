@@ -225,3 +225,38 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Cardápio público: suavidade e performance no mobile ── */
+.menu-perf {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  text-rendering: optimizeSpeed;
+}
+
+/* Botões e cards do cardápio: toque imediato, sem zoom/scroll acidental */
+.menu-perf button,
+.menu-perf [role="button"],
+.menu-perf a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 1023px) {
+  /* Só pinta o que está (quase) na tela — listas longas ficam bem mais leves */
+  .menu-perf [data-menu-section] {
+    content-visibility: auto;
+    contain-intrinsic-size: 640px;
+  }
+
+  /* Imagens do cardápio: decodificação/composição mais barata */
+  .menu-perf img {
+    content-visibility: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-perf {
+    scroll-behavior: auto;
+  }
+}
