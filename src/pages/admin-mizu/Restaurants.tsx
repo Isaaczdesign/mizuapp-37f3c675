@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, ChevronLeft, ChevronRight, ArrowRight, Store } from "lucide-react";
 import { DataTable, Row, Cell, StatusPill, EmptyState, Toolbar, SegmentedControl, Notice } from "@/components/admin-mizu/ui";
+import ModerationMenu from "@/components/admin-mizu/ModerationMenu";
+
 
 const PAGE_SIZE = 20;
 
@@ -23,8 +25,10 @@ export default function AdminRestaurants() {
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => { setPage(0); }, [query, status]);
+
 
   useEffect(() => {
     let active = true;
