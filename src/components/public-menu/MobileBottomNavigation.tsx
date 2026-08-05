@@ -214,7 +214,8 @@ export default function MobileBottomNavigation({
                 onClick={() => handleTab(tab.key)}
                 aria-label={tab.aria}
                 aria-current={isActive ? "page" : undefined}
-                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-200"
+                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-200"
               >
                 {isActive && (
                   <motion.span
@@ -230,7 +231,13 @@ export default function MobileBottomNavigation({
                   style={{ color: isActive ? activeInk : "rgba(255,255,255,0.78)" }}
                 >
                   <Icon className="w-5 h-5" strokeWidth={isActive ? 2.4 : 2} />
-                  {tab.key === "cart" && cartItemCount > 0 && (
+                  {tab.key === "cart" && cartLoading && (
+                    <span
+                      aria-hidden
+                      className="absolute -top-2 -right-3 w-[18px] h-[18px] rounded-full bg-white/25 animate-pulse motion-reduce:animate-none ring-2 ring-[rgba(14,17,20,0.9)]"
+                    />
+                  )}
+                  {tab.key === "cart" && !cartLoading && cartItemCount > 0 && (
                     <AnimatePresence mode="popLayout">
                       <motion.span
                         key={cartItemCount}
@@ -243,6 +250,7 @@ export default function MobileBottomNavigation({
                     </AnimatePresence>
                   )}
                 </span>
+
                 <span
                   className="relative text-[10.5px] font-semibold tracking-tight"
                   style={{ color: isActive ? activeInk : "rgba(255,255,255,0.72)" }}
