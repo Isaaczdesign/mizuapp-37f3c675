@@ -85,12 +85,9 @@ export default function MobileBottomNavigation({
   const [copied, setCopied] = useState<string | null>(null);
 
   const refreshOrders = useCallback(() => {
-    setOrdersLoading(true);
-    // leitura local é síncrona; o micro-delay evita "flash" de estado vazio
-    window.setTimeout(() => {
-      setOrders(loadActiveOrders(restaurantSlug ?? undefined));
-      setOrdersLoading(false);
-    }, 120);
+    // leitura local é síncrona: nada de delay artificial (evita sensação de travamento)
+    setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+    setOrdersLoading(false);
   }, [restaurantSlug]);
 
   const fetchCoupons = useCallback(() => {
@@ -112,6 +109,21 @@ export default function MobileBottomNavigation({
         setLoadingCoupons(false);
       });
   }, [restaurantId]);
+
+  // Pré-carrega cupons e pedidos em idle para o sheet abrir instantâneo.
+  useEffect(() => {
+    if (!restaurantId) return;
+    const ric: typeof window.requestIdleCallback | undefined = window.requestIdleCallback;
+    const run = () => {
+      setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+      fetchCoupons();
+    };
+    const id = ric ? ric(run, { timeout: 2000 }) : window.setTimeout(run, 800);
+    return () => {
+      if (ric && window.cancelIdleCallback) window.cancelIdleCallback(id as number);
+      else window.clearTimeout(id as number);
+    };
+  }, [restaurantId, restaurantSlug, fetchCoupons]);
 
   useEffect(() => {
     if (sheet === "orders") refreshOrders();
