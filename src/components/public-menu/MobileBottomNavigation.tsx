@@ -54,6 +54,7 @@ export default function MobileBottomNavigation({
   restaurantSlug,
   accentColor,
   cartItemCount,
+  cartLoading = false,
   onOpenCart,
   activeTab,
   hidden = false,
@@ -62,6 +63,7 @@ export default function MobileBottomNavigation({
   restaurantSlug: string | null;
   accentColor?: string | null;
   cartItemCount: number;
+  cartLoading?: boolean;
   onOpenCart: () => void;
   activeTab?: BottomNavTab;
   hidden?: boolean;
@@ -76,26 +78,72 @@ export default function MobileBottomNavigation({
   const activeInk = useMemo(() => readableInk(accent), [accent]);
 
   const [orders, setOrders] = useState<RecentOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [coupons, setCoupons] = useState<PublicCoupon[] | null>(null);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [couponsError, setCouponsError] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const refreshOrders = useCallback(() => {
-    setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+    setOrdersLoading(true);
+    // leitura local é síncrona; o micro-delay evita "flash" de estado vazio
+    window.setTimeout(() => {
+      setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+      setOrdersLoading(false);
+    }, 120);
   }, [restaurantSlug]);
+
+  const fetchCoupons = useCallback(() => {
+    setLoadingCoupons(true);
+    setCouponsError(false);
+    (supabase as any)
+      .rpc("get_public_coupons", { _restaurant_id: restaurantId })
+      .then(({ data, error }: { data: PublicCoupon[] | null; error: unknown }) => {
+        if (error) {
+          setCouponsError(true);
+          setCoupons(null);
+        } else {
+          setCoupons(data ?? []);
+        }
+        setLoadingCoupons(false);
+      })
+      .catch(() => {
+        setCouponsError(true);
+        setLoadingCoupons(false);
+      });
+  }, [restaurantId]);
 
   useEffect(() => {
     if (sheet === "orders") refreshOrders();
-    if (sheet === "coupons" && coupons === null) {
-      setLoadingCoupons(true);
-      (supabase as any)
-        .rpc("get_public_coupons", { _restaurant_id: restaurantId })
-        .then(({ data }: { data: PublicCoupon[] | null }) => {
-          setCoupons(data ?? []);
-          setLoadingCoupons(false);
-        });
-    }
-  }, [sheet, coupons, restaurantId, refreshOrders]);
+    if (sheet === "coupons" && coupons === null && !loadingCoupons && !couponsError) fetchCoupons();
+  }, [sheet, coupons, loadingCoupons, couponsError, fetchCoupons, refreshOrders]);
+
+  // Trava o scroll do fundo enquanto o sheet está aberto (sem pular a posição).
+  useEffect(() => {
+    if (!sheet) return;
+    const y = window.scrollY;
+    const body = document.body;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      overscroll: body.style.overscrollBehavior,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${y}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    return () => {
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      body.style.overscrollBehavior = prev.overscroll;
+      window.scrollTo(0, y);
+    };
+  }, [sheet]);
 
   function handleTab(key: BottomNavTab) {
     setInternalActive(key);
@@ -113,6 +161,18 @@ export default function MobileBottomNavigation({
       toast.error("Não foi possível copiar o cupom");
     }
   }
+
+  const rowSkeletons = (
+    <ul className="space-y-2 pb-2" aria-hidden>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <li
+          key={i}
+          className="h-[62px] rounded-2xl bg-[hsl(var(--menu-ink)/0.06)] animate-pulse motion-reduce:animate-none"
+        />
+      ))}
+    </ul>
+  );
+
 
   const nav = (
     <>
@@ -154,7 +214,8 @@ export default function MobileBottomNavigation({
                 onClick={() => handleTab(tab.key)}
                 aria-label={tab.aria}
                 aria-current={isActive ? "page" : undefined}
-                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-200"
+                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-200"
               >
                 {isActive && (
                   <motion.span
@@ -170,7 +231,13 @@ export default function MobileBottomNavigation({
                   style={{ color: isActive ? activeInk : "rgba(255,255,255,0.78)" }}
                 >
                   <Icon className="w-5 h-5" strokeWidth={isActive ? 2.4 : 2} />
-                  {tab.key === "cart" && cartItemCount > 0 && (
+                  {tab.key === "cart" && cartLoading && (
+                    <span
+                      aria-hidden
+                      className="absolute -top-2 -right-3 w-[18px] h-[18px] rounded-full bg-white/25 animate-pulse motion-reduce:animate-none ring-2 ring-[rgba(14,17,20,0.9)]"
+                    />
+                  )}
+                  {tab.key === "cart" && !cartLoading && cartItemCount > 0 && (
                     <AnimatePresence mode="popLayout">
                       <motion.span
                         key={cartItemCount}
@@ -183,6 +250,7 @@ export default function MobileBottomNavigation({
                     </AnimatePresence>
                   )}
                 </span>
+
                 <span
                   className="relative text-[10.5px] font-semibold tracking-tight"
                   style={{ color: isActive ? activeInk : "rgba(255,255,255,0.72)" }}
@@ -213,8 +281,12 @@ export default function MobileBottomNavigation({
               animate={{ y: 0 }}
               exit={reduceMotion ? { opacity: 0 } : { y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="relative max-h-[78dvh] overflow-y-auto rounded-t-[26px] border-t border-white/10 bg-[hsl(var(--menu-bg))] text-[hsl(var(--menu-ink))] px-5 pt-4"
-              style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom, 0px))" }}
+              className="relative max-h-[78dvh] overflow-y-auto overscroll-contain rounded-t-[26px] border-t border-white/10 bg-[hsl(var(--menu-bg))] text-[hsl(var(--menu-ink))] px-5 pt-4"
+              style={{
+                paddingBottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+                WebkitOverflowScrolling: "touch",
+                touchAction: "pan-y",
+              }}
             >
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[hsl(var(--menu-ink)/0.18)]" />
               <div className="flex items-center justify-between mb-4">
@@ -223,6 +295,7 @@ export default function MobileBottomNavigation({
                 </h2>
                 <button
                   type="button" onClick={() => setSheet(null)} aria-label="Fechar"
+                  style={{ touchAction: "manipulation" }}
                   className="w-9 h-9 rounded-xl flex items-center justify-center bg-[hsl(var(--menu-ink)/0.06)] border border-[hsl(var(--menu-ink)/0.08)]"
                 >
                   <X className="w-4 h-4" />
@@ -230,7 +303,12 @@ export default function MobileBottomNavigation({
               </div>
 
               {sheet === "orders" && (
-                orders.length === 0 ? (
+                ordersLoading ? (
+                  <>
+                    {rowSkeletons}
+                    <span className="sr-only" role="status">Carregando seus pedidos</span>
+                  </>
+                ) : orders.length === 0 ? (
                   <p className="py-8 text-center text-sm text-[hsl(var(--menu-ink-2))]">
                     Nenhum pedido em andamento no momento.
                   </p>
@@ -241,6 +319,7 @@ export default function MobileBottomNavigation({
                         <button
                           type="button"
                           onClick={() => { setSheet(null); navigate(`/pedido/${o.token}`); }}
+                          style={{ touchAction: "manipulation" }}
                           className="w-full flex items-center gap-3 rounded-2xl border border-[hsl(var(--menu-ink)/0.08)] bg-[hsl(var(--menu-ink)/0.04)] px-4 py-3 text-left active:scale-[0.98] transition-transform"
                         >
                           <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accent}25` }}>
@@ -262,7 +341,24 @@ export default function MobileBottomNavigation({
 
               {sheet === "coupons" && (
                 loadingCoupons ? (
-                  <p className="py-8 text-center text-sm text-[hsl(var(--menu-ink-2))]">Carregando cupons...</p>
+                  <>
+                    {rowSkeletons}
+                    <span className="sr-only" role="status">Carregando cupons</span>
+                  </>
+                ) : couponsError ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-[hsl(var(--menu-ink-2))]">
+                      Não foi possível carregar os cupons.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={fetchCoupons}
+                      style={{ background: accent, color: activeInk, touchAction: "manipulation" }}
+                      className="mt-4 min-h-[44px] px-5 rounded-xl text-sm font-bold active:scale-95 transition-transform"
+                    >
+                      Tentar novamente
+                    </button>
+                  </div>
                 ) : !coupons?.length ? (
                   <p className="py-8 text-center text-sm text-[hsl(var(--menu-ink-2))]">
                     Nenhum cupom disponível no momento.
@@ -288,7 +384,7 @@ export default function MobileBottomNavigation({
                           onClick={() => copyCode(c.code)}
                           aria-label={`Copiar cupom ${c.code}`}
                           className="min-h-[44px] min-w-[44px] px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
-                          style={{ background: accent, color: activeInk }}
+                          style={{ background: accent, color: activeInk, touchAction: "manipulation" }}
                         >
                           {copied === c.code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                           {copied === c.code ? "Copiado" : "Copiar"}
@@ -298,6 +394,7 @@ export default function MobileBottomNavigation({
                   </ul>
                 )
               )}
+
             </motion.div>
           </motion.div>
         )}

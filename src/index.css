@@ -225,3 +225,40 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Cardápio público: suavidade e performance no mobile ── */
+.menu-perf {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  text-rendering: optimizeSpeed;
+}
+
+/* Botões e cards do cardápio: toque imediato, sem zoom/scroll acidental */
+.menu-perf button,
+.menu-perf [role="button"],
+.menu-perf a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 1023px) {
+  /* Composição mais barata: imagens e cards não repintam a árvore inteira */
+  .menu-perf img {
+    contain: paint;
+    backface-visibility: hidden;
+  }
+
+  /* Blur pesado custa caro em GPU mobile — versão mais leve */
+  .menu-perf .backdrop-blur-xl,
+  .menu-perf .backdrop-blur-2xl {
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-perf {
+    scroll-behavior: auto;
+  }
+}
