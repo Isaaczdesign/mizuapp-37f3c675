@@ -227,11 +227,18 @@ export default function MobileBottomNavigation({
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => handleTab(tab.key)}
+                onPointerDown={(e) => {
+                  // resposta imediata ao toque (sem esperar o clique sintético)
+                  if (e.pointerType === "touch") handleTab(tab.key);
+                }}
+                onClick={(e) => {
+                  if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
+                  handleTab(tab.key);
+                }}
                 aria-label={tab.aria}
                 aria-current={isActive ? "page" : undefined}
                 style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
-                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-200"
+                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-150"
               >
                 {isActive && (
                   <motion.span
