@@ -21,6 +21,8 @@ import { useMenuDevice } from "@/hooks/useMenuDevice";
 
 import { RestaurantHero, MenuStickyBar, FloatingCartBar } from "@/components/public-menu/PublicMenuChrome";
 import { ClosedNotice } from "@/components/public-menu/ClosedNotice";
+import MobileBottomNavigation from "@/components/public-menu/MobileBottomNavigation";
+
 import { subscribeMenuUpdates } from "@/lib/menuRealtime";
 import MenuSidebar from "@/components/public-menu/MenuSidebar";
 import ProductDetailSheet from "@/components/public-menu/ProductDetailSheet";
@@ -729,7 +731,10 @@ const PublicMenu = () => {
         onOpenCart={() => setShowCart(true)}
       />
 
-      <main className="flex-1 min-w-0 pb-32 lg:pb-16">
+      <main
+        className="flex-1 min-w-0 pb-[calc(120px+env(safe-area-inset-bottom,0px))] md:pb-32 lg:pb-16"
+      >
+
       {/* ── Hero (mobile e tablet) ── */}
       <div className="lg:hidden">
       <RestaurantHero
@@ -1726,7 +1731,18 @@ const PublicMenu = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Bottom navigation (somente mobile) ── */}
+      <MobileBottomNavigation
+        restaurantId={restaurant.id}
+        restaurantSlug={(restaurant as any).slug ?? slug ?? null}
+        accentColor={accentColor}
+        cartItemCount={cartCount}
+        onOpenCart={() => setShowCart(true)}
+        hidden={showCart || checkoutStep > 0 || !!showItemDetail}
+      />
     </div>
+
   );
 };
 
