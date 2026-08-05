@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowDownLeft, ArrowDownRight, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -304,19 +304,19 @@ export default function OrderNotificationProvider() {
             <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-background/40">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Mover</span>
               <div className="flex gap-0.5">
-                <button onClick={() => movePopup("top-left")} className="p-1 rounded hover:bg-secondary" title="Superior esquerda">
+                <button onClick={() => movePopup("top-left")} className="p-1 rounded-[4px] hover:bg-secondary" title="Superior esquerda">
                   <ArrowUpLeft className="w-3 h-3" />
                 </button>
-                <button onClick={() => movePopup("top-center")} className="p-1 rounded hover:bg-secondary" title="Superior centro">
+                <button onClick={() => movePopup("top-center")} className="p-1 rounded-[4px] hover:bg-secondary" title="Superior centro">
                   <ArrowUp className="w-3 h-3" />
                 </button>
-                <button onClick={() => movePopup("top-right")} className="p-1 rounded hover:bg-secondary" title="Superior direita">
+                <button onClick={() => movePopup("top-right")} className="p-1 rounded-[4px] hover:bg-secondary" title="Superior direita">
                   <ArrowUpRight className="w-3 h-3" />
                 </button>
-                <button onClick={() => movePopup("bottom-left")} className="p-1 rounded hover:bg-secondary" title="Inferior esquerda">
+                <button onClick={() => movePopup("bottom-left")} className="p-1 rounded-[4px] hover:bg-secondary" title="Inferior esquerda">
                   <ArrowDownLeft className="w-3 h-3" />
                 </button>
-                <button onClick={() => movePopup("bottom-right")} className="p-1 rounded hover:bg-secondary" title="Inferior direita">
+                <button onClick={() => movePopup("bottom-right")} className="p-1 rounded-[4px] hover:bg-secondary" title="Inferior direita">
                   <ArrowDownRight className="w-3 h-3" />
                 </button>
               </div>

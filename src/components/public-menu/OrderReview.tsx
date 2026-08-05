@@ -241,7 +241,7 @@ export default function OrderReview({ token }: { token: string }) {
           onChange={(e) => setComment(e.target.value.slice(0, 1000))}
           rows={3}
           placeholder="Conte o que você achou do sabor, da entrega, do atendimento…"
-          className="w-full rounded-xl bg-secondary/50 border border-border px-3 py-2.5 text-sm resize-none outline-none focus:border-primary/60 transition-colors"
+          className="w-full rounded-xl bg-secondary/50 border border-border px-3 py-2.5 text-sm resize-none outline-hidden focus:border-primary/60 transition-colors"
         />
       </div>
 

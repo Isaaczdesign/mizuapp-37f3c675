@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "@/lib/router-compat";
 import { Logo } from "@/components/Logo";
 import { whatsappUrl } from "@/lib/siteConfig";
 
@@ -66,7 +66,7 @@ export function SiteFooter() {
               type="button"
               onClick={goHome}
               aria-label="Voltar ao início"
-              className="inline-flex rounded-md cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex rounded-md cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <Logo className="h-8" />
             </button>

@@ -133,7 +133,7 @@ export function PhoneDemo({ onReset }: { onReset?: () => void }) {
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder="Buscar no cardápio"
                       aria-label="Buscar produto na demonstração"
-                      className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+                      className="w-full bg-transparent text-xs outline-hidden placeholder:text-muted-foreground"
                     />
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1">
@@ -216,7 +216,7 @@ export function PhoneDemo({ onReset }: { onReset?: () => void }) {
                       rows={2}
                       placeholder="Ex.: sem cebolinha"
                       aria-label="Observações do item"
-                      className="w-full resize-none rounded-lg border border-border bg-transparent px-3 py-2 text-xs outline-none focus:border-primary"
+                      className="w-full resize-none rounded-lg border border-border bg-transparent px-3 py-2 text-xs outline-hidden focus:border-primary"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -337,7 +337,7 @@ export function PhoneDemo({ onReset }: { onReset?: () => void }) {
                         value={changeFor}
                         onChange={(e) => setChangeFor(e.target.value.replace(/\D/g, ""))}
                         inputMode="numeric"
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 outline-none focus:border-primary"
+                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 outline-hidden focus:border-primary"
                       />
                     </label>
                   )}

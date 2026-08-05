@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "@/lib/router-compat";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -43,7 +43,7 @@ export function SiteNav() {
           type="button"
           onClick={goHome}
           aria-label="Voltar ao início"
-          className="flex items-center rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="flex items-center rounded-md transition-opacity hover:opacity-80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Logo className="h-9" />
         </button>
@@ -54,7 +54,7 @@ export function SiteNav() {
               key={l.href}
               type="button"
               onClick={() => go(l.href)}
-              className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             >
               {l.label}
             </button>

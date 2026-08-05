@@ -366,7 +366,7 @@ const KDS = () => {
           </span>
           <button
             onClick={() => togglePin(order.id)}
-            className="p-1 rounded hover:bg-secondary transition-colors"
+            className="p-1 rounded-[4px] hover:bg-secondary transition-colors"
             title={isPinned ? "Desafixar" : "Fixar no topo"}
           >
             {isPinned ? <PinOff className="w-4 h-4 text-primary" /> : <Pin className="w-4 h-4 text-muted-foreground" />}

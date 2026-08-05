@@ -29,7 +29,7 @@ import AnnouncementCard from "@/components/announcements/AnnouncementCard";
 import AnnouncementModal from "@/components/announcements/AnnouncementModal";
 import MediaUploader from "@/components/admin-mizu/MediaUploader";
 import AnnouncementSlidesEditor, { AnnouncementSlide, emptySlide, loadSlidesDraft, clearSlidesDraft } from "@/components/admin-mizu/AnnouncementSlidesEditor";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { SectionCard, StatCard, StatusPill, EmptyState, SegmentedControl } from "@/components/admin-mizu/ui";
 
 type Announcement = {
@@ -120,7 +120,7 @@ function AnnouncementTabs({ mode }: { mode: Mode }) {
           to={t.to}
           className={`rounded-[10px] px-3.5 py-1.5 text-xs font-medium transition-colors ${
             mode === t.id
-              ? "bg-primary text-primary-foreground shadow-sm"
+              ? "bg-primary text-primary-foreground shadow-xs"
               : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
           }`}
         >

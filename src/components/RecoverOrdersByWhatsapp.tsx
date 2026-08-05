@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Search, X, Loader2, ChevronRight, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -151,7 +151,7 @@ export default function RecoverOrdersByWhatsapp({
               aria-label={label}
               aria-haspopup="dialog"
               aria-expanded={open}
-              className={`fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4 z-[44] w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+              className={`fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4 z-[44] w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 modalOpen && !open ? "opacity-0 pointer-events-none translate-y-2" : "opacity-100"
               }`}
               style={{
@@ -186,7 +186,7 @@ export default function RecoverOrdersByWhatsapp({
           role="dialog"
           aria-modal="true"
           aria-labelledby="recover-order-title"
-          className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-4"
           onClick={close}
         >
           <div
@@ -197,7 +197,7 @@ export default function RecoverOrdersByWhatsapp({
               <span id="recover-order-title" className="text-sm font-bold">
                 Recuperar meu pedido
               </span>
-              <button aria-label="Fechar" onClick={close} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">
+              <button aria-label="Fechar" onClick={close} className="focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-[4px]">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
@@ -237,7 +237,7 @@ export default function RecoverOrdersByWhatsapp({
                   <button
                     key={r.tracking_token}
                     onClick={() => navigate(`/pedido/${r.tracking_token}`)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 border-b border-border last:border-0 focus:outline-none focus-visible:bg-secondary/60"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 border-b border-border last:border-0 focus:outline-hidden focus-visible:bg-secondary/60"
                   >
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm font-medium">{STATUS_LABELS[r.status] ?? "Em andamento"}</span>
