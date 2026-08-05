@@ -57,10 +57,10 @@ export default function DangerZone() {
           <DialogHeader>
             <DialogTitle className="text-destructive">Excluir conta permanentemente</DialogTitle>
             <DialogDescription>
-              {isOwner
-                ? "Todos os dados do restaurante (cardápio, pedidos, clientes, expedientes e cupons) serão apagados para sempre."
-                : "Seu acesso e suas preferências serão apagados para sempre."}
+              Todos os dados do restaurante (cardápio, pedidos, clientes, expedientes e cupons) e as contas da equipe
+              serão apagados para sempre.
             </DialogDescription>
+
           </DialogHeader>
           <div className="space-y-2">
             <Label>
