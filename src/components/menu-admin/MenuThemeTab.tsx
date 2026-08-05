@@ -294,7 +294,7 @@ export default function MenuThemeTab({ restaurantId, currentTheme, currentThemeM
                     {active && (
                       <motion.span
                         layoutId="device-pill"
-                        className="absolute inset-0 rounded-xl bg-card border border-border/70 shadow-sm"
+                        className="absolute inset-0 rounded-xl bg-card border border-border/70 shadow-xs"
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
@@ -683,9 +683,9 @@ function MiniMenu({
       {desktop ? (
         <div className="flex gap-2">
           <div className="w-12 shrink-0 space-y-1">
-            <div className="px-1 py-0.5 rounded text-[6px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
+            <div className="px-1 py-0.5 rounded-[4px] text-[6px] font-semibold text-black truncate" style={{ backgroundColor: color }}>Destaques</div>
             {["Combos", "Temakis", "Bebidas"].map((c) => (
-              <div key={c} className="px-1 py-0.5 rounded text-[6px] bg-white/[0.06] text-muted-foreground truncate">{c}</div>
+              <div key={c} className="px-1 py-0.5 rounded-[4px] text-[6px] bg-white/[0.06] text-muted-foreground truncate">{c}</div>
             ))}
           </div>
           <div className="flex-1 min-w-0">

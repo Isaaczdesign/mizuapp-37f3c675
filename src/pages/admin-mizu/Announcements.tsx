@@ -120,7 +120,7 @@ function AnnouncementTabs({ mode }: { mode: Mode }) {
           to={t.to}
           className={`rounded-[10px] px-3.5 py-1.5 text-xs font-medium transition-colors ${
             mode === t.id
-              ? "bg-primary text-primary-foreground shadow-sm"
+              ? "bg-primary text-primary-foreground shadow-xs"
               : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
           }`}
         >

@@ -985,7 +985,7 @@ const PublicMenu = () => {
                     <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                   </label>
                 <AutoResizeTextarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-[hsl(var(--menu-ink)/0.04)] ${BORDER} text-[16px] leading-snug outline-none focus:border-[hsl(var(--menu-ink)/0.2)] transition-colors placeholder:text-[hsl(var(--menu-ink)/0.3)]`}
+                    className={`w-full mt-1.5 p-3 ${R_FIELD} bg-[hsl(var(--menu-ink)/0.04)] ${BORDER} text-[16px] leading-snug outline-hidden focus:border-[hsl(var(--menu-ink)/0.2)] transition-colors placeholder:text-[hsl(var(--menu-ink)/0.3)]`}
                     placeholder="Sem wasabi, alergia a amendoim..." />
                 </div>
               </div>
@@ -1177,7 +1177,7 @@ const PublicMenu = () => {
                               addresses: enabled ? savedAddresses : [],
                             });
                           }}
-                          className="rounded w-[18px] h-[18px] shrink-0"
+                          className="rounded-[4px] w-[18px] h-[18px] shrink-0"
                           style={{ accentColor }}
                         />
                         <span className="text-muted-foreground">Preencher automaticamente meus dados neste dispositivo</span>
@@ -1381,7 +1381,7 @@ const PublicMenu = () => {
 
                   <label className={`flex items-center gap-2.5 ${TOUCH} text-sm text-muted-foreground cursor-pointer`}>
                     <input type="checkbox" checked={consentMarketing} onChange={(e) => setConsentMarketing(e.target.checked)}
-                      className="rounded w-[18px] h-[18px] shrink-0" style={{ accentColor }} />
+                      className="rounded-[4px] w-[18px] h-[18px] shrink-0" style={{ accentColor }} />
                     Aceito receber promoções por WhatsApp
                   </label>
 
@@ -1622,7 +1622,7 @@ const PublicMenu = () => {
                       <StickyNote className="w-3.5 h-3.5" strokeWidth={ICON_STROKE} /> Observações
                     </label>
                     <AutoResizeTextarea value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-[hsl(var(--menu-ink)/0.04)] ${BORDER} text-[16px] leading-snug outline-none focus:border-[hsl(var(--menu-ink)/0.2)] transition-colors`}
+                      className={`w-full mt-1.5 p-3 ${R_FIELD} bg-[hsl(var(--menu-ink)/0.04)] ${BORDER} text-[16px] leading-snug outline-hidden focus:border-[hsl(var(--menu-ink)/0.2)] transition-colors`}
                       placeholder="Sem wasabi, alergia a amendoim..." />
                   </div>
 

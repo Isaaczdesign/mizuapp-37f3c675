@@ -568,7 +568,7 @@ const Dashboard = () => {
                 </div>
                 <div className="max-h-56 overflow-y-auto space-y-1.5 rounded-lg border border-border p-2">
                   {openOrders.map((o) => (
-                    <div key={o.id} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded hover:bg-secondary">
+                    <div key={o.id} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-[4px] hover:bg-secondary">
                       <div className="flex flex-col min-w-0">
                         <span className="font-mono truncate">{orderRef(o)}</span>
                         <span className="text-muted-foreground">

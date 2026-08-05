@@ -638,7 +638,7 @@ export default function OrderTracking() {
                   placeholder={cancelReasonType === "Outro" ? "Conte para o restaurante o que aconteceu…" : "Detalhes adicionais (opcional)"}
                   rows={2}
                   maxLength={280}
-                  className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2 text-sm outline-hidden focus:border-primary"
                 />
               </div>
 
