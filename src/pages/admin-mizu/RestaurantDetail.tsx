@@ -225,7 +225,25 @@ export default function AdminRestaurantDetail() {
                 </Button>
               </div>
 
+              <div className="mt-4 border-t border-border/60 pt-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Alterar plano</p>
+                <div className="flex flex-wrap gap-2">
+                  {["trial", "basic", "pro"].map((p) => (
+                    <Button
+                      key={p}
+                      size="sm"
+                      variant="glass"
+                      disabled={String(subscription?.plan ?? "") === p}
+                      onClick={() => setConfirm({ title: `Alterar plano para "${p}"?`, body: "A mudança impacta imediatamente os limites deste cliente.", run: () => changePlan(p) })}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               <div className="mt-4 border-t border-destructive/40 pt-4">
+
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-destructive">Zona de risco</p>
                 <p className="mb-3 text-xs text-muted-foreground">
                   Banir bloqueia o login de todos os usuários vinculados e desativa o cardápio. Excluir apaga
