@@ -281,8 +281,12 @@ export default function MobileBottomNavigation({
               animate={{ y: 0 }}
               exit={reduceMotion ? { opacity: 0 } : { y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="relative max-h-[78dvh] overflow-y-auto rounded-t-[26px] border-t border-white/10 bg-[hsl(var(--menu-bg))] text-[hsl(var(--menu-ink))] px-5 pt-4"
-              style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom, 0px))" }}
+              className="relative max-h-[78dvh] overflow-y-auto overscroll-contain rounded-t-[26px] border-t border-white/10 bg-[hsl(var(--menu-bg))] text-[hsl(var(--menu-ink))] px-5 pt-4"
+              style={{
+                paddingBottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+                WebkitOverflowScrolling: "touch",
+                touchAction: "pan-y",
+              }}
             >
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[hsl(var(--menu-ink)/0.18)]" />
               <div className="flex items-center justify-between mb-4">
@@ -291,6 +295,7 @@ export default function MobileBottomNavigation({
                 </h2>
                 <button
                   type="button" onClick={() => setSheet(null)} aria-label="Fechar"
+                  style={{ touchAction: "manipulation" }}
                   className="w-9 h-9 rounded-xl flex items-center justify-center bg-[hsl(var(--menu-ink)/0.06)] border border-[hsl(var(--menu-ink)/0.08)]"
                 >
                   <X className="w-4 h-4" />
@@ -298,7 +303,12 @@ export default function MobileBottomNavigation({
               </div>
 
               {sheet === "orders" && (
-                orders.length === 0 ? (
+                ordersLoading ? (
+                  <>
+                    {rowSkeletons}
+                    <span className="sr-only" role="status">Carregando seus pedidos</span>
+                  </>
+                ) : orders.length === 0 ? (
                   <p className="py-8 text-center text-sm text-[hsl(var(--menu-ink-2))]">
                     Nenhum pedido em andamento no momento.
                   </p>
@@ -309,6 +319,7 @@ export default function MobileBottomNavigation({
                         <button
                           type="button"
                           onClick={() => { setSheet(null); navigate(`/pedido/${o.token}`); }}
+                          style={{ touchAction: "manipulation" }}
                           className="w-full flex items-center gap-3 rounded-2xl border border-[hsl(var(--menu-ink)/0.08)] bg-[hsl(var(--menu-ink)/0.04)] px-4 py-3 text-left active:scale-[0.98] transition-transform"
                         >
                           <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accent}25` }}>
@@ -330,7 +341,24 @@ export default function MobileBottomNavigation({
 
               {sheet === "coupons" && (
                 loadingCoupons ? (
-                  <p className="py-8 text-center text-sm text-[hsl(var(--menu-ink-2))]">Carregando cupons...</p>
+                  <>
+                    {rowSkeletons}
+                    <span className="sr-only" role="status">Carregando cupons</span>
+                  </>
+                ) : couponsError ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-[hsl(var(--menu-ink-2))]">
+                      Não foi possível carregar os cupons.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={fetchCoupons}
+                      style={{ background: accent, color: activeInk, touchAction: "manipulation" }}
+                      className="mt-4 min-h-[44px] px-5 rounded-xl text-sm font-bold active:scale-95 transition-transform"
+                    >
+                      Tentar novamente
+                    </button>
+                  </div>
                 ) : !coupons?.length ? (
                   <p className="py-8 text-center text-sm text-[hsl(var(--menu-ink-2))]">
                     Nenhum cupom disponível no momento.
@@ -356,7 +384,7 @@ export default function MobileBottomNavigation({
                           onClick={() => copyCode(c.code)}
                           aria-label={`Copiar cupom ${c.code}`}
                           className="min-h-[44px] min-w-[44px] px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
-                          style={{ background: accent, color: activeInk }}
+                          style={{ background: accent, color: activeInk, touchAction: "manipulation" }}
                         >
                           {copied === c.code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                           {copied === c.code ? "Copiado" : "Copiar"}
@@ -366,6 +394,7 @@ export default function MobileBottomNavigation({
                   </ul>
                 )
               )}
+
             </motion.div>
           </motion.div>
         )}
