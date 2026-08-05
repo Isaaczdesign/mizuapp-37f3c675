@@ -54,7 +54,7 @@ export default function AdminRestaurants() {
       setLoading(false);
     });
     return () => { active = false; };
-  }, [page, query, status]);
+  }, [page, query, status, refresh]);
 
   const pages = useMemo(() => Math.max(1, Math.ceil(count / PAGE_SIZE)), [count]);
 
