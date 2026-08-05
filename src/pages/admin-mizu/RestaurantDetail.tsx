@@ -36,7 +36,54 @@ export default function AdminRestaurantDetail() {
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<null | { title: string; body: string; run: () => Promise<unknown> }>(null);
 
+  const [actionReason, setActionReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+
+  const runAdminAction = (action: "ban" | "unban" | "delete") => {
+    if (action !== "unban" && actionReason.trim().length < 3) {
+      toast.error("Informe o motivo (mínimo 3 caracteres).");
+      return;
+    }
+    const titles = {
+      ban: "Banir este restaurante?",
+      unban: "Remover o banimento?",
+      delete: "Excluir definitivamente?",
+    } as const;
+    const bodies = {
+      ban: "Todos os usuários vinculados ficarão impedidos de entrar e o cardápio público será desativado.",
+      unban: "Os usuários voltarão a acessar e o cardápio será reativado.",
+      delete: "Restaurante, cardápio, pedidos, clientes e as contas dos usuários vinculados serão apagados para sempre. Não há como desfazer.",
+    } as const;
+    setConfirm({
+      title: titles[action],
+      body: bodies[action],
+      run: async () => {
+        setBusy(true);
+        try {
+          const { data, error } = await supabase.functions.invoke("admin-account-action", {
+            body: { action, restaurant_id: id, reason: actionReason.trim() },
+          });
+          if (error) throw error;
+          if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+          toast.success(
+            action === "delete" ? "Restaurante e contas excluídos." :
+            action === "ban" ? "Restaurante banido." : "Banimento removido.",
+          );
+          setActionReason("");
+          if (action === "delete") navigate("/admin-mizu/restaurantes");
+          else load();
+        } catch (e) {
+          toast.error((e as Error).message || "Não foi possível concluir a ação.");
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
+  };
+
   const load = async () => {
+
     setLoading(true);
     const [r, sub, prof, ord, mi, nt, lg] = await Promise.all([
       supabase.from("restaurants").select("*").eq("id", id).maybeSingle(),
