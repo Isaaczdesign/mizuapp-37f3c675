@@ -85,12 +85,9 @@ export default function MobileBottomNavigation({
   const [copied, setCopied] = useState<string | null>(null);
 
   const refreshOrders = useCallback(() => {
-    setOrdersLoading(true);
-    // leitura local é síncrona; o micro-delay evita "flash" de estado vazio
-    window.setTimeout(() => {
-      setOrders(loadActiveOrders(restaurantSlug ?? undefined));
-      setOrdersLoading(false);
-    }, 120);
+    // leitura local é síncrona: nada de delay artificial (evita sensação de travamento)
+    setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+    setOrdersLoading(false);
   }, [restaurantSlug]);
 
   const fetchCoupons = useCallback(() => {
@@ -113,43 +110,61 @@ export default function MobileBottomNavigation({
       });
   }, [restaurantId]);
 
+  // Pré-carrega cupons e pedidos em idle para o sheet abrir instantâneo.
+  useEffect(() => {
+    if (!restaurantId) return;
+    const ric: typeof window.requestIdleCallback | undefined = window.requestIdleCallback;
+    const run = () => {
+      setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+      fetchCoupons();
+    };
+    const id = ric ? ric(run, { timeout: 2000 }) : window.setTimeout(run, 800);
+    return () => {
+      if (ric && window.cancelIdleCallback) window.cancelIdleCallback(id as number);
+      else window.clearTimeout(id as number);
+    };
+  }, [restaurantId, restaurantSlug, fetchCoupons]);
+
   useEffect(() => {
     if (sheet === "orders") refreshOrders();
     if (sheet === "coupons" && coupons === null && !loadingCoupons && !couponsError) fetchCoupons();
   }, [sheet, coupons, loadingCoupons, couponsError, fetchCoupons, refreshOrders]);
 
-  // Trava o scroll do fundo enquanto o sheet está aberto (sem pular a posição).
+  // Trava o scroll do fundo enquanto o sheet está aberto.
+  // Usamos overflow/overscroll (sem `position: fixed`) para evitar o reflow
+  // pesado da página inteira, que causava a sensação de travamento no toque.
   useEffect(() => {
     if (!sheet) return;
-    const y = window.scrollY;
+    const root = document.documentElement;
     const body = document.body;
     const prev = {
-      position: body.style.position,
-      top: body.style.top,
-      width: body.style.width,
-      overflow: body.style.overflow,
+      rootOverflow: root.style.overflow,
+      bodyOverflow: body.style.overflow,
       overscroll: body.style.overscrollBehavior,
     };
-    body.style.position = "fixed";
-    body.style.top = `-${y}px`;
-    body.style.width = "100%";
+    root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehavior = "none";
     return () => {
-      body.style.position = prev.position;
-      body.style.top = prev.top;
-      body.style.width = prev.width;
-      body.style.overflow = prev.overflow;
+      root.style.overflow = prev.rootOverflow;
+      body.style.overflow = prev.bodyOverflow;
       body.style.overscrollBehavior = prev.overscroll;
-      window.scrollTo(0, y);
     };
   }, [sheet]);
 
-  function handleTab(key: BottomNavTab) {
-    setInternalActive(key);
-    if (key === "cart") { setSheet(null); onOpenCart(); return; }
-    setSheet(key);
-  }
+  const handleTab = useCallback(
+    (key: BottomNavTab) => {
+      setInternalActive(key);
+      if (key === "cart") {
+        setSheet(null);
+        onOpenCart();
+        return;
+      }
+      setSheet(key);
+    },
+    [onOpenCart],
+  );
+
 
   async function copyCode(code: string) {
     try {
@@ -187,15 +202,16 @@ export default function MobileBottomNavigation({
             width: "calc(100% - 32px)",
             maxWidth: 420,
             borderRadius: 9999,
-            background: "rgba(14, 17, 20, 0.72)",
-            backdropFilter: "blur(22px) saturate(160%)",
-            WebkitBackdropFilter: "blur(22px) saturate(160%)",
+            background: "rgba(14, 17, 20, 0.82)",
+            backdropFilter: "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
             border: "1px solid rgba(255,255,255,0.10)",
             boxShadow: "0 12px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
             opacity: hidden ? 0 : 1,
-            transform: hidden ? "translateY(16px)" : "none",
+            transform: hidden ? "translate3d(0,16px,0)" : "translateZ(0)",
             transition: reduceMotion ? "none" : "opacity 240ms ease, transform 240ms ease",
             visibility: hidden ? "hidden" : "visible",
+            contain: "layout paint",
           }}
         >
           {/* reflexo interno superior */}
@@ -211,11 +227,18 @@ export default function MobileBottomNavigation({
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => handleTab(tab.key)}
+                onPointerDown={(e) => {
+                  // resposta imediata ao toque (sem esperar o clique sintético)
+                  if (e.pointerType === "touch") handleTab(tab.key);
+                }}
+                onClick={(e) => {
+                  if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
+                  handleTab(tab.key);
+                }}
                 aria-label={tab.aria}
                 aria-current={isActive ? "page" : undefined}
                 style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
-                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-200"
+                className="relative flex-1 min-h-[56px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-full select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.96] transition-transform duration-150"
               >
                 {isActive && (
                   <motion.span
