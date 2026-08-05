@@ -13,8 +13,7 @@ import { toast } from "sonner";
 const CONFIRM_WORD = "EXCLUIR";
 
 export default function DangerZone() {
-  const { roles, signOut } = useAuth();
-  const isOwner = roles.includes("owner");
+  const { signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,10 +43,10 @@ export default function DangerZone() {
         <h2 className="font-display font-bold text-destructive">Zona de risco</h2>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
-        {isOwner
-          ? "Excluir a conta remove permanentemente o restaurante, cardápio, pedidos, clientes e todos os acessos da equipe. Esta ação não pode ser desfeita."
-          : "Excluir a conta remove permanentemente o seu acesso e suas preferências. Esta ação não pode ser desfeita."}
+        Excluir a conta remove permanentemente o restaurante, cardápio, pedidos, clientes e todos os acessos da equipe.
+        Esta ação não pode ser desfeita.
       </p>
+
       <Button variant="destructive" className="w-full" onClick={() => { setConfirm(""); setOpen(true); }}>
         <Trash2 className="w-4 h-4 mr-2" /> Excluir minha conta
       </Button>
@@ -57,10 +56,10 @@ export default function DangerZone() {
           <DialogHeader>
             <DialogTitle className="text-destructive">Excluir conta permanentemente</DialogTitle>
             <DialogDescription>
-              {isOwner
-                ? "Todos os dados do restaurante (cardápio, pedidos, clientes, expedientes e cupons) serão apagados para sempre."
-                : "Seu acesso e suas preferências serão apagados para sempre."}
+              Todos os dados do restaurante (cardápio, pedidos, clientes, expedientes e cupons) e as contas da equipe
+              serão apagados para sempre.
             </DialogDescription>
+
           </DialogHeader>
           <div className="space-y-2">
             <Label>

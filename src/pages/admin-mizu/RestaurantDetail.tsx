@@ -1,17 +1,19 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminMizuLayout from "@/components/admin-mizu/AdminMizuLayout";
 import NoteActions from "@/components/admin-mizu/NoteActions";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Store, ShoppingBag, UtensilsCrossed, Users, CreditCard, ExternalLink } from "lucide-react";
+import { ArrowLeft, Store, ShoppingBag, UtensilsCrossed, Users, CreditCard, ExternalLink, Ban, Trash2 } from "lucide-react";
 import { SectionCard, StatCard, StatusPill, EmptyState, Notice } from "@/components/admin-mizu/ui";
 import { usePlatformRole, logPlatformAction } from "@/hooks/usePlatformRole";
 import { menuPath } from "@/lib/publicMenuUrl";
@@ -34,7 +36,54 @@ export default function AdminRestaurantDetail() {
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<null | { title: string; body: string; run: () => Promise<unknown> }>(null);
 
+  const [actionReason, setActionReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+
+  const runAdminAction = (action: "ban" | "unban" | "delete") => {
+    if (action !== "unban" && actionReason.trim().length < 3) {
+      toast.error("Informe o motivo (mínimo 3 caracteres).");
+      return;
+    }
+    const titles = {
+      ban: "Banir este restaurante?",
+      unban: "Remover o banimento?",
+      delete: "Excluir definitivamente?",
+    } as const;
+    const bodies = {
+      ban: "Todos os usuários vinculados ficarão impedidos de entrar e o cardápio público será desativado.",
+      unban: "Os usuários voltarão a acessar e o cardápio será reativado.",
+      delete: "Restaurante, cardápio, pedidos, clientes e as contas dos usuários vinculados serão apagados para sempre. Não há como desfazer.",
+    } as const;
+    setConfirm({
+      title: titles[action],
+      body: bodies[action],
+      run: async () => {
+        setBusy(true);
+        try {
+          const { data, error } = await supabase.functions.invoke("admin-account-action", {
+            body: { action, restaurant_id: id, reason: actionReason.trim() },
+          });
+          if (error) throw error;
+          if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+          toast.success(
+            action === "delete" ? "Restaurante e contas excluídos." :
+            action === "ban" ? "Restaurante banido." : "Banimento removido.",
+          );
+          setActionReason("");
+          if (action === "delete") navigate("/admin-mizu/restaurantes");
+          else load();
+        } catch (e) {
+          toast.error((e as Error).message || "Não foi possível concluir a ação.");
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
+  };
+
   const load = async () => {
+
     setLoading(true);
     const [r, sub, prof, ord, mi, nt, lg] = await Promise.all([
       supabase.from("restaurants").select("*").eq("id", id).maybeSingle(),
@@ -241,12 +290,36 @@ export default function AdminRestaurantDetail() {
                   ))}
                 </div>
               </div>
+
+              <div className="mt-4 border-t border-destructive/40 pt-4">
+
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-destructive">Zona de risco</p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Banir bloqueia o login de todos os usuários vinculados e desativa o cardápio. Excluir apaga
+                  definitivamente o restaurante, todos os dados e as contas dos usuários vinculados.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    value={actionReason}
+                    onChange={(e) => setActionReason(e.target.value)}
+                    placeholder="Motivo (obrigatório)"
+                    className="h-9 w-full max-w-xs"
+                  />
+                  <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("ban")}>
+                    <Ban className="mr-1.5 h-3.5 w-3.5" /> Banir
+                  </Button>
+                  <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("unban")}>
+                    Remover banimento
+                  </Button>
+                  <Button size="sm" variant="destructive" disabled={busy} onClick={() => runAdminAction("delete")}>
+                    <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Excluir conta + restaurante
+                  </Button>
+                </div>
+              </div>
             </>
           )}
-          <p className="mt-4 text-[11px] text-muted-foreground">
-            Exclusão definitiva não é permitida pelo painel — utilizamos suspensão e arquivamento para preservar histórico.
-          </p>
         </SectionCard>
+
 
         <SectionCard title="Observações internas" description="Não visível para o restaurante.">
           <Textarea value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} rows={3} placeholder="Registrar pendência, contato ou problema técnico" />
