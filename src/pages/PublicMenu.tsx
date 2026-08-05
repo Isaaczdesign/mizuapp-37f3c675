@@ -1,6 +1,6 @@
 import { formatPhoneBR, validatePhoneBR, validateFullName } from "@/lib/phoneBr";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Save, User, MessageSquare, Palette, CreditCard, UtensilsCrossed, Truck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import { menuUrl, isReservedSlug } from "@/lib/publicMenuUrl";
 

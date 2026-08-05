@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, TrendingUp, Users, DollarSign, ShoppingBag, Repeat, Target, Rocket, X, ExternalLink, Copy, Link, Lock, AlertTriangle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";

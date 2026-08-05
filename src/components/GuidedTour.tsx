@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "@/lib/router-compat";
 import { motion, AnimatePresence } from "framer-motion";
 import { QrCode, PlusCircle, ChefHat, LayoutDashboard, ArrowRight, ArrowLeft, Check, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";

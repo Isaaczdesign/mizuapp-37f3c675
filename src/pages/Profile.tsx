@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Save, Crown, User, IdCard, Bell, Settings as SettingsIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { PageShell, PageHeader } from "@/components/dashboard/ui";
 import DangerZone from "@/components/settings/DangerZone";
 import ChangePassword from "@/components/settings/ChangePassword";

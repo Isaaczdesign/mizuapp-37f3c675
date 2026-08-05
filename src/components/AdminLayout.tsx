@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "@/lib/router-compat";
 import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
 import { supportWhatsappUrl } from "@/lib/whatsappTemplates";
 import { useEffect, useRef, useState, type ReactNode } from "react";

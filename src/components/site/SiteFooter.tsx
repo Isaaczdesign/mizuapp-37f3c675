@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "@/lib/router-compat";
 import { Logo } from "@/components/Logo";
 import { whatsappUrl } from "@/lib/siteConfig";
 

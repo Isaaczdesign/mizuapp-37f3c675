@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ChevronRight, Bell, ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowDownLeft, ArrowDownRight, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
