@@ -225,28 +225,34 @@ export default function AdminRestaurantDetail() {
                 </Button>
               </div>
 
-              <div className="mt-4 border-t border-border/60 pt-4">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Alterar plano</p>
-                <div className="flex flex-wrap gap-2">
-                  {["trial", "basic", "pro"].map((p) => (
-                    <Button
-                      key={p}
-                      size="sm"
-                      variant="glass"
-                      disabled={String(subscription?.plan ?? "") === p}
-                      onClick={() => setConfirm({ title: `Alterar plano para "${p}"?`, body: "A mudança impacta imediatamente os limites deste cliente.", run: () => changePlan(p) })}
-                    >
-                      {p}
-                    </Button>
-                  ))}
+              <div className="mt-4 border-t border-destructive/40 pt-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-destructive">Zona de risco</p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Banir bloqueia o login de todos os usuários vinculados e desativa o cardápio. Excluir apaga
+                  definitivamente o restaurante, todos os dados e as contas dos usuários vinculados.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    value={actionReason}
+                    onChange={(e) => setActionReason(e.target.value)}
+                    placeholder="Motivo (obrigatório)"
+                    className="h-9 w-full max-w-xs"
+                  />
+                  <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("ban")}>
+                    <Ban className="mr-1.5 h-3.5 w-3.5" /> Banir
+                  </Button>
+                  <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("unban")}>
+                    Remover banimento
+                  </Button>
+                  <Button size="sm" variant="destructive" disabled={busy} onClick={() => runAdminAction("delete")}>
+                    <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Excluir conta + restaurante
+                  </Button>
                 </div>
               </div>
             </>
           )}
-          <p className="mt-4 text-[11px] text-muted-foreground">
-            Exclusão definitiva não é permitida pelo painel — utilizamos suspensão e arquivamento para preservar histórico.
-          </p>
         </SectionCard>
+
 
         <SectionCard title="Observações internas" description="Não visível para o restaurante.">
           <Textarea value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} rows={3} placeholder="Registrar pendência, contato ou problema técnico" />
