@@ -54,6 +54,7 @@ export default function MobileBottomNavigation({
   restaurantSlug,
   accentColor,
   cartItemCount,
+  cartLoading = false,
   onOpenCart,
   activeTab,
   hidden = false,
@@ -62,6 +63,7 @@ export default function MobileBottomNavigation({
   restaurantSlug: string | null;
   accentColor?: string | null;
   cartItemCount: number;
+  cartLoading?: boolean;
   onOpenCart: () => void;
   activeTab?: BottomNavTab;
   hidden?: boolean;
@@ -76,26 +78,72 @@ export default function MobileBottomNavigation({
   const activeInk = useMemo(() => readableInk(accent), [accent]);
 
   const [orders, setOrders] = useState<RecentOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [coupons, setCoupons] = useState<PublicCoupon[] | null>(null);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [couponsError, setCouponsError] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const refreshOrders = useCallback(() => {
-    setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+    setOrdersLoading(true);
+    // leitura local é síncrona; o micro-delay evita "flash" de estado vazio
+    window.setTimeout(() => {
+      setOrders(loadActiveOrders(restaurantSlug ?? undefined));
+      setOrdersLoading(false);
+    }, 120);
   }, [restaurantSlug]);
+
+  const fetchCoupons = useCallback(() => {
+    setLoadingCoupons(true);
+    setCouponsError(false);
+    (supabase as any)
+      .rpc("get_public_coupons", { _restaurant_id: restaurantId })
+      .then(({ data, error }: { data: PublicCoupon[] | null; error: unknown }) => {
+        if (error) {
+          setCouponsError(true);
+          setCoupons(null);
+        } else {
+          setCoupons(data ?? []);
+        }
+        setLoadingCoupons(false);
+      })
+      .catch(() => {
+        setCouponsError(true);
+        setLoadingCoupons(false);
+      });
+  }, [restaurantId]);
 
   useEffect(() => {
     if (sheet === "orders") refreshOrders();
-    if (sheet === "coupons" && coupons === null) {
-      setLoadingCoupons(true);
-      (supabase as any)
-        .rpc("get_public_coupons", { _restaurant_id: restaurantId })
-        .then(({ data }: { data: PublicCoupon[] | null }) => {
-          setCoupons(data ?? []);
-          setLoadingCoupons(false);
-        });
-    }
-  }, [sheet, coupons, restaurantId, refreshOrders]);
+    if (sheet === "coupons" && coupons === null && !loadingCoupons && !couponsError) fetchCoupons();
+  }, [sheet, coupons, loadingCoupons, couponsError, fetchCoupons, refreshOrders]);
+
+  // Trava o scroll do fundo enquanto o sheet está aberto (sem pular a posição).
+  useEffect(() => {
+    if (!sheet) return;
+    const y = window.scrollY;
+    const body = document.body;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      overscroll: body.style.overscrollBehavior,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${y}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    return () => {
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      body.style.overscrollBehavior = prev.overscroll;
+      window.scrollTo(0, y);
+    };
+  }, [sheet]);
 
   function handleTab(key: BottomNavTab) {
     setInternalActive(key);
@@ -113,6 +161,18 @@ export default function MobileBottomNavigation({
       toast.error("Não foi possível copiar o cupom");
     }
   }
+
+  const rowSkeletons = (
+    <ul className="space-y-2 pb-2" aria-hidden>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <li
+          key={i}
+          className="h-[62px] rounded-2xl bg-[hsl(var(--menu-ink)/0.06)] animate-pulse motion-reduce:animate-none"
+        />
+      ))}
+    </ul>
+  );
+
 
   const nav = (
     <>
