@@ -130,38 +130,41 @@ export default function MobileBottomNavigation({
     if (sheet === "coupons" && coupons === null && !loadingCoupons && !couponsError) fetchCoupons();
   }, [sheet, coupons, loadingCoupons, couponsError, fetchCoupons, refreshOrders]);
 
-  // Trava o scroll do fundo enquanto o sheet está aberto (sem pular a posição).
+  // Trava o scroll do fundo enquanto o sheet está aberto.
+  // Usamos overflow/overscroll (sem `position: fixed`) para evitar o reflow
+  // pesado da página inteira, que causava a sensação de travamento no toque.
   useEffect(() => {
     if (!sheet) return;
-    const y = window.scrollY;
+    const root = document.documentElement;
     const body = document.body;
     const prev = {
-      position: body.style.position,
-      top: body.style.top,
-      width: body.style.width,
-      overflow: body.style.overflow,
+      rootOverflow: root.style.overflow,
+      bodyOverflow: body.style.overflow,
       overscroll: body.style.overscrollBehavior,
     };
-    body.style.position = "fixed";
-    body.style.top = `-${y}px`;
-    body.style.width = "100%";
+    root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehavior = "none";
     return () => {
-      body.style.position = prev.position;
-      body.style.top = prev.top;
-      body.style.width = prev.width;
-      body.style.overflow = prev.overflow;
+      root.style.overflow = prev.rootOverflow;
+      body.style.overflow = prev.bodyOverflow;
       body.style.overscrollBehavior = prev.overscroll;
-      window.scrollTo(0, y);
     };
   }, [sheet]);
 
-  function handleTab(key: BottomNavTab) {
-    setInternalActive(key);
-    if (key === "cart") { setSheet(null); onOpenCart(); return; }
-    setSheet(key);
-  }
+  const handleTab = useCallback(
+    (key: BottomNavTab) => {
+      setInternalActive(key);
+      if (key === "cart") {
+        setSheet(null);
+        onOpenCart();
+        return;
+      }
+      setSheet(key);
+    },
+    [onOpenCart],
+  );
+
 
   async function copyCode(code: string) {
     try {
