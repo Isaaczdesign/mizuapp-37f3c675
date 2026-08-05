@@ -1,0 +1,329 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system Mizu.
+ *
+ * Tokens are stored as raw HSL triplets (e.g. `39 30% 97%`) so that both the
+ * Tailwind utilities (via the @theme inline hsl(var(--x)) mapping) and the
+ * arbitrary-value patterns used across the codebase (`hsl(var(--accent)/0.35)`)
+ * keep working exactly as they did on Tailwind v3.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-ring-offset-background: hsl(var(--background));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --color-brand-ink: hsl(0 0% 7%);
+  --color-brand-sand: hsl(var(--brand-sand));
+  --color-brand-ember: hsl(var(--brand-ember));
+  --color-brand-cream: hsl(var(--brand-cream));
+  --color-brand-graphite: hsl(var(--brand-graphite));
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-up: fade-up 0.7s ease-out forwards;
+  --animate-fade-in: fade-in 0.5s ease-out forwards;
+  --animate-slide-next: slide-next 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-slide-prev: slide-prev 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+@keyframes fade-up {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes slide-next {
+  0% { opacity: 0; transform: translateX(28px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-prev {
+  0% { opacity: 0; transform: translateX(-28px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(14 87% 49% / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(14 87% 49% / 0.6); }
+}
+
+/* ── Tema claro (padrão do :root) ───────────────────────── */
+:root {
+  --background: 39 30% 97%;
+  --foreground: 0 0% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+
+  --primary: 14 87% 46%;
+  --primary-foreground: 39 30% 98%;
+
+  --secondary: 39 22% 93%;
+  --secondary-foreground: 0 0% 14%;
+
+  --muted: 39 22% 93%;
+  --muted-foreground: 30 6% 40%;
+
+  --accent: 34 78% 40%;
+  --accent-foreground: 39 30% 98%;
+
+  --destructive: 14 87% 46%;
+  --destructive-foreground: 39 30% 98%;
+
+  --border: 36 14% 86%;
+  --input: 36 14% 86%;
+  --ring: 34 78% 40%;
+
+  --radius: 0.75rem;
+
+  --sidebar-background: 39 30% 97%;
+  --sidebar-foreground: 0 0% 14%;
+  --sidebar-primary: 34 78% 40%;
+  --sidebar-primary-foreground: 39 30% 98%;
+  --sidebar-accent: 39 22% 93%;
+  --sidebar-accent-foreground: 0 0% 14%;
+  --sidebar-border: 36 14% 86%;
+  --sidebar-ring: 34 78% 40%;
+
+  /* Custom tokens */
+  --brand-sand: 34 78% 40%;
+  --brand-ember: 14 87% 46%;
+  --brand-cream: 39 30% 91%;
+  --brand-graphite: 150 2% 88%;
+
+  --glass: 0 0% 10% / 0.04;
+  --glass-border: 0 0% 10% / 0.08;
+  --glass-hover: 0 0% 10% / 0.06;
+  --orange-glow: 14 87% 46% / 0.22;
+  --gradient-orange: linear-gradient(135deg, hsl(14, 87%, 46%), hsl(34, 78%, 45%));
+  --gradient-dark: linear-gradient(180deg, hsl(39, 30%, 98%), hsl(39, 25%, 94%));
+  --shadow-orange: 0 8px 32px -8px hsl(14 87% 46% / 0.28);
+  --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.08);
+
+  /* Cardápio público */
+  --menu-bg: 39 26% 96%;
+  --menu-soft: 39 22% 93%;
+  --menu-card: 0 0% 100%;
+  --menu-raised: 39 22% 97%;
+  --menu-ink: 0 0% 10%;
+  --menu-ink-2: 30 6% 38%;
+  --menu-ink-3: 30 5% 52%;
+  --menu-on-accent: 0 0% 100%;
+}
+
+/* ── Tema escuro (Mizu — #111111 #ffdc8b #2c2e2d #e84310 #efeae1) ── */
+.dark {
+  --background: 0 0% 7%;
+  --foreground: 39 30% 91%;
+
+  --card: 150 2% 13%;
+  --card-foreground: 39 30% 91%;
+
+  --popover: 150 2% 13%;
+  --popover-foreground: 39 30% 91%;
+
+  --primary: 14 87% 49%;
+  --primary-foreground: 39 30% 96%;
+
+  --secondary: 150 2% 18%;
+  --secondary-foreground: 39 30% 91%;
+
+  --muted: 150 2% 18%;
+  --muted-foreground: 39 15% 78%;
+
+  --accent: 42 100% 77%;
+  --accent-foreground: 0 0% 7%;
+
+  --destructive: 14 87% 49%;
+  --destructive-foreground: 39 30% 96%;
+
+  --border: 150 2% 22%;
+  --input: 150 2% 22%;
+  --ring: 42 100% 77%;
+
+  --sidebar-background: 0 0% 7%;
+  --sidebar-foreground: 39 30% 91%;
+  --sidebar-primary: 42 100% 77%;
+  --sidebar-primary-foreground: 0 0% 7%;
+  --sidebar-accent: 150 2% 18%;
+  --sidebar-accent-foreground: 39 30% 91%;
+  --sidebar-border: 150 2% 22%;
+  --sidebar-ring: 42 100% 77%;
+
+  --brand-sand: 42 100% 77%;
+  --brand-ember: 14 87% 49%;
+  --brand-cream: 39 30% 91%;
+  --brand-graphite: 150 2% 18%;
+
+  --glass: 39 30% 91% / 0.05;
+  --glass-border: 39 30% 91% / 0.08;
+  --glass-hover: 39 30% 91% / 0.1;
+  --orange-glow: 14 87% 49% / 0.3;
+  --gradient-orange: linear-gradient(135deg, hsl(14, 87%, 49%), hsl(42, 100%, 77%));
+  --gradient-dark: linear-gradient(180deg, hsl(0, 0%, 7%), hsl(0, 0%, 4%));
+  --shadow-orange: 0 8px 32px -8px hsl(14 87% 49% / 0.4);
+  --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.4);
+
+  /* Cardápio público */
+  --menu-bg: 180 6% 3%;
+  --menu-soft: 180 4% 5%;
+  --menu-card: 180 2% 8%;
+  --menu-raised: 180 2% 9%;
+  --menu-ink: 60 11% 96%;
+  --menu-ink-2: 60 2% 64%;
+  --menu-ink-3: 60 3% 45%;
+  --menu-on-accent: 180 6% 3%;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer components {
+  /* Marca Mizu (areia clara) precisa escurecer no tema claro para manter contraste */
+  .logo-adaptive {
+    filter: brightness(0.6) saturate(1.5);
+  }
+
+  .dark .logo-adaptive {
+    filter: none;
+  }
+
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-xl border border-border/70 rounded-[20px];
+    box-shadow: 0 1px 0 0 hsl(var(--foreground) / 0.04) inset, 0 12px 40px -24px hsl(0 0% 0% / 0.9);
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+
+  .glass-card-hover:hover {
+    @apply border-accent/25 bg-card/90;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 50px -28px hsl(var(--accent) / 0.35);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-orange);
+  }
+
+  .glow-orange {
+    box-shadow: var(--shadow-orange);
+  }
+
+  .section-padding {
+    @apply px-4 py-16 md:px-8 md:py-24 lg:px-16 lg:py-32;
+  }
+}
+
+/* iOS: evita o zoom automático ao focar campos (Safari amplia quando a fonte < 16px).
+   Vale para telas pequenas com ponteiro grosso (celular/tablet). */
+@media (max-width: 1023px) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+    line-height: 1.35;
+  }
+}
+
+/* Sheets/dialogs: o scroll interno não deve "vazar" para o body (iOS) */
+[role="dialog"] .overflow-y-auto,
+[role="dialog"] .overflow-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Acessibilidade: usuários com "reduzir animações" (iOS/Android/desktop).
+   Transições do formulário/sheets ficam instantâneas — sem sensação de salto. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html:focus-within {
+    scroll-behavior: auto !important;
+  }
+}
