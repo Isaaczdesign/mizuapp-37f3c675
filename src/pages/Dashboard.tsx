@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense, lazy } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { orderRef } from "@/lib/orderNumber";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+const RevenueChart = lazy(() => import("@/components/dashboard/DashboardCharts").then((m) => ({ default: m.RevenueChart })));
+const PeakHoursChart = lazy(() => import("@/components/dashboard/DashboardCharts").then((m) => ({ default: m.PeakHoursChart })));
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
