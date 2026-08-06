@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, Row, Cell, StatusPill, EmptyState, Toolbar, SegmentedControl, Notice } from "@/components/admin-mizu/ui";
 import { ShieldAlert, Search, RotateCcw } from "lucide-react";
 
-const ACTIONS = ["restaurant.banned", "restaurant.unbanned", "restaurant.deleted"] as const;
+const ACTIONS = ["restaurant.banned", "restaurant.unbanned", "restaurant.reactivated", "restaurant.suspended", "restaurant.deleted"] as const;
 
 type Log = {
   id: string;
@@ -23,6 +23,8 @@ type Log = {
 const LABEL: Record<string, { text: string; tone: "danger" | "warning" | "success" }> = {
   "restaurant.banned": { text: "Banimento", tone: "warning" },
   "restaurant.unbanned": { text: "Reativação", tone: "success" },
+  "restaurant.reactivated": { text: "Reativação", tone: "success" },
+  "restaurant.suspended": { text: "Suspensão", tone: "warning" },
   "restaurant.deleted": { text: "Exclusão", tone: "danger" },
 };
 
@@ -71,7 +73,14 @@ export default function AdminModeration() {
     const fromTs = from ? new Date(`${from}T00:00:00`).getTime() : null;
     const toTs = to ? new Date(`${to}T23:59:59`).getTime() : null;
     return logs.filter((l) => {
-      if (type !== "all" && l.action !== `restaurant.${type === "ban" ? "banned" : type === "unban" ? "unbanned" : "deleted"}`) return false;
+      if (type !== "all") {
+        const allowed = type === "ban"
+          ? ["restaurant.banned", "restaurant.suspended"]
+          : type === "unban"
+            ? ["restaurant.unbanned", "restaurant.reactivated"]
+            : ["restaurant.deleted"];
+        if (!allowed.includes(l.action)) return false;
+      }
       const created = new Date(l.created_at).getTime();
       if (fromTs && created < fromTs) return false;
       if (toTs && created > toTs) return false;
