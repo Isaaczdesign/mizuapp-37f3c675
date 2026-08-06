@@ -14,7 +14,7 @@ import { Ban, MoreVertical, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlatformRole } from "@/hooks/usePlatformRole";
 
-type Action = "ban" | "unban" | "delete";
+type Action = "ban" | "reactivate" | "delete";
 
 const CONFIRM_WORD = "EXCLUIR";
 
@@ -24,10 +24,10 @@ const COPY: Record<Action, { title: string; body: string; cta: string }> = {
     body: "Todos os usuários vinculados ficarão impedidos de entrar e o cardápio público será desativado.",
     cta: "Banir",
   },
-  unban: {
-    title: "Remover banimento",
-    body: "Os usuários voltarão a acessar o painel e o cardápio será reativado.",
-    cta: "Reativar",
+  reactivate: {
+    title: "Reativar restaurante",
+    body: "O banimento (se houver) será removido, os usuários voltam a acessar o painel e o QR menu volta a aceitar pedidos.",
+    cta: "Reativar restaurante",
   },
   delete: {
     title: "Excluir restaurante e contas",
@@ -55,7 +55,7 @@ export default function ModerationMenu({
 
   const canRun =
     !!action &&
-    (action === "unban" || reason.trim().length >= 3) &&
+    (action === "reactivate" || reason.trim().length >= 3) &&
     (action !== "delete" || confirmWord.trim().toUpperCase() === CONFIRM_WORD);
 
   async function run() {
@@ -69,7 +69,7 @@ export default function ModerationMenu({
       if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
       toast.success(
         action === "delete" ? "Restaurante e contas excluídos."
-          : action === "ban" ? "Restaurante banido." : "Banimento removido.",
+          : action === "ban" ? "Restaurante banido." : "Restaurante reativado — painel e QR menu liberados.",
       );
       const done = action;
       setAction(null);
@@ -90,15 +90,14 @@ export default function ModerationMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align={align} className="w-52">
-          {restaurant.is_active ? (
+          {restaurant.is_active && (
             <DropdownMenuItem onSelect={() => open("ban")}>
               <Ban className="mr-2 h-4 w-4" /> Banir restaurante
             </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onSelect={() => open("unban")}>
-              <ShieldCheck className="mr-2 h-4 w-4" /> Remover banimento
-            </DropdownMenuItem>
           )}
+          <DropdownMenuItem onSelect={() => open("reactivate")}>
+            <ShieldCheck className="mr-2 h-4 w-4" /> Reativar restaurante
+          </DropdownMenuItem>
           <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => open("delete")}>
             <Trash2 className="mr-2 h-4 w-4" /> Excluir conta + restaurante
           </DropdownMenuItem>
@@ -120,7 +119,7 @@ export default function ModerationMenu({
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Motivo {action === "unban" ? "(opcional)" : "(obrigatório)"}</Label>
+                  <Label>Motivo {action === "reactivate" ? "(opcional)" : "(obrigatório)"}</Label>
                   <Textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
@@ -141,7 +140,7 @@ export default function ModerationMenu({
               <DialogFooter className="gap-2">
                 <Button variant="outline" onClick={() => setAction(null)} disabled={busy}>Cancelar</Button>
                 <Button
-                  variant={action === "unban" ? "default" : "destructive"}
+                  variant={action === "reactivate" ? "default" : "destructive"}
                   onClick={run}
                   disabled={busy || !canRun}
                 >

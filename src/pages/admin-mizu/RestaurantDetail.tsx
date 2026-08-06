@@ -40,19 +40,19 @@ export default function AdminRestaurantDetail() {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
-  const runAdminAction = (action: "ban" | "unban" | "delete") => {
-    if (action !== "unban" && actionReason.trim().length < 3) {
+  const runAdminAction = (action: "ban" | "reactivate" | "delete") => {
+    if (action !== "reactivate" && actionReason.trim().length < 3) {
       toast.error("Informe o motivo (mínimo 3 caracteres).");
       return;
     }
     const titles = {
       ban: "Banir este restaurante?",
-      unban: "Remover o banimento?",
+      reactivate: "Reativar restaurante?",
       delete: "Excluir definitivamente?",
     } as const;
     const bodies = {
       ban: "Todos os usuários vinculados ficarão impedidos de entrar e o cardápio público será desativado.",
-      unban: "Os usuários voltarão a acessar e o cardápio será reativado.",
+      reactivate: "O banimento (se houver) será removido, os usuários voltam a acessar o painel e o QR menu volta a aceitar pedidos.",
       delete: "Restaurante, cardápio, pedidos, clientes e as contas dos usuários vinculados serão apagados para sempre. Não há como desfazer.",
     } as const;
     setConfirm({
@@ -68,7 +68,7 @@ export default function AdminRestaurantDetail() {
           if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
           toast.success(
             action === "delete" ? "Restaurante e contas excluídos." :
-            action === "ban" ? "Restaurante banido." : "Banimento removido.",
+            action === "ban" ? "Restaurante banido." : "Restaurante reativado — painel e QR menu liberados.",
           );
           setActionReason("");
           if (action === "delete") navigate("/admin-mizu/restaurantes");
@@ -115,6 +115,24 @@ export default function AdminRestaurantDetail() {
     });
     toast.success(next ? "Restaurante reativado." : "Restaurante suspenso.");
     load();
+  };
+
+  const reactivateNow = async () => {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-account-action", {
+        body: { action: "reactivate", restaurant_id: id, reason: actionReason.trim() },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      toast.success("Restaurante reativado — painel e QR menu liberados.");
+      setActionReason("");
+      load();
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível reativar.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const changePlan = async (plan: string) => {
@@ -257,8 +275,11 @@ export default function AdminRestaurantDetail() {
                       title: restaurant.is_active ? "Suspender restaurante?" : "Reativar restaurante?",
                       body: restaurant.is_active
                         ? "O cardápio público deixará de aceitar pedidos. Nenhum dado é apagado."
-                        : "O cardápio público voltará a ficar disponível.",
-                      run: () => setActive(!restaurant.is_active),
+                        : "O banimento (se houver) será removido, os usuários voltam a acessar o painel e o QR menu volta a aceitar pedidos.",
+                      run: async () =>
+                        restaurant.is_active
+                          ? setActive(false)
+                          : reactivateNow(),
                     })
                   }
                 >
@@ -308,8 +329,8 @@ export default function AdminRestaurantDetail() {
                   <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("ban")}>
                     <Ban className="mr-1.5 h-3.5 w-3.5" /> Banir
                   </Button>
-                  <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("unban")}>
-                    Remover banimento
+                  <Button size="sm" variant="glass" disabled={busy} onClick={() => runAdminAction("reactivate")}>
+                    Reativar restaurante
                   </Button>
                   <Button size="sm" variant="destructive" disabled={busy} onClick={() => runAdminAction("delete")}>
                     <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Excluir conta + restaurante
