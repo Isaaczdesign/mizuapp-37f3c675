@@ -113,6 +113,7 @@ const PublicMenu = () => {
 
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [suspended, setSuspended] = useState<{ name: string } | null>(null);
   const [tableId, setTableId] = useState<string | null>(null);
   const [tables, setTables] = useState<{ id: string; number: number }[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
