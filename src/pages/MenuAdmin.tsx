@@ -652,6 +652,7 @@ const MenuAdmin = () => {
     name: "", description: "", price: "", image: null as File | null,
     ingredients: "", allergens: "", cost_estimate: "", margin_percent: "", tags: [] as string[],
   });
+  const [customTag, setCustomTag] = useState("");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
