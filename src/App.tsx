@@ -141,7 +141,9 @@ const App = () => (
             <Route path="/:slug" element={<RootSlugMenu />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </PlanProvider>
         </AuthProvider>
+
       </BrowserRouter>
     </TooltipProvider>
     </MotionConfig>
