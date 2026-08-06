@@ -265,7 +265,15 @@ const PublicMenu = () => {
       .rpc("get_public_restaurant_by_slug", { _slug: slug });
     const rest = Array.isArray(restaurantRows) ? restaurantRows[0] : restaurantRows;
     if (restaurantError) console.error("Erro ao carregar cardápio público:", restaurantError);
-    if (!rest) { setLoading(false); return; }
+    if (!rest) {
+      const { data: stateRows } = await (supabase as any)
+        .rpc("get_restaurant_public_state", { _slug: slug });
+      const state = Array.isArray(stateRows) ? stateRows[0] : stateRows;
+      if (state && state.is_active === false) setSuspended({ name: state.name });
+      setLoading(false);
+      return;
+    }
+    setSuspended(null);
     setRestaurant(rest as any);
 
     if (rest.operating_hours) setOperatingHours(rest.operating_hours);
