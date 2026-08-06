@@ -40,9 +40,9 @@ Deno.serve(async (req) => {
     const restaurantId = String(body?.restaurant_id ?? "");
     const reason = String(body?.reason ?? "").trim().slice(0, 500);
 
-    if (!["ban", "unban", "delete"].includes(action)) return json({ error: "Ação inválida" }, 400);
+    if (!["ban", "unban", "reactivate", "delete"].includes(action)) return json({ error: "Ação inválida" }, 400);
     if (!/^[0-9a-f-]{36}$/i.test(restaurantId)) return json({ error: "Restaurante inválido" }, 400);
-    if (action !== "unban" && reason.length < 3) return json({ error: "Informe o motivo" }, 400);
+    if (action === "ban" || action === "delete") if (reason.length < 3) return json({ error: "Informe o motivo" }, 400);
 
     const { data: restaurant } = await admin
       .from("restaurants").select("id, name, slug").eq("id", restaurantId).maybeSingle();
@@ -66,7 +66,13 @@ Deno.serve(async (req) => {
 
     await admin.from("platform_admin_logs").insert({
       actor_id: actor.id,
-      action: action === "delete" ? "restaurant.deleted" : action === "ban" ? "restaurant.banned" : "restaurant.unbanned",
+      action: action === "delete"
+        ? "restaurant.deleted"
+        : action === "ban"
+          ? "restaurant.banned"
+          : action === "reactivate"
+            ? "restaurant.reactivated"
+            : "restaurant.unbanned",
       entity_type: "restaurant",
       entity_id: restaurantId,
       old_value: { name: restaurant.name, slug: restaurant.slug, members: memberIds.length },
