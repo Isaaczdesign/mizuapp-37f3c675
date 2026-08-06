@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, Menu, X, Lock, UserRound, Star, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ChefHat, UtensilsCrossed, Users, QrCode, Calendar, LogOut, Settings, Bell, Menu, X, Lock, UserRound, Star, LifeBuoy, Sparkles } from "lucide-react";
 import { supportWhatsappUrl } from "@/lib/whatsappTemplates";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import OrderNotificationProvider from "@/components/OrderNotificationProvider";
@@ -9,29 +9,34 @@ import { Logo } from "@/components/Logo";
 import GuidedTour from "@/components/GuidedTour";
 import PlatformAnnouncementBanner from "@/components/PlatformAnnouncementBanner";
 import ThemeToggle from "@/components/ThemeToggle";
+import { usePlan } from "@/hooks/usePlan";
+import UpgradeDialog from "@/components/plan/UpgradeDialog";
+import { minPlanFor, type FeatureKey } from "@/lib/plans";
 
 
-type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[]; end?: boolean };
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; roles?: string[]; end?: boolean; feature?: FeatureKey };
 
 const allNavItems: NavItem[] = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["owner", "manager"] },
   { to: "/orders", icon: ShoppingBag, label: "Pedidos", roles: ["owner", "manager", "staff"] },
   { to: "/kds", icon: ChefHat, label: "Cozinha" },
   { to: "/menu-admin", icon: UtensilsCrossed, label: "Cardápio", roles: ["owner", "manager"] },
-  { to: "/customers", icon: Users, label: "CRM", roles: ["owner", "manager", "staff"] },
-  { to: "/avaliacoes", icon: Star, label: "Avaliações", roles: ["owner", "manager"] },
+  { to: "/customers", icon: Users, label: "CRM", roles: ["owner", "manager", "staff"], feature: "crm" },
+  { to: "/avaliacoes", icon: Star, label: "Avaliações", roles: ["owner", "manager"], feature: "reviews" },
   { to: "/tables", icon: QrCode, label: "Mesas", roles: ["owner", "manager"] },
   // { to: "/automations", icon: Zap, label: "Automações", roles: ["owner", "manager"] },
-  { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"] },
+  { to: "/agenda", icon: Calendar, label: "Agenda", roles: ["owner", "manager", "staff"], feature: "agenda" },
   { to: "/expediente", icon: Lock, label: "Expediente", roles: ["owner", "manager"] },
 ];
 
 const bottomItems: NavItem[] = [
 
   { to: "/perfil", icon: UserRound, label: "Meu perfil" },
+  { to: "/settings/plano", icon: Sparkles, label: "Meu plano", roles: ["owner", "manager"] },
   { to: "/settings/notifications", icon: Bell, label: "Notificações" },
   { to: "/settings", icon: Settings, label: "Configurações", roles: ["owner", "manager"], end: true },
 ];
+
 
 
 function filterByRole(items: NavItem[], roles: string[]): NavItem[] {
@@ -46,9 +51,12 @@ export default function AdminLayout({ children, collapsible = false }: { childre
   const navigate = useNavigate();
   const userRoles = roles.length > 0 ? roles : ["owner"];
   const pendingOrders = usePendingOrdersCount();
+  const { hasFeature, loading: planLoading } = usePlan();
+  const [lockedFeature, setLockedFeature] = useState<FeatureKey | null>(null);
 
   const navItems = filterByRole(allNavItems, userRoles);
   const bottomNav = filterByRole(bottomItems, userRoles);
+
 
   // Desktop hover-expand state
   const [expanded, setExpanded] = useState(false);
@@ -122,8 +130,35 @@ export default function AdminLayout({ children, collapsible = false }: { childre
         </p>
         {navItems.map((item) => {
           const showBadge = item.to === "/orders" && pendingOrders > 0;
+          const locked = !!item.feature && !planLoading && !hasFeature(item.feature);
+          if (locked) {
+            return (
+              <button
+                key={item.to}
+                type="button"
+                title={!isOpen ? `${item.label} · ${minPlanFor(item.feature!) === "premium" ? "Premium" : "Pro"}` : undefined}
+                onClick={() => setLockedFeature(item.feature!)}
+                className={`${rowCls} w-full border border-transparent text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50`}
+              >
+                <span className="relative shrink-0">
+                  <item.icon className="w-4 h-4" />
+                </span>
+                {isOpen && <span className={`${labelCls} flex-1 text-left`}>{item.label}</span>}
+                {isOpen ? (
+                  <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[10px] text-accent">
+                    <Lock className="h-2.5 w-2.5" />
+                    {minPlanFor(item.feature!) === "premium" ? "Premium" : "Pro"}
+                  </span>
+                ) : (
+                  <Lock className="absolute right-2 top-1.5 h-2.5 w-2.5 text-accent/70" />
+                )}
+                {tooltip(item.label)}
+              </button>
+            );
+          }
           return (
             <NavLink
+
               key={item.to}
               to={item.to}
               onClick={onNavigate}
@@ -368,8 +403,15 @@ export default function AdminLayout({ children, collapsible = false }: { childre
 
 
 
+      <UpgradeDialog
+        open={!!lockedFeature}
+        onOpenChange={(v) => !v && setLockedFeature(null)}
+        feature={lockedFeature ?? undefined}
+      />
+
       {/* Global order notifications */}
       <OrderNotificationProvider />
+
     </div>
   );
 }
