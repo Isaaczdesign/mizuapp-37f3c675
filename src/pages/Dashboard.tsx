@@ -90,10 +90,10 @@ const Dashboard = () => {
       const hasMenu = (menuRes.data?.length ?? 0) > 0;
       const hasPayment = Array.isArray(rest?.payment_methods) && (rest.payment_methods as any[]).length > 0;
       const steps = [
-        { label: "Logo do restaurante", done: hasLogo },
-        { label: "Horários de funcionamento", done: hasHours },
-        { label: "Cardápio com itens", done: hasMenu },
-        { label: "Métodos de pagamento", done: hasPayment },
+        { label: "Logo do restaurante", done: hasLogo, to: "/settings", hint: "Adicione a logo em Configurações › Identidade" },
+        { label: "Horários de funcionamento", done: hasHours, to: "/settings", hint: "Defina os dias e horários de atendimento" },
+        { label: "Cardápio com itens", done: hasMenu, to: "/menu-admin", hint: "Cadastre ao menos um item no cardápio" },
+        { label: "Métodos de pagamento", done: hasPayment, to: "/settings", hint: "Selecione as formas de pagamento aceitas" },
       ];
       const completed = steps.filter((s) => s.done).length;
       return { steps, completed, total: steps.length, allDone: completed === steps.length, slug: rest?.slug };
