@@ -106,15 +106,17 @@ const App = () => (
             <Route path="/orders" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Orders /></ProtectedRoute>} />
             <Route path="/kds" element={<ProtectedRoute><KDS /></ProtectedRoute>} />
             <Route path="/menu-admin" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><MenuAdmin /></ProtectedRoute>} />
-            <Route path="/customers" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Customers /></ProtectedRoute>} />
+            <Route path="/customers" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><FeatureRoute feature="crm"><Customers /></FeatureRoute></ProtectedRoute>} />
             <Route path="/tables" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Tables /></ProtectedRoute>} />
             {/* <Route path="/automations" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Automations /></ProtectedRoute>} /> */}
-            <Route path="/agenda" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><Agenda /></ProtectedRoute>} />
-            <Route path="/avaliacoes" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Reviews /></ProtectedRoute>} />
+            <Route path="/agenda" element={<ProtectedRoute allowedRoles={["owner", "manager", "staff"]}><FeatureRoute feature="agenda"><Agenda /></FeatureRoute></ProtectedRoute>} />
+            <Route path="/avaliacoes" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><FeatureRoute feature="reviews"><Reviews /></FeatureRoute></ProtectedRoute>} />
 
             <Route path="/settings" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Settings /></ProtectedRoute>} />
+            <Route path="/settings/plano" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><MyPlan /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+
             <Route path="/expediente" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><Expediente /></ProtectedRoute>} />
             <Route path="/expediente/historico" element={<ProtectedRoute allowedRoles={["owner", "manager"]}><ExpedienteHistorico /></ProtectedRoute>} />
             <Route path="/admin-mizu" element={<AdminOverview />} />
