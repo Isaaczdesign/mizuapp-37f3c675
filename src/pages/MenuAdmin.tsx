@@ -1161,13 +1161,34 @@ const MenuAdmin = () => {
                 <Label>Tags</Label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {TAG_OPTIONS.map((tag) => (
-                    <button key={tag.value} onClick={() => toggleTag(tag.value)}
+                    <button type="button" key={tag.value} onClick={() => toggleTag(tag.value)}
                       className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
                         itemForm.tags.includes(tag.value) ? "bg-primary/20 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground"
                       }`}>
                       {tag.label}
                     </button>
                   ))}
+                  {itemForm.tags
+                    .filter((t) => !TAG_OPTIONS.some((o) => o.value === t))
+                    .map((t) => (
+                      <button type="button" key={t} onClick={() => toggleTag(t)}
+                        className="text-xs px-2.5 py-1 rounded-full bg-accent/20 text-foreground border border-accent/40"
+                        title="Clique para remover">
+                        {t.replace(/_/g, " ")} ×
+                      </button>
+                    ))}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Criar tag personalizada (ex: Novidade)"
+                    value={customTag}
+                    onChange={(e) => setCustomTag(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTag(); } }}
+                    maxLength={30}
+                  />
+                  <Button type="button" variant="glass" onClick={addCustomTag} disabled={!customTag.trim()}>
+                    Adicionar
+                  </Button>
                 </div>
               </div>
               <div>
