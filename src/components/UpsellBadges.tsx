@@ -62,7 +62,7 @@ export function UpsellBadges({
   itemName?: string;
   size?: "sm" | "md";
 }) {
-  const activeTags = (tags ?? []).filter((t) => UPSELL_STYLES[t]);
+  const activeTags = (tags ?? []).filter(Boolean);
 
   if (activeTags.length === 0) return null;
 
@@ -73,7 +73,13 @@ export function UpsellBadges({
   return (
     <div className="flex flex-wrap gap-1.5 items-center">
       {activeTags.map((tag, i) => {
-        const s = UPSELL_STYLES[tag];
+        const s: BadgeStyle = UPSELL_STYLES[tag] ?? {
+          label: tag.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          icon: Sparkles,
+          gradient: "linear-gradient(135deg, #2c2e2d 0%, #111111 100%)",
+          ring: "rgba(255,220,139,0.6)",
+          glow: "0 0 10px rgba(255,220,139,0.35)",
+        };
         const Icon = s.icon;
         return (
           <motion.span
