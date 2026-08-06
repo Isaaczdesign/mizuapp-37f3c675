@@ -781,12 +781,14 @@ const MenuAdmin = () => {
       const payload: any = {
         name: itemForm.name, description: itemForm.description || null,
         price: parseFloat(itemForm.price) || 0, image_url,
-        restaurant_id: rid!, category_id: selectedCat!,
+        restaurant_id: rid!,
+        category_id: selectedCat ?? itemDialog?.item?.category_id ?? null,
         ingredients: itemForm.ingredients || null, allergens: itemForm.allergens || null,
         cost_estimate: itemForm.cost_estimate ? parseFloat(itemForm.cost_estimate) : null,
         margin_percent: itemForm.margin_percent ? parseFloat(itemForm.margin_percent) : null,
-        tags: itemForm.tags,
+        tags: Array.from(new Set(itemForm.tags.map((t) => t.trim()).filter(Boolean))),
       };
+      if (!payload.category_id) throw new Error("Selecione uma categoria para salvar o item.");
       if (mode === "create") {
         const { error } = await supabase.from("menu_items").insert({ ...payload, sort_order: items?.length ?? 0 });
         if (error) throw error;
@@ -829,6 +831,16 @@ const MenuAdmin = () => {
     setItemDialog({ mode: "edit", item });
   };
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const addCustomTag = () => {
+    const raw = customTag.trim();
+    if (!raw) return;
+    const value = raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 30);
+    if (!value) return;
+    setItemForm((prev) => prev.tags.includes(value) ? prev : { ...prev, tags: [...prev.tags, value] });
+    setCustomTag("");
+  };
 
   const toggleTag = (tag: string) => {
     setItemForm((prev) => ({
