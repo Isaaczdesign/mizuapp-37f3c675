@@ -23,7 +23,7 @@ export default function MyPlan() {
   const plan = usePlan();
   const [cycle, setCycle] = useState<"monthly" | "annual">(plan.billingCycle);
 
-  const current = PLANS[plan.planCode];
+  const current = PLANS[plan.planCode] ?? PLANS.starter;
   const included = useMemo(
     () => Array.from(plan.features) as FeatureKey[],
     [plan.features],
