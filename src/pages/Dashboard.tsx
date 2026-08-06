@@ -378,16 +378,60 @@ const Dashboard = () => {
             </Surface>
 
             {setupStatus && !setupStatus.allDone && !bannerDismissed && (
-              <Surface className="px-4 py-2.5 flex items-center gap-3 border-accent/25 lg:w-[320px] shrink-0">
-                <Rocket className="w-4 h-4 text-accent shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">Configuração {setupStatus.completed}/{setupStatus.total}</p>
-                  <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-1 h-1" />
+              <Surface className="px-4 py-2.5 border-accent/25 lg:w-[320px] shrink-0">
+                <div className="flex items-center gap-3">
+                  <Rocket className="w-4 h-4 text-accent shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">Configuração {setupStatus.completed}/{setupStatus.total}</p>
+                    <Progress value={(setupStatus.completed / setupStatus.total) * 100} className="mt-1 h-1" />
+                  </div>
+                  <button
+                    onClick={() => setSetupOpen((v) => !v)}
+                    aria-expanded={setupOpen}
+                    aria-label={setupOpen ? "Ocultar pendências" : "Ver o que falta"}
+                    className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${setupOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs rounded-lg" onClick={() => (window.location.href = "/settings")}>Ajustar</Button>
-                <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground">
-                  <X className="w-3.5 h-3.5" />
-                </button>
+
+                <AnimatePresence initial={false}>
+                  {setupOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <ul className="mt-3 space-y-1.5 border-t border-border/60 pt-3">
+                        {setupStatus.steps.map((s) => (
+                          <li key={s.label}>
+                            <button
+                              onClick={() => !s.done && navigate(s.to)}
+                              disabled={s.done}
+                              className={`w-full flex items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${s.done ? "opacity-60 cursor-default" : "hover:bg-secondary/60"}`}
+                            >
+                              {s.done ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-emerald-500 shrink-0" />
+                              ) : (
+                                <Circle className="w-3.5 h-3.5 mt-0.5 text-muted-foreground shrink-0" />
+                              )}
+                              <span className="min-w-0 flex-1">
+                                <span className={`block text-xs ${s.done ? "line-through text-muted-foreground" : "font-medium"}`}>{s.label}</span>
+                                {!s.done && <span className="block text-[11px] text-muted-foreground">{s.hint}</span>}
+                              </span>
+                              {!s.done && <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-accent shrink-0" />}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Surface>
             )}
 
