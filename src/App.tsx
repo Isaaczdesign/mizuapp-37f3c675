@@ -90,6 +90,8 @@ const App = () => (
         <AuthProvider>
           <PlanProvider>
           <ActiveOrderFab />
+          <Routes>
+
 
             <Route path="/" element={<Index />} />
             <Route path="/demonstracao" element={<Demonstracao />} />
