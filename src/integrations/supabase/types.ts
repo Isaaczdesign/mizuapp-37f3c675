@@ -313,6 +313,57 @@ export type Database = {
           },
         ]
       }
+      feature_overrides: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          expires_at: string | null
+          feature_key: string
+          id: string
+          reason: string | null
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          expires_at?: string | null
+          feature_key: string
+          id?: string
+          reason?: string | null
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          expires_at?: string | null
+          feature_key?: string
+          id?: string
+          reason?: string | null
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_overrides_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feature_overrides_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_cron_secrets: {
         Row: {
           created_at: string
@@ -999,6 +1050,83 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      plan_features: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature_key: string
+          id: string
+          plan_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          plan_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          plan_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_plan_code_fkey"
+            columns: ["plan_code"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          active: boolean
+          annual_price_cents: number
+          code: string
+          created_at: string
+          id: string
+          is_recommended: boolean
+          monthly_price_cents: number
+          name: string
+          sort_order: number
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          annual_price_cents?: number
+          code: string
+          created_at?: string
+          id?: string
+          is_recommended?: boolean
+          monthly_price_cents?: number
+          name: string
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          annual_price_cents?: number
+          code?: string
+          created_at?: string
+          id?: string
+          is_recommended?: boolean
+          monthly_price_cents?: number
+          name?: string
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       platform_admin_logs: {
         Row: {
@@ -1775,33 +1903,118 @@ export type Database = {
           },
         ]
       }
-      subscriptions: {
+      subscription_events: {
         Row: {
           created_at: string
-          expires_at: string | null
+          error_message: string | null
+          event_type: string
           id: string
-          plan: string
-          restaurant_id: string
-          started_at: string
-          status: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          provider_event_id: string | null
+          restaurant_id: string | null
+          subscription_id: string | null
         }
         Insert: {
           created_at?: string
-          expires_at?: string | null
+          error_message?: string | null
+          event_type: string
           id?: string
-          plan?: string
-          restaurant_id: string
-          started_at?: string
-          status?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          provider_event_id?: string | null
+          restaurant_id?: string | null
+          subscription_id?: string | null
         }
         Update: {
           created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          provider_event_id?: string | null
+          restaurant_id?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: string
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          expires_at: string | null
+          id: string
+          plan: string
+          provider: string | null
+          provider_subscription_id: string | null
+          restaurant_id: string
+          scheduled_plan: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
           expires_at?: string | null
           id?: string
           plan?: string
-          restaurant_id?: string
+          provider?: string | null
+          provider_subscription_id?: string | null
+          restaurant_id: string
+          scheduled_plan?: string | null
           started_at?: string
           status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          provider?: string | null
+          provider_subscription_id?: string | null
+          restaurant_id?: string
+          scheduled_plan?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -2111,6 +2324,22 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_my_plan: {
+        Args: never
+        Returns: {
+          annual_price_cents: number
+          billing_cycle: string
+          cancel_at_period_end: boolean
+          current_period_end: string
+          current_period_start: string
+          features: string[]
+          monthly_price_cents: number
+          plan_code: string
+          plan_name: string
+          scheduled_plan: string
+          status: string
+        }[]
+      }
       get_order_payment_status: {
         Args: { _token: string }
         Returns: {
@@ -2216,6 +2445,10 @@ export type Database = {
           public_key: string
         }[]
       }
+      get_restaurant_plan_code: {
+        Args: { _restaurant_id: string }
+        Returns: string
+      }
       get_restaurant_public_state: {
         Args: { _slug: string }
         Returns: {
@@ -2232,6 +2465,7 @@ export type Database = {
         }[]
       }
       get_user_restaurant_id: { Args: { _user_id: string }; Returns: string }
+      has_feature: { Args: { _feature_key: string }; Returns: boolean }
       has_platform_role: {
         Args: {
           _role: Database["public"]["Enums"]["platform_role"]
@@ -2281,6 +2515,10 @@ export type Database = {
         Returns: {
           slug: string
         }[]
+      }
+      restaurant_has_feature: {
+        Args: { _feature_key: string; _restaurant_id: string }
+        Returns: boolean
       }
       submit_order_review: {
         Args: {

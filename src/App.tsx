@@ -6,7 +6,11 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-
 import { MotionConfig } from "framer-motion";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PlanProvider } from "@/hooks/usePlan";
+import { FeatureRoute } from "@/components/plan/FeatureGate";
+import MyPlan from "./pages/MyPlan";
 import Onboarding from "@/components/Onboarding";
+
 import Index from "./pages/Index";
 import Demonstracao from "./pages/Demonstracao";
 import Auth from "./pages/Auth";
@@ -84,8 +88,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PlanProvider>
           <ActiveOrderFab />
-          <Routes>
+
             <Route path="/" element={<Index />} />
             <Route path="/demonstracao" element={<Demonstracao />} />
             <Route path="/auth" element={<Auth />} />
