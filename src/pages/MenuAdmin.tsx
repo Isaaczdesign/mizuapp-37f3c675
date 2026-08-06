@@ -652,6 +652,7 @@ const MenuAdmin = () => {
     name: "", description: "", price: "", image: null as File | null,
     ingredients: "", allergens: "", cost_estimate: "", margin_percent: "", tags: [] as string[],
   });
+  const [customTag, setCustomTag] = useState("");
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", rid],
@@ -781,12 +782,14 @@ const MenuAdmin = () => {
       const payload: any = {
         name: itemForm.name, description: itemForm.description || null,
         price: parseFloat(itemForm.price) || 0, image_url,
-        restaurant_id: rid!, category_id: selectedCat!,
+        restaurant_id: rid!,
+        category_id: selectedCat ?? itemDialog?.item?.category_id ?? null,
         ingredients: itemForm.ingredients || null, allergens: itemForm.allergens || null,
         cost_estimate: itemForm.cost_estimate ? parseFloat(itemForm.cost_estimate) : null,
         margin_percent: itemForm.margin_percent ? parseFloat(itemForm.margin_percent) : null,
-        tags: itemForm.tags,
+        tags: Array.from(new Set(itemForm.tags.map((t) => t.trim()).filter(Boolean))),
       };
+      if (!payload.category_id) throw new Error("Selecione uma categoria para salvar o item.");
       if (mode === "create") {
         const { error } = await supabase.from("menu_items").insert({ ...payload, sort_order: items?.length ?? 0 });
         if (error) throw error;
@@ -829,6 +832,16 @@ const MenuAdmin = () => {
     setItemDialog({ mode: "edit", item });
   };
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const addCustomTag = () => {
+    const raw = customTag.trim();
+    if (!raw) return;
+    const value = raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 30);
+    if (!value) return;
+    setItemForm((prev) => prev.tags.includes(value) ? prev : { ...prev, tags: [...prev.tags, value] });
+    setCustomTag("");
+  };
 
   const toggleTag = (tag: string) => {
     setItemForm((prev) => ({
@@ -1148,13 +1161,34 @@ const MenuAdmin = () => {
                 <Label>Tags</Label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {TAG_OPTIONS.map((tag) => (
-                    <button key={tag.value} onClick={() => toggleTag(tag.value)}
+                    <button type="button" key={tag.value} onClick={() => toggleTag(tag.value)}
                       className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
                         itemForm.tags.includes(tag.value) ? "bg-primary/20 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground"
                       }`}>
                       {tag.label}
                     </button>
                   ))}
+                  {itemForm.tags
+                    .filter((t) => !TAG_OPTIONS.some((o) => o.value === t))
+                    .map((t) => (
+                      <button type="button" key={t} onClick={() => toggleTag(t)}
+                        className="text-xs px-2.5 py-1 rounded-full bg-accent/20 text-foreground border border-accent/40"
+                        title="Clique para remover">
+                        {t.replace(/_/g, " ")} ×
+                      </button>
+                    ))}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Criar tag personalizada (ex: Novidade)"
+                    value={customTag}
+                    onChange={(e) => setCustomTag(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTag(); } }}
+                    maxLength={30}
+                  />
+                  <Button type="button" variant="glass" onClick={addCustomTag} disabled={!customTag.trim()}>
+                    Adicionar
+                  </Button>
                 </div>
               </div>
               <div>
