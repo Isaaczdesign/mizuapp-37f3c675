@@ -692,6 +692,25 @@ const PublicMenu = () => {
   // ── Loading ──
   if (loading) return <MenuSkeleton />;
 
+  // ── Suspenso / banido ──
+  if (!restaurant && suspended) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 text-center">
+        <div className="w-full max-w-sm rounded-3xl border border-border bg-card/60 p-7">
+          <UtensilsCrossed className="mx-auto mb-4 h-14 w-14 text-muted-foreground" />
+          <h2 className="font-display text-xl font-bold">Cardápio indisponível</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            O cardápio digital de <span className="font-medium text-foreground">{suspended.name}</span> está
+            temporariamente desativado e não está recebendo novos pedidos.
+          </p>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Se você é o responsável pelo estabelecimento, fale com o suporte da Mizu.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // ── Not found ──
   if (!restaurant) {
     return (
@@ -702,6 +721,7 @@ const PublicMenu = () => {
       </div>
     );
   }
+
 
   const q = search.trim().toLowerCase();
   const matchesSearch = (i: MenuItem) =>
