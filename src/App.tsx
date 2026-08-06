@@ -40,6 +40,7 @@ import AdminPlans from "./pages/admin-mizu/Plans";
 import AdminSubscriptions from "./pages/admin-mizu/Subscriptions";
 import AdminSupport from "./pages/admin-mizu/Support";
 import AdminLogs from "./pages/admin-mizu/Logs";
+import AdminModeration from "./pages/admin-mizu/Moderation";
 import AdminDeletedNotes from "./pages/admin-mizu/DeletedNotes";
 import AdminPlatformSettings from "./pages/admin-mizu/PlatformSettings";
 import { AdminCoupons, AdminNotifications } from "./pages/admin-mizu/Placeholders";
@@ -122,6 +123,7 @@ const App = () => (
             <Route path="/admin-mizu/notificacoes/atualizacoes" element={<AdminNotifications mode="updates" />} />
 
             <Route path="/admin-mizu/observacoes-excluidas" element={<AdminDeletedNotes />} />
+            <Route path="/admin-mizu/moderacao" element={<AdminModeration />} />
             <Route path="/admin-mizu/logs" element={<AdminLogs />} />
             <Route path="/admin-mizu/configuracoes" element={<AdminPlatformSettings />} />
             {import.meta.env.DEV && (

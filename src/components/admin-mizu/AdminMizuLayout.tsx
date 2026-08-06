@@ -41,6 +41,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Sistema",
     items: [
       { to: "/admin-mizu/observacoes-excluidas", label: "Obs. excluídas", icon: Trash2, superAdminOnly: true },
+      { to: "/admin-mizu/moderacao", label: "Auditoria de moderação", icon: ShieldAlert },
       { to: "/admin-mizu/logs", label: "Logs e auditoria", icon: ScrollText },
       { to: "/admin-mizu/configuracoes", label: "Configurações", icon: Settings },
     ],
