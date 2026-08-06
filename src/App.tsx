@@ -40,6 +40,7 @@ import AdminPlans from "./pages/admin-mizu/Plans";
 import AdminSubscriptions from "./pages/admin-mizu/Subscriptions";
 import AdminSupport from "./pages/admin-mizu/Support";
 import AdminLogs from "./pages/admin-mizu/Logs";
+import AdminModeration from "./pages/admin-mizu/Moderation";
 import AdminDeletedNotes from "./pages/admin-mizu/DeletedNotes";
 import AdminPlatformSettings from "./pages/admin-mizu/PlatformSettings";
 import { AdminCoupons, AdminNotifications } from "./pages/admin-mizu/Placeholders";
