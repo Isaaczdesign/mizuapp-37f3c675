@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [period, setPeriod] = useState<Period>("today");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const [hasActiveShift, setHasActiveShift] = useState(false);
   const [currentShiftId, setCurrentShiftId] = useState<string | null>(null);
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
