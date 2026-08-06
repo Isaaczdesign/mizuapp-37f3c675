@@ -20,7 +20,7 @@ import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { isOpenNow, nextOpenAt, formatCountdown } from "@/lib/operatingHours";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Surface, SectionHeader, MetricCard, AnimatedValue, Trend, EmptyState, Skeleton, ChartTooltip, fadeUp, stagger } from "@/components/dashboard/ui";
 import { menuUrl } from "@/lib/publicMenuUrl";
 type Period = "today" | "week" | "month" | "custom";
