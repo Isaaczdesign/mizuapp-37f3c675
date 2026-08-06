@@ -2216,6 +2216,13 @@ export type Database = {
           public_key: string
         }[]
       }
+      get_restaurant_public_state: {
+        Args: { _slug: string }
+        Returns: {
+          is_active: boolean
+          name: string
+        }[]
+      }
       get_table_by_token: {
         Args: { _token: string }
         Returns: {
